@@ -1,1990 +1,4069 @@
-// =====================================
-// DOSSIER.JS
-// Quản lý Hồ sơ bằng Back4App
-// =====================================
+;(() => {
 
-const DOSSIER_CLASS_NAME =
-    "Dossier";
+    "use strict";
 
-const DOSSIER_MIGRATION_KEY =
-    "dossierBack4AppMigrationV1";
 
+    // =====================================================
+    // CẤU HÌNH
+    // =====================================================
 
-let dossiers =
-    getDossierStorageArray(
-        "dossiers"
-    );
+    const DOSSIER_PAGE_CLASS_NAME =
+        "Dossier";
 
-let editingDossierId =
-    null;
 
-let dossierDataLoaded =
-    false;
+    const DOSSIER_STORAGE_KEY =
+        "dossiers";
 
-let dossierLoadingPromise =
-    null;
 
-let dossierMigrationPromise =
-    null;
+    const DOSSIER_MIGRATION_KEY =
+        "dossierBack4AppMigrationV2";
 
 
-// Hồ sơ đang được tick chọn
-const selectedDossierIds =
-    new Set();
+    // =====================================================
+    // TRẠNG THÁI
+    // =====================================================
 
-
-// Hồ sơ đang hiển thị sau khi lọc
-let currentRenderedDossiers =
-    [];
-
-// =====================================
-// PHÂN TRANG HỒ SƠ
-// =====================================
-
-let dossierCurrentPage =
-    1;
-
-
-let dossierPageSize =
-    20;
-
-
-/*
-Chứa toàn bộ kết quả sau khi tìm kiếm,
-lọc và sắp xếp.
-
-Bảng chỉ lấy một phần từ mảng này.
-*/
-
-let dossierFilteredData =
-    [];
-
-// =====================================
-// HÀM HỖ TRỢ CHUNG
-// =====================================
-
-function getDossierElement(id){
-
-    return document.getElementById(id);
-
-}
-
-
-function getDossierInputValue(id){
-
-    const element =
-        getDossierElement(id);
-
-
-    return element
-
-        ? String(
-            element.value || ""
-        ).trim()
-
-        : "";
-
-}
-
-
-function setDossierInputValue(
-    id,
-    value
-){
-
-    const element =
-        getDossierElement(id);
-
-
-    if(element){
-
-        element.value =
-            value ?? "";
-
-    }
-
-}
-
-
-function setDossierChecked(
-    id,
-    checked
-){
-
-    const element =
-        getDossierElement(id);
-
-
-    if(element){
-
-        element.checked =
-            Boolean(checked);
-
-    }
-
-}
-
-
-function getDossierProjects(){
-
-    return (
-
-        typeof projects !==
-        "undefined"
-
-        &&
-
-        Array.isArray(projects)
-
-    )
-
-        ? projects
-
-        : [];
-
-}
-
-
-function getDossierSuppliers(){
-
-    return (
-
-        typeof suppliers !==
-        "undefined"
-
-        &&
-
-        Array.isArray(suppliers)
-
-    )
-
-        ? suppliers
-
-        : [];
-
-}
-
-
-function getDossierProjectById(id){
-
-    return getDossierProjects()
-        .find(item =>
-
-            String(item.id)
-
-            ===
-
-            String(id)
-
+    let dossiers =
+        getDossierStorageArray(
+            DOSSIER_STORAGE_KEY
         );
 
-}
+
+    let editingDossierId =
+        null;
 
 
-function getDossierSupplierById(id){
-
-    return getDossierSuppliers()
-        .find(item =>
-
-            String(item.id)
-
-            ===
-
-            String(id)
-
-        );
-
-}
+    let dossierDataLoaded =
+        false;
 
 
-function normalizeDossierText(value){
-
-    return String(value || "")
-
-        .normalize("NFD")
-
-        .replace(
-            /[\u0300-\u036f]/g,
-            ""
-        )
-
-        .toLowerCase()
-
-        .trim();
-
-}
+    let dossierLoadingPromise =
+        null;
 
 
-function escapeDossierHtml(value){
-
-    return String(value ?? "")
-
-        .replaceAll("&", "&amp;")
-
-        .replaceAll("<", "&lt;")
-
-        .replaceAll(">", "&gt;")
-
-        .replaceAll('"', "&quot;")
-
-        .replaceAll("'", "&#039;");
-
-}
-
-// =====================================
-// TẠO BADGE TRẠNG THÁI
-// =====================================
-
-function renderDossierBadge(
-    type,
-    value
-){
-
-    const text =
-        String(value || "").trim();
+    let dossierMigrationPromise =
+        null;
 
 
-    let className =
-        "";
+    let dossierModalMountState =
+        null;
 
 
-    if(type === "status"){
+    const selectedDossierIds =
+        new Set();
 
-        className =
 
-            text === "Đã duyệt"
+    let currentRenderedDossiers =
+        [];
 
-            ? "dossier-badge-approved"
 
-            : "dossier-badge-pending";
+    let dossierFilteredData =
+        [];
+
+
+    let dossierCurrentPage =
+        1;
+
+
+    let dossierPageSize =
+        20;
+
+
+    // =====================================================
+    // DOM
+    // =====================================================
+
+    function getDossierElement(id) {
+
+        return document.getElementById(id);
 
     }
 
 
-    if(type === "file"){
+    function getDossierInputValue(id) {
 
-        className =
+        const element =
+            getDossierElement(id);
 
-            text === "Đã up"
 
-            ? "dossier-badge-file-uploaded"
+        return element
 
-            : "dossier-badge-file-missing";
+            ? String(
+                element.value ?? ""
+            ).trim()
+
+            : "";
 
     }
 
 
-    if(type === "payment"){
+    function setDossierInputValue(
+        id,
+        value
+    ) {
 
-        if(text === "Đã thanh toán"){
+        const element =
+            getDossierElement(id);
 
-            className =
-                "dossier-badge-paid";
 
-        }else if(text === "Đang xử lý"){
+        if (element) {
 
-            className =
-                "dossier-badge-processing";
-
-        }else if(text === "Đã xuất ĐNTT"){
-
-            className =
-                "dossier-badge-requested";
-
-        }else{
-
-            className =
-                "dossier-badge-unpaid";
+            element.value =
+                value ?? "";
 
         }
 
     }
 
 
-    if(type === "delivery"){
+    function setDossierChecked(
+        id,
+        checked
+    ) {
 
-        className =
+        const element =
+            getDossierElement(id);
 
-            text === "Chưa bàn giao"
 
-            ? "dossier-badge-not-delivered"
+        if (element) {
 
-            : "dossier-badge-delivered";
+            element.checked =
+                Boolean(checked);
+
+        }
 
     }
 
 
-    return `
+    // =====================================================
+    // THÔNG BÁO
+    // =====================================================
 
-        <span
-            class="dossier-badge ${className}"
-        >
-            ${escapeDossierHtml(text)}
-        </span>
+    function showDossierNotice(
+        message,
+        type = "info"
+    ) {
 
-    `;
+        if (
+            typeof window.showAppToast ===
+            "function"
+        ) {
 
-}
-
-function getDossierStorageArray(key){
-
-    try{
-
-        const rawData =
-            localStorage.getItem(key);
+            window.showAppToast(
+                message,
+                type
+            );
 
 
-        if(!rawData){
+            return;
+
+        }
+
+
+        if (type === "error") {
+
+            console.error(message);
+
+        } else {
+
+            console.log(message);
+
+        }
+
+
+        window.alert(message);
+
+    }
+
+
+    // =====================================================
+    // CHUẨN HÓA
+    // =====================================================
+
+    function normalizeDossierText(value) {
+
+        return String(value ?? "")
+
+            .normalize("NFD")
+
+            .replace(
+                /[\u0300-\u036f]/g,
+                ""
+            )
+
+            .replace(
+                /đ/g,
+                "d"
+            )
+
+            .replace(
+                /Đ/g,
+                "D"
+            )
+
+            .toLowerCase()
+
+            .replace(
+                /\s+/g,
+                " "
+            )
+
+            .trim();
+
+    }
+
+
+    function escapeDossierHtml(value) {
+
+        return String(value ?? "")
+
+            .replaceAll(
+                "&",
+                "&amp;"
+            )
+
+            .replaceAll(
+                "<",
+                "&lt;"
+            )
+
+            .replaceAll(
+                ">",
+                "&gt;"
+            )
+
+            .replaceAll(
+                '"',
+                "&quot;"
+            )
+
+            .replaceAll(
+                "'",
+                "&#039;"
+            );
+
+    }
+
+
+    function parseDossierBoolean(value) {
+
+        return (
+            value === true
+
+            ||
+
+            value === 1
+
+            ||
+
+            String(value).toLowerCase() ===
+            "true"
+        );
+
+    }
+
+
+    function parseDossierValue(value) {
+
+        const cleanedValue =
+            String(value ?? "")
+
+                .replace(
+                    /[^\d-]/g,
+                    ""
+                );
+
+
+        const numberValue =
+            Number(cleanedValue);
+
+
+        return Number.isFinite(numberValue)
+
+            ? numberValue
+
+            : 0;
+
+    }
+
+
+    function formatDossierDate(date) {
+
+        if (!date) {
+
+            return "";
+
+        }
+
+
+        const parts =
+            String(date).split("-");
+
+
+        if (parts.length !== 3) {
+
+            return String(date);
+
+        }
+
+
+        return `${parts[2]}/${parts[1]}/${parts[0]}`;
+
+    }
+
+
+    function getDossierCreatedTime(item) {
+
+        const createdAtTime =
+            Date.parse(
+                item?.createdAt || ""
+            );
+
+
+        if (!Number.isNaN(createdAtTime)) {
+
+            return createdAtTime;
+
+        }
+
+
+        const updatedAtTime =
+            Date.parse(
+                item?.updatedAt || ""
+            );
+
+
+        if (!Number.isNaN(updatedAtTime)) {
+
+            return updatedAtTime;
+
+        }
+
+
+        const legacyTime =
+            Number(
+                item?.legacyId
+
+                ||
+
+                item?.id
+
+                ||
+
+                0
+            );
+
+
+        return Number.isFinite(legacyTime)
+
+            ? legacyTime
+
+            : 0;
+
+    }
+
+
+    // =====================================================
+    // STORAGE
+    // =====================================================
+
+    function getDossierStorageArray(key) {
+
+        try {
+
+            const rawData =
+                localStorage.getItem(key);
+
+
+            if (!rawData) {
+
+                return [];
+
+            }
+
+
+            const parsedData =
+                JSON.parse(rawData);
+
+
+            return Array.isArray(parsedData)
+
+                ? parsedData
+
+                : [];
+
+        } catch (error) {
+
+            console.error(
+                `Không đọc được ${key}:`,
+                error
+            );
+
+
+            return [];
+
+        }
+
+    }
+
+
+    function saveDossiersToStorage() {
+
+        try {
+
+            localStorage.setItem(
+
+                DOSSIER_STORAGE_KEY,
+
+                JSON.stringify(dossiers)
+
+            );
+
+        } catch (error) {
+
+            console.error(
+                "Không lưu được cache Hồ sơ:",
+                error
+            );
+
+        }
+
+    }
+
+
+    // =====================================================
+    // ID CỦA OBJECT
+    // =====================================================
+
+    function getEntityIdentifiers(item) {
+
+        if (!item) {
 
             return [];
 
         }
 
 
-        const parsedData =
-            JSON.parse(rawData);
+        return [
+
+            item.id,
+
+            item.back4appId,
+
+            item.objectId,
+
+            item.legacyId
+
+        ]
+            .filter(Boolean)
+
+            .map(value =>
+                String(value)
+            );
+
+    }
 
 
-        return Array.isArray(parsedData)
+    function getEntityStableId(item) {
 
-            ? parsedData
+        if (!item) {
 
-            : [];
+            return "";
 
-    }catch(error){
+        }
 
-        console.error(
-            `Không đọc được dữ liệu ${key}:`,
-            error
-        );
+
+        return String(
+
+            item.back4appId
+
+            ||
+
+            item.objectId
+
+            ||
+
+            item.id
+
+            ||
+
+            item.legacyId
+
+            ||
+
+            ""
+
+        ).trim();
+
+    }
+
+
+    function entityMatchesId(
+        item,
+        id
+    ) {
+
+        const targetId =
+            String(id ?? "");
+
+
+        if (!targetId) {
+
+            return false;
+
+        }
+
+
+        return getEntityIdentifiers(item)
+            .includes(targetId);
+
+    }
+
+
+    function getDossierIdentifiers(item) {
+
+        return getEntityIdentifiers(item);
+
+    }
+
+
+    function findLocalDossierByAnyId(id) {
+
+        return dossiers.find(item =>
+
+            entityMatchesId(
+                item,
+                id
+            )
+
+        ) || null;
+
+    }
+
+
+    function sameDossierIdentity(
+        firstItem,
+        secondItem
+    ) {
+
+        if (
+            !firstItem
+
+            ||
+
+            !secondItem
+        ) {
+
+            return false;
+
+        }
+
+
+        const secondIds =
+            new Set(
+                getDossierIdentifiers(
+                    secondItem
+                )
+            );
+
+
+        return getDossierIdentifiers(
+            firstItem
+        )
+            .some(id =>
+                secondIds.has(id)
+            );
+
+    }
+
+
+    // =====================================================
+    // DỰ ÁN
+    // =====================================================
+
+    function getDossierProjects() {
+
+        if (
+            typeof window.getProjectsData ===
+            "function"
+        ) {
+
+            const projectData =
+                window.getProjectsData();
+
+
+            if (Array.isArray(projectData)) {
+
+                return projectData;
+
+            }
+
+        }
+
+
+        if (Array.isArray(window.projects)) {
+
+            return window.projects;
+
+        }
+
+
+        try {
+
+            if (
+                typeof projects !==
+                "undefined"
+
+                &&
+
+                Array.isArray(projects)
+            ) {
+
+                return projects;
+
+            }
+
+        } catch (error) {
+
+            console.debug(
+                "Không đọc được biến projects:",
+                error
+            );
+
+        }
 
 
         return [];
 
     }
 
-}
 
+    function getDossierProjectById(id) {
 
-function saveDossiersToStorage(){
+        return getDossierProjects()
+            .find(project =>
 
-    try{
+                entityMatchesId(
+                    project,
+                    id
+                )
 
-        localStorage.setItem(
-
-            "dossiers",
-
-            JSON.stringify(dossiers)
-
-        );
-
-    }catch(error){
-
-        console.error(
-            "Không cập nhật được cache Hồ sơ:",
-            error
-        );
-
-    }
-
-}
-
-
-function ensureDossierBack4AppReady(){
-
-    if(typeof Parse === "undefined"){
-
-        throw new Error(
-            "Parse SDK chưa được tải."
-        );
+            ) || null;
 
     }
 
 
-    if(
-        window.BACK4APP_CONFIG_READY !==
-        true
-    ){
+    function getDossierProjectName(item) {
 
-        throw new Error(
-            "Back4App chưa được khởi tạo."
-        );
-
-    }
-
-
-    if(!Parse.User.current()){
-
-        throw new Error(
-            "Phiên đăng nhập không còn hiệu lực."
-        );
-
-    }
-
-}
-
-
-function parseDossierValue(value){
-
-    const cleanedValue =
-        String(value ?? "")
-
-            .replace(
-                /[^\d-]/g,
-                ""
+        const project =
+            getDossierProjectById(
+                item?.projectId
             );
 
 
-    const numberValue =
-        Number(cleanedValue);
+        return String(
+
+            project?.ten
+
+            ||
+
+            project?.name
+
+            ||
+
+            "Dự án đã xóa"
+
+        ).trim();
+
+    }
 
 
-    return Number.isFinite(numberValue)
+    function setDossierProjectById(projectId) {
 
-        ? numberValue
+        const select =
+            getDossierElement(
+                "dossierProject"
+            );
 
-        : 0;
+
+        if (!select) {
+
+            return;
+
+        }
+
+
+        const project =
+            getDossierProjectById(
+                projectId
+            );
+
+
+        if (!project) {
+
+            select.value =
+                projectId || "";
+
+
+            return;
+
+        }
+
+
+        const validIds =
+            getEntityIdentifiers(project);
+
+
+        const matchingOption =
+            Array.from(select.options)
+                .find(option =>
+
+                    validIds.includes(
+                        String(option.value)
+                    )
+
+                );
+
+
+        if (matchingOption) {
+
+            select.value =
+                matchingOption.value;
+
+
+            return;
+
+        }
+
+
+        const stableId =
+            getEntityStableId(project);
+
+
+        if (stableId) {
+
+            const option =
+                document.createElement(
+                    "option"
+                );
+
+
+            option.value =
+                stableId;
+
+
+            option.textContent =
+                project.ten
+
+                ||
+
+                project.name
+
+                ||
+
+                "Không có tên";
+
+
+            select.appendChild(option);
+
+
+            select.value =
+                stableId;
+
+        }
+
+    }
+
+
+    // =====================================================
+    // NHÀ CUNG CẤP
+    // =====================================================
+
+    function getDossierSuppliers() {
+
+        if (
+            typeof window.getSuppliersData ===
+            "function"
+        ) {
+
+            const supplierData =
+                window.getSuppliersData();
+
+
+            if (Array.isArray(supplierData)) {
+
+                return supplierData;
+
+            }
+
+        }
+
+
+        if (Array.isArray(window.suppliers)) {
+
+            return window.suppliers;
+
+        }
+
+
+        try {
+
+            if (
+                typeof suppliers !==
+                "undefined"
+
+                &&
+
+                Array.isArray(suppliers)
+            ) {
+
+                return suppliers;
+
+            }
+
+        } catch (error) {
+
+            console.debug(
+                "Không đọc được biến suppliers:",
+                error
+            );
+
+        }
+
+
+        return [];
+
+    }
+
+// =====================================================
+// DROPDOWN TÌM NHÀ CUNG CẤP
+// =====================================================
+
+let dossierSupplierSearchResults =
+    [];
+
+
+let dossierSupplierActiveIndex =
+    -1;
+
+
+function hideDossierSupplierDropdown(){
+
+    const dropdown =
+        getDossierElement(
+            "dossierSupplierDropdown"
+        );
+
+
+    if(!dropdown){
+
+        return;
+
+    }
+
+    getDossierElement(
+    "dossierSupplierSearch"
+)?.setAttribute(
+    "aria-expanded",
+    "false"
+);
+
+
+    dropdown.hidden =
+        true;
+
+
+    dropdown.innerHTML =
+        "";
+
+
+    dossierSupplierSearchResults =
+        [];
+
+
+    dossierSupplierActiveIndex =
+        -1;
 
 }
 
 
-function formatDossierDate(date){
+function updateDossierSupplierDropdownActive(){
 
-    if(!date){
+    const dropdown =
+        getDossierElement(
+            "dossierSupplierDropdown"
+        );
+
+
+    if(!dropdown){
+
+        return;
+
+    }
+
+
+    const buttons =
+        dropdown.querySelectorAll(
+            ".dossier-supplier-option"
+        );
+
+
+    buttons.forEach(
+        function(button, index){
+
+            const active =
+                index ===
+                dossierSupplierActiveIndex;
+
+
+            button.classList.toggle(
+                "is-active",
+                active
+            );
+
+
+            if(active){
+
+                button.scrollIntoView({
+
+                    block:
+                        "nearest",
+
+                    behavior:
+                        "auto"
+
+                });
+
+            }
+
+        }
+    );
+
+}
+
+
+function setDossierSupplierSearchMessage(
+    message,
+    type = ""
+){
+
+    const hint =
+        getDossierElement(
+            "dossierSupplierSearchHint"
+        );
+
+
+    if(!hint){
+
+        return;
+
+    }
+
+
+    hint.textContent =
+        message;
+
+
+    hint.classList.remove(
+        "is-valid",
+        "is-invalid"
+    );
+
+
+    if(type === "valid"){
+
+        hint.classList.add(
+            "is-valid"
+        );
+
+    }
+
+
+    if(type === "invalid"){
+
+        hint.classList.add(
+            "is-invalid"
+        );
+
+    }
+
+}
+
+
+function selectDossierSupplier(
+    supplierId
+){
+
+    const supplier =
+        getDossierSupplierById(
+            supplierId
+        );
+
+
+    const hiddenSelect =
+        getDossierElement(
+            "dossierSupplier"
+        );
+
+
+    const searchInput =
+        getDossierElement(
+            "dossierSupplierSearch"
+        );
+
+
+    if(
+        !supplier
+
+        ||
+
+        !hiddenSelect
+
+        ||
+
+        !searchInput
+    ){
+
+        return;
+
+    }
+
+
+    const stableId =
+        getDossierSupplierStableId(
+            supplier
+        );
+
+
+    /*
+    Bảo đảm select ẩn có option tương ứng.
+    */
+
+    let matchingOption =
+        Array.from(
+            hiddenSelect.options
+        )
+        .find(option =>
+
+            String(option.value)
+
+            ===
+
+            String(stableId)
+
+        );
+
+
+    if(!matchingOption){
+
+        matchingOption =
+            document.createElement(
+                "option"
+            );
+
+
+        matchingOption.value =
+            stableId;
+
+
+        matchingOption.textContent =
+            getDossierSupplierLabel(
+                supplier
+            );
+
+
+        hiddenSelect.appendChild(
+            matchingOption
+        );
+
+    }
+
+
+    hiddenSelect.value =
+        stableId;
+
+
+    searchInput.value =
+        getDossierSupplierLabel(
+            supplier
+        );
+
+
+    setDossierSupplierSearchMessage(
+
+        `Đã chọn: ${getDossierSupplierName(
+            supplier
+        )}`,
+
+        "valid"
+
+    );
+
+
+    searchInput.setAttribute(
+        "aria-invalid",
+        "false"
+    );
+
+
+    hideDossierSupplierDropdown();
+
+}
+
+
+function renderDossierSupplierDropdown(
+    keyword = ""
+){
+
+    const dropdown =
+        getDossierElement(
+            "dossierSupplierDropdown"
+        );
+
+
+    if(!dropdown){
+
+        return;
+
+    }
+
+
+    const normalizedKeyword =
+        normalizeDossierText(
+            keyword
+        );
+
+
+    const supplierList =
+        [...getDossierSuppliers()];
+
+
+    let matchedSuppliers;
+
+
+    if(!normalizedKeyword){
+
+        /*
+        Khi chưa gõ, chỉ hiển thị 10 NCC đầu tiên.
+        */
+
+        matchedSuppliers =
+            supplierList.slice(
+                0,
+                10
+            );
+
+    }else{
+
+        matchedSuppliers =
+            supplierList.filter(
+                supplier =>
+
+                    getDossierSupplierSearchText(
+                        supplier
+                    )
+                    .includes(
+                        normalizedKeyword
+                    )
+
+            );
+
+    }
+
+
+    matchedSuppliers.sort(
+        function(a, b){
+
+            return getDossierSupplierLabel(a)
+                .localeCompare(
+
+                    getDossierSupplierLabel(b),
+
+                    "vi",
+
+                    {
+                        sensitivity:
+                            "base",
+
+                        numeric:
+                            true
+                    }
+
+                );
+
+        }
+    );
+
+
+    /*
+    Chỉ hiển thị tối đa 12 kết quả,
+    tránh danh sách quá dài.
+    */
+
+    dossierSupplierSearchResults =
+        matchedSuppliers.slice(
+            0,
+            12
+        );
+
+
+    dossierSupplierActiveIndex =
+        -1;
+
+
+    dropdown.innerHTML =
+        "";
+
+
+    if(
+        dossierSupplierSearchResults
+            .length === 0
+    ){
+
+        const emptyMessage =
+            document.createElement(
+                "div"
+            );
+
+
+        emptyMessage.className =
+            "dossier-supplier-empty";
+
+
+        emptyMessage.textContent =
+            "Không tìm thấy nhà cung cấp phù hợp.";
+
+
+        dropdown.appendChild(
+            emptyMessage
+        );
+
+
+        dropdown.hidden =
+            false;
+
+        getDossierElement(
+    "dossierSupplierSearch"
+)?.setAttribute(
+    "aria-expanded",
+    "true"
+);
+
+
+        setDossierSupplierSearchMessage(
+            "Không tìm thấy nhà cung cấp phù hợp.",
+            "invalid"
+        );
+
+
+        return;
+
+    }
+
+
+    dossierSupplierSearchResults.forEach(
+        function(supplier){
+
+            const supplierId =
+                getDossierSupplierStableId(
+                    supplier
+                );
+
+
+            const optionButton =
+                document.createElement(
+                    "button"
+                );
+
+
+            optionButton.type =
+                "button";
+
+
+            optionButton.className =
+                "dossier-supplier-option";
+
+
+            optionButton.dataset.id =
+                supplierId;
+
+
+            const nameElement =
+                document.createElement(
+                    "strong"
+                );
+
+
+            nameElement.textContent =
+                getDossierSupplierName(
+                    supplier
+                );
+
+
+            const detailElement =
+                document.createElement(
+                    "span"
+                );
+
+
+            const code =
+                getDossierSupplierCode(
+                    supplier
+                );
+
+
+            const phone =
+                getDossierSupplierPhone(
+                    supplier
+                );
+
+
+            detailElement.textContent =
+                [
+
+                    code,
+
+                    phone
+
+                ]
+                .filter(Boolean)
+                .join(" • ");
+
+
+            optionButton.appendChild(
+                nameElement
+            );
+
+
+            if(detailElement.textContent){
+
+                optionButton.appendChild(
+                    detailElement
+                );
+
+            }
+
+
+            /*
+            Dùng mousedown để chọn trước khi
+            input bị mất focus.
+            */
+
+            optionButton.addEventListener(
+                "mousedown",
+                function(event){
+
+                    event.preventDefault();
+
+
+                    selectDossierSupplier(
+                        supplierId
+                    );
+
+                }
+            );
+
+
+            dropdown.appendChild(
+                optionButton
+            );
+
+        }
+    );
+
+
+    dropdown.hidden =
+        false;
+
+
+    if(normalizedKeyword){
+
+        const totalMatches =
+            matchedSuppliers.length;
+
+
+        setDossierSupplierSearchMessage(
+
+            totalMatches > 12
+
+                ? `Có ${totalMatches} kết quả. Đang hiển thị 12 kết quả đầu tiên.`
+
+                : `Có ${totalMatches} nhà cung cấp phù hợp.`
+
+        );
+
+    }else{
+
+        setDossierSupplierSearchMessage(
+            "Nhập tên hoặc mã để thu hẹp kết quả."
+        );
+
+    }
+
+}
+
+
+function searchDossierSuppliers(
+    keyword
+){
+
+    const hiddenSelect =
+        getDossierElement(
+            "dossierSupplier"
+        );
+
+
+    const searchInput =
+        getDossierElement(
+            "dossierSupplierSearch"
+        );
+
+
+    if(
+        !hiddenSelect
+
+        ||
+
+        !searchInput
+    ){
+
+        return;
+
+    }
+
+
+    /*
+    Khi người dùng sửa nội dung đã chọn,
+    xóa ID cũ để tránh lưu nhầm NCC.
+    */
+
+    const selectedSupplier =
+        getDossierSupplierById(
+            hiddenSelect.value
+        );
+
+
+    if(selectedSupplier){
+
+        const selectedLabel =
+            getDossierSupplierLabel(
+                selectedSupplier
+            );
+
+
+        if(
+            normalizeDossierText(
+                searchInput.value
+            )
+
+            !==
+
+            normalizeDossierText(
+                selectedLabel
+            )
+        ){
+
+            hiddenSelect.value =
+                "";
+
+
+            searchInput.removeAttribute(
+                "aria-invalid"
+            );
+
+        }
+
+    }
+
+
+    renderDossierSupplierDropdown(
+        keyword
+    );
+
+}
+
+document.addEventListener(
+
+    "mousedown",
+
+    function(event) {
+
+        const picker =
+            event.target?.closest?.(
+                ".dossier-supplier-picker"
+            );
+
+
+        if (!picker) {
+
+            hideDossierSupplierDropdown();
+
+        }
+
+    }
+
+);
+
+function handleDossierSupplierKeydown(
+    event
+){
+
+    const dropdown =
+        getDossierElement(
+            "dossierSupplierDropdown"
+        );
+
+
+    if(
+        !dropdown
+
+        ||
+
+        dropdown.hidden
+    ){
+
+        if(event.key === "ArrowDown"){
+
+            searchDossierSuppliers(
+                event.currentTarget.value
+            );
+
+        }
+
+
+        return;
+
+    }
+
+
+    if(event.key === "ArrowDown"){
+
+        event.preventDefault();
+
+
+        dossierSupplierActiveIndex =
+            Math.min(
+
+                dossierSupplierActiveIndex + 1,
+
+                dossierSupplierSearchResults
+                    .length - 1
+
+            );
+
+
+        updateDossierSupplierDropdownActive();
+
+
+        return;
+
+    }
+
+
+    if(event.key === "ArrowUp"){
+
+        event.preventDefault();
+
+
+        dossierSupplierActiveIndex =
+            Math.max(
+
+                dossierSupplierActiveIndex - 1,
+
+                0
+
+            );
+
+
+        updateDossierSupplierDropdownActive();
+
+
+        return;
+
+    }
+
+
+    if(event.key === "Enter"){
+
+        event.preventDefault();
+
+
+        if(
+            dossierSupplierActiveIndex >= 0
+
+            &&
+
+            dossierSupplierSearchResults[
+                dossierSupplierActiveIndex
+            ]
+        ){
+
+            const supplier =
+                dossierSupplierSearchResults[
+                    dossierSupplierActiveIndex
+                ];
+
+
+            selectDossierSupplier(
+
+                getDossierSupplierStableId(
+                    supplier
+                )
+
+            );
+
+
+            return;
+
+        }
+
+
+        /*
+        Không dùng phím Enter để submit form
+        khi người dùng chưa chọn NCC.
+        */
+
+        handleDossierSupplierSearchChange(
+            true
+        );
+
+
+        return;
+
+    }
+
+
+    if(event.key === "Escape"){
+
+        event.preventDefault();
+
+
+        hideDossierSupplierDropdown();
+
+    }
+
+}
+    function getDossierSupplierStableId(
+        supplier
+    ) {
+
+        return getEntityStableId(
+            supplier
+        );
+
+    }
+
+
+    function getDossierSupplierIdentifiers(
+        supplier
+    ) {
+
+        return getEntityIdentifiers(
+            supplier
+        );
+
+    }
+
+
+    function getDossierSupplierById(id) {
+
+        return getDossierSuppliers()
+            .find(supplier =>
+
+                entityMatchesId(
+                    supplier,
+                    id
+                )
+
+            ) || null;
+
+    }
+
+
+    function getDossierSupplierCode(
+        supplier
+    ) {
+
+        if (!supplier) {
+
+            return "";
+
+        }
+
+
+        return String(
+
+            supplier.code
+
+            ||
+
+            supplier.ma
+
+            ||
+
+            supplier.maNCC
+
+            ||
+
+            supplier.supplierCode
+
+            ||
+
+            ""
+
+        ).trim();
+
+    }
+
+
+    function getDossierSupplierName(
+        supplier
+    ) {
+
+        if (!supplier) {
+
+            return "";
+
+        }
+
+
+        return String(
+
+            supplier.ten
+
+            ||
+
+            supplier.name
+
+            ||
+
+            "Không có tên"
+
+        ).trim();
+
+    }
+
+
+    function getDossierSupplierPhone(
+        supplier
+    ) {
+
+        if (!supplier) {
+
+            return "";
+
+        }
+
+
+        return String(
+
+            supplier.sdt
+
+            ||
+
+            supplier.phone
+
+            ||
+
+            supplier.phoneNumber
+
+            ||
+
+            ""
+
+        ).trim();
+
+    }
+
+
+    function getDossierSupplierReceiver(
+        supplier
+    ) {
+
+        if (!supplier) {
+
+            return "";
+
+        }
+
+
+        return String(
+
+            supplier.nguoinhan
+
+            ||
+
+            supplier.receiver
+
+            ||
+
+            supplier.contact
+
+            ||
+
+            ""
+
+        ).trim();
+
+    }
+
+
+    function getDossierSupplierAddress(
+        supplier
+    ) {
+
+        if (!supplier) {
+
+            return "";
+
+        }
+
+
+        return String(
+
+            supplier.diachi
+
+            ||
+
+            supplier.address
+
+            ||
+
+            ""
+
+        ).trim();
+
+    }
+
+
+    function getDossierSupplierLabel(
+        supplier
+    ) {
+
+        if (!supplier) {
+
+            return "";
+
+        }
+
+
+        const code =
+            getDossierSupplierCode(
+                supplier
+            );
+
+
+        const name =
+            getDossierSupplierName(
+                supplier
+            );
+
+
+        const phone =
+            getDossierSupplierPhone(
+                supplier
+            );
+
+
+        let label =
+            code
+
+                ? `${code} - ${name}`
+
+                : name;
+
+
+        if (phone) {
+
+            label +=
+                ` | ${phone}`;
+
+        }
+
+
+        return label;
+
+    }
+
+
+    function getDossierSupplierSearchText(
+        supplier
+    ) {
+
+        return normalizeDossierText(`
+
+            ${getDossierSupplierCode(
+                supplier
+            )}
+
+            ${getDossierSupplierName(
+                supplier
+            )}
+
+            ${getDossierSupplierPhone(
+                supplier
+            )}
+
+            ${getDossierSupplierReceiver(
+                supplier
+            )}
+
+            ${getDossierSupplierAddress(
+                supplier
+            )}
+
+            ${getDossierSupplierLabel(
+                supplier
+            )}
+
+        `);
+
+    }
+
+    // =====================================================
+// ĐỒNG BỘ NHÀ CUNG CẤP CHO CUSTOM DROPDOWN
+// =====================================================
+
+function updateDossierSupplierHint(
+    state,
+    supplier = null
+) {
+
+    if (state === "empty") {
+
+        setDossierSupplierSearchMessage(
+            "Nhập tên, mã hoặc số điện thoại để tìm nhà cung cấp."
+        );
+
+        return;
+
+    }
+
+
+    if (state === "valid") {
+
+        setDossierSupplierSearchMessage(
+
+            supplier
+
+                ? `Đã chọn: ${getDossierSupplierName(supplier)}`
+
+                : "Đã chọn đúng nhà cung cấp.",
+
+            "valid"
+
+        );
+
+        return;
+
+    }
+
+
+    if (state === "ambiguous") {
+
+        setDossierSupplierSearchMessage(
+            "Có nhiều nhà cung cấp phù hợp. Hãy nhập thêm ký tự hoặc chọn một kết quả.",
+            "invalid"
+        );
+
+        return;
+
+    }
+
+
+    setDossierSupplierSearchMessage(
+        "Không tìm thấy nhà cung cấp phù hợp.",
+        "invalid"
+    );
+
+}
+
+
+function getDossierSupplierMatches(
+    inputValue
+) {
+
+    const normalizedInput =
+        normalizeDossierText(
+            inputValue
+        );
+
+
+    if (!normalizedInput) {
+
+        return [];
+
+    }
+
+
+    const supplierList =
+        getDossierSuppliers();
+
+
+    const exactMatches =
+        supplierList.filter(
+            supplier => {
+
+                const exactValues = [
+
+                    getDossierSupplierLabel(
+                        supplier
+                    ),
+
+                    getDossierSupplierName(
+                        supplier
+                    ),
+
+                    getDossierSupplierCode(
+                        supplier
+                    ),
+
+                    getDossierSupplierPhone(
+                        supplier
+                    )
+
+                ];
+
+
+                return exactValues.some(
+                    value =>
+
+                        value
+
+                        &&
+
+                        normalizeDossierText(
+                            value
+                        )
+
+                        ===
+
+                        normalizedInput
+
+                );
+
+            }
+        );
+
+
+    if (exactMatches.length > 0) {
+
+        return exactMatches;
+
+    }
+
+
+    return supplierList.filter(
+        supplier =>
+
+            getDossierSupplierSearchText(
+                supplier
+            )
+                .includes(
+                    normalizedInput
+                )
+
+    );
+
+}
+
+
+function handleDossierSupplierSearchChange(
+    commitSelection = false
+) {
+
+    const searchInput =
+        getDossierElement(
+            "dossierSupplierSearch"
+        );
+
+
+    const supplierSelect =
+        getDossierElement(
+            "dossierSupplier"
+        );
+
+
+    if (!supplierSelect) {
+
+        console.error(
+            "Không tìm thấy #dossierSupplier."
+        );
 
         return "";
 
     }
 
 
-    const parts =
-        String(date).split("-");
+    if (!searchInput) {
 
-
-    if(parts.length !== 3){
-
-        return String(date);
+        return String(
+            supplierSelect.value || ""
+        );
 
     }
 
 
-    return `${parts[2]}/${parts[1]}/${parts[0]}`;
+    const inputValue =
+        String(
+            searchInput.value || ""
+        ).trim();
+
+
+    if (!inputValue) {
+
+        supplierSelect.value =
+            "";
+
+        updateDossierSupplierHint(
+            "empty"
+        );
+
+        return "";
+
+    }
+
+
+    const currentlySelectedSupplier =
+        getDossierSupplierById(
+            supplierSelect.value
+        );
+
+
+    if (
+        currentlySelectedSupplier
+
+        &&
+
+        normalizeDossierText(
+            inputValue
+        )
+
+        ===
+
+        normalizeDossierText(
+
+            getDossierSupplierLabel(
+                currentlySelectedSupplier
+            )
+
+        )
+    ) {
+
+        updateDossierSupplierHint(
+            "valid",
+            currentlySelectedSupplier
+        );
+
+
+        return getDossierSupplierStableId(
+            currentlySelectedSupplier
+        );
+
+    }
+
+
+    const matches =
+        getDossierSupplierMatches(
+            inputValue
+        );
+
+
+    if (matches.length === 1) {
+
+        const supplier =
+            matches[0];
+
+
+        const supplierId =
+            getDossierSupplierStableId(
+                supplier
+            );
+
+
+        selectDossierSupplier(
+            supplierId
+        );
+
+
+        return supplierId;
+
+    }
+
+
+    supplierSelect.value =
+        "";
+
+
+    updateDossierSupplierHint(
+
+        matches.length > 1
+
+            ? "ambiguous"
+
+            : "invalid"
+
+    );
+
+
+    return "";
 
 }
 
 
-function setDossierSaveBusy(
-    isBusy,
-    isEditing
-){
+function setDossierSupplierById(
+    supplierId
+) {
 
-    const button =
-        getDossierElement(
-            "dossierSaveButton"
+    const supplier =
+        getDossierSupplierById(
+            supplierId
         );
 
 
-    if(!button){
+    if (!supplier) {
+
+        setDossierInputValue(
+            "dossierSupplier",
+            ""
+        );
+
+
+        setDossierInputValue(
+            "dossierSupplierSearch",
+            ""
+        );
+
+
+        updateDossierSupplierHint(
+            "empty"
+        );
+
+
+        hideDossierSupplierDropdown();
+
 
         return;
 
     }
 
 
-    button.disabled =
-        isBusy;
+    selectDossierSupplier(
 
+        getDossierSupplierStableId(
+            supplier
+        )
 
-    button.textContent =
-
-        isBusy
-
-        ? "Đang lưu..."
-
-        : (
-            isEditing
-
-            ? "Cập nhật hồ sơ"
-
-            : "Lưu hồ sơ"
-        );
+    );
 
 }
 
 
-function setDossierTableMessage(
-    message,
-    isError = false
-){
+/*
+Hàm này không còn tạo datalist.
 
-    const table =
+Nó chỉ tạo option cho select ẩn để lưu
+đúng supplierId.
+*/
+
+function loadDossierSupplierSearchOptions() {
+
+    const supplierSelect =
         getDossierElement(
-            "dossierTable"
+            "dossierSupplier"
         );
 
 
-    if(!table){
+    const supplierList =
+        [...getDossierSuppliers()]
 
-        return;
+            .filter(supplier =>
+
+                Boolean(
+
+                    getDossierSupplierStableId(
+                        supplier
+                    )
+
+                )
+
+            )
+
+            .sort((a, b) =>
+
+                getDossierSupplierLabel(a)
+                    .localeCompare(
+
+                        getDossierSupplierLabel(b),
+
+                        "vi",
+
+                        {
+                            sensitivity:
+                                "base",
+
+                            numeric:
+                                true
+                        }
+
+                    )
+
+            );
+
+
+    if (!supplierSelect) {
+
+        /*
+        Trường hợp đang ở trang thanh toán,
+        chưa mở form hồ sơ.
+        */
+
+        return supplierList.length;
 
     }
 
 
-    currentRenderedDossiers =
-        [];
+    const currentSupplierId =
+        String(
+            supplierSelect.value || ""
+        );
 
 
-    table.innerHTML = `
+    supplierSelect.innerHTML = `
 
-        <tr>
-
-            <td
-                colspan="14"
-                style="
-                    text-align:center;
-                    padding:25px;
-                    color:${
-                        isError
-                        ? "#dc2626"
-                        : "#6b7280"
-                    };
-                "
-            >
-                ${escapeDossierHtml(message)}
-            </td>
-
-        </tr>
+        <option value="">
+            -- Chọn nhà cung cấp --
+        </option>
 
     `;
 
 
-    updateDossierSelectionUI();
+    supplierList.forEach(
+        supplier => {
+
+            const supplierId =
+                getDossierSupplierStableId(
+                    supplier
+                );
+
+
+            const option =
+                document.createElement(
+                    "option"
+                );
+
+
+            option.value =
+                supplierId;
+
+
+            option.textContent =
+                getDossierSupplierLabel(
+                    supplier
+                );
+
+
+            supplierSelect.appendChild(
+                option
+            );
+
+        }
+    );
+
+
+    const selectedSupplier =
+        getDossierSupplierById(
+            currentSupplierId
+        );
+
+
+    if (selectedSupplier) {
+
+        supplierSelect.value =
+            getDossierSupplierStableId(
+                selectedSupplier
+            );
+
+    }
+
+
+    return supplierList.length;
 
 }
 
+// =====================================================
+// TẠO DANH SÁCH GỢI Ý NHÀ CUNG CẤP
+// =====================================================
 
-// =====================================
-// CHUYỂN PARSE OBJECT THÀNH OBJECT THƯỜNG
-// =====================================
+function loadDossierSupplierSearchOptions() {
 
-function dossierParseObjectToPlain(
-    parseObject,
-    fallbackDossier = null
-){
+    const supplierSelect =
+        getDossierElement(
+            "dossierSupplier"
+        );
 
-    const fallbackLegacyId =
 
-        fallbackDossier
+    const searchInput =
+        getDossierElement(
+            "dossierSupplierSearch"
+        );
 
-        &&
 
-        fallbackDossier.id
+    const datalist =
+        getDossierElement(
+            "dossierSupplierList"
+        );
 
-        &&
 
-        String(fallbackDossier.id)
+    if (!supplierSelect) {
 
-        !==
+        console.warn(
+            "Không tìm thấy #dossierSupplier."
+        );
 
+
+        return 0;
+
+    }
+
+
+    if (!searchInput) {
+
+        console.warn(
+            "Không tìm thấy #dossierSupplierSearch."
+        );
+
+
+        return 0;
+
+    }
+
+
+    if (!datalist) {
+
+        console.warn(
+            "Không tìm thấy #dossierSupplierList."
+        );
+
+
+        return 0;
+
+    }
+
+
+    const currentSupplierId =
         String(
-            fallbackDossier.back4appId ||
-            ""
-        )
-
-        ? String(
-            fallbackDossier.id
-        )
-
-        : "";
+            supplierSelect.value || ""
+        );
 
 
-    const legacyId =
+    const currentSearchText =
         String(
+            searchInput.value || ""
+        );
 
-            parseObject.get(
-                "legacyId"
+
+    const supplierList =
+        [...getDossierSuppliers()]
+
+            .filter(supplier => {
+
+                return Boolean(
+
+                    getDossierSupplierStableId(
+                        supplier
+                    )
+
+                );
+
+            })
+
+            .sort((a, b) => {
+
+                return getDossierSupplierLabel(a)
+                    .localeCompare(
+
+                        getDossierSupplierLabel(b),
+
+                        "vi",
+
+                        {
+                            sensitivity:
+                                "base",
+
+                            numeric:
+                                true
+                        }
+
+                    );
+
+            });
+
+
+    /*
+    Xóa dữ liệu cũ.
+    */
+
+    supplierSelect.innerHTML =
+        "";
+
+
+    datalist.innerHTML =
+        "";
+
+
+    const defaultOption =
+        document.createElement(
+            "option"
+        );
+
+
+    defaultOption.value =
+        "";
+
+
+    defaultOption.textContent =
+        "-- Chọn nhà cung cấp --";
+
+
+    supplierSelect.appendChild(
+        defaultOption
+    );
+
+
+    /*
+    Tạo option cho select ẩn
+    và datalist hiển thị.
+    */
+
+    supplierList.forEach(supplier => {
+
+        const supplierId =
+            getDossierSupplierStableId(
+                supplier
+            );
+
+
+        const supplierLabel =
+            getDossierSupplierLabel(
+                supplier
+            );
+
+
+        if (
+            !supplierId
+
+            ||
+
+            !supplierLabel
+        ) {
+
+            return;
+
+        }
+
+
+        const hiddenOption =
+            document.createElement(
+                "option"
+            );
+
+
+        hiddenOption.value =
+            supplierId;
+
+
+        hiddenOption.textContent =
+            supplierLabel;
+
+
+        supplierSelect.appendChild(
+            hiddenOption
+        );
+
+
+        const suggestionOption =
+            document.createElement(
+                "option"
+            );
+
+
+        suggestionOption.value =
+            supplierLabel;
+
+
+        suggestionOption.dataset.id =
+            supplierId;
+
+
+        /*
+        Một số trình duyệt hiển thị label
+        rõ hơn khi có textContent.
+        */
+
+        suggestionOption.textContent =
+            supplierLabel;
+
+
+        datalist.appendChild(
+            suggestionOption
+        );
+
+    });
+
+
+    /*
+    Khôi phục NCC khi sửa hồ sơ.
+    */
+
+    const selectedSupplier =
+        getDossierSupplierById(
+            currentSupplierId
+        );
+
+
+    if (selectedSupplier) {
+
+        setDossierSupplierById(
+            currentSupplierId
+        );
+
+    } else {
+
+        supplierSelect.value =
+            "";
+
+
+        searchInput.value =
+            currentSearchText;
+
+
+        if (currentSearchText) {
+
+            handleDossierSupplierSearchChange(
+                false
+            );
+
+        } else {
+
+            updateDossierSupplierHint(
+                "empty"
+            );
+
+        }
+
+    }
+
+
+    console.log(
+        `Đã tạo ${datalist.options.length} gợi ý Nhà cung cấp.`
+    );
+
+
+    return datalist.options.length;
+
+}
+
+// =====================================================
+// CHỜ SUPPLIER.JS TẢI XONG DỮ LIỆU
+// =====================================================
+
+async function waitForDossierSuppliers(
+    maximumAttempts = 30,
+    delayMilliseconds = 100
+) {
+
+    for (
+        let attempt = 0;
+
+        attempt < maximumAttempts;
+
+        attempt += 1
+    ) {
+
+        const supplierList =
+            getDossierSuppliers();
+
+
+        if (
+            Array.isArray(supplierList)
+
+            &&
+
+            supplierList.length > 0
+        ) {
+
+            return supplierList;
+
+        }
+
+
+        await new Promise(resolve => {
+
+            window.setTimeout(
+                resolve,
+                delayMilliseconds
+            );
+
+        });
+
+    }
+
+
+    return [];
+
+}
+// =====================================================
+// TẢI DỰ ÁN VÀ NHÀ CUNG CẤP CHO FORM
+// =====================================================
+async function loadDossierReferenceData() {
+
+    const loadingTasks =
+        [];
+
+
+    if (
+        typeof window.loadProjectSelect ===
+        "function"
+    ) {
+
+        loadingTasks.push(
+
+            Promise.resolve(
+                window.loadProjectSelect()
             )
 
-            ||
+        );
 
-            fallbackDossier?.legacyId
-
-            ||
-
-            fallbackLegacyId
-
-            ||
-
-            ""
-
-        ).trim();
+    }
 
 
-    const back4appId =
-        String(
+    if (
+        typeof window.loadSupplierSelect ===
+        "function"
+    ) {
 
-            parseObject.id
+        loadingTasks.push(
 
-            ||
-
-            fallbackDossier?.back4appId
-
-            ||
-
-            ""
+            Promise.resolve(
+                window.loadSupplierSelect()
+            )
 
         );
+
+    }
+
+
+    if (loadingTasks.length > 0) {
+
+        const results =
+            await Promise.allSettled(
+                loadingTasks
+            );
+
+
+        results.forEach(result => {
+
+            if (
+                result.status ===
+                "rejected"
+            ) {
+
+                console.error(
+                    "Không tải được dữ liệu tham chiếu:",
+                    result.reason
+                );
+
+            }
+
+        });
+
+    }
+
+
+    const supplierList =
+        await waitForDossierSuppliers();
+
+
+    const optionCount =
+        loadDossierSupplierSearchOptions();
 
 
     return {
 
-        id:
-    back4appId
+        suppliers:
+            supplierList,
 
-    ||
-
-    legacyId
-
-    ||
-
-    fallbackDossier?.id
-
-    ||
-
-    "",
-
-
-        legacyId:
-            legacyId,
-
-
-        back4appId:
-            back4appId,
-
-
-        code:
-            String(
-
-                parseObject.get("code")
-
-                ??
-
-                fallbackDossier?.code
-
-                ??
-
-                ""
-
-            ),
-
-
-        projectId:
-            String(
-
-                parseObject.get(
-                    "projectId"
-                )
-
-                ??
-
-                fallbackDossier?.projectId
-
-                ??
-
-                ""
-
-            ),
-
-
-        content:
-            String(
-
-                parseObject.get(
-                    "content"
-                )
-
-                ??
-
-                fallbackDossier?.content
-
-                ??
-
-                ""
-
-            ),
-
-
-        supplierId:
-            String(
-
-                parseObject.get(
-                    "supplierId"
-                )
-
-                ??
-
-                fallbackDossier?.supplierId
-
-                ??
-
-                ""
-
-            ),
-
-
-        value:
-            parseDossierValue(
-
-                parseObject.get("value")
-
-                ??
-
-                fallbackDossier?.value
-
-                ??
-
-                0
-
-            ),
-
-
-        documents:
-            String(
-
-                parseObject.get(
-                    "documents"
-                )
-
-                ??
-
-                fallbackDossier?.documents
-
-                ??
-
-                fallbackDossier?.additionalDocuments
-
-                ??
-
-                ""
-
-            ),
-
-
-        fileStatus:
-            String(
-
-                parseObject.get(
-                    "fileStatus"
-                )
-
-                ??
-
-                fallbackDossier?.fileStatus
-
-                ??
-
-                "Chưa up"
-
-            ),
-
-
-        paymentRequest:
-            Boolean(
-
-                parseObject.get(
-                    "paymentRequest"
-                )
-
-                ??
-
-                fallbackDossier?.paymentRequest
-
-                ??
-
-                false
-
-            ),
-
-
-        receiveDate:
-            String(
-
-                parseObject.get(
-                    "receiveDate"
-                )
-
-                ??
-
-                fallbackDossier?.receiveDate
-
-                ??
-
-                ""
-
-            ),
-
-
-        deliveryDate:
-            String(
-
-                parseObject.get(
-                    "deliveryDate"
-                )
-
-                ??
-
-                fallbackDossier?.deliveryDate
-
-                ??
-
-                ""
-
-            ),
-
-
-        paymentStatus:
-            String(
-
-                parseObject.get(
-                    "paymentStatus"
-                )
-
-                ??
-
-                fallbackDossier?.paymentStatus
-
-                ??
-
-                "Chưa thanh toán"
-
-            ),
-
-
-        status:
-    String(
-
-        parseObject.get(
-            "status"
-        )
-
-        ??
-
-        parseObject.get(
-            "dossierStatus"
-        )
-
-        ??
-
-        fallbackDossier?.status
-
-        ??
-
-        fallbackDossier?.dossierStatus
-
-        ??
-
-        "Chưa duyệt"
-
-    ),
-
-
-        note:
-            String(
-
-                parseObject.get("note")
-
-                ??
-
-                fallbackDossier?.note
-
-                ??
-
-                ""
-
-            ),
-
-
-        createdAt:
-
-            parseObject.createdAt
-
-            ? parseObject.createdAt
-                .toISOString()
-
-            : (
-                fallbackDossier?.createdAt
-                ||
-                ""
-            ),
-
-
-        updatedAt:
-
-            parseObject.updatedAt
-
-            ? parseObject.updatedAt
-                .toISOString()
-
-            : (
-                fallbackDossier?.updatedAt
-                ||
-                ""
-            )
+        optionCount
 
     };
 
 }
 
+    // =====================================================
+    // BACK4APP
+    // =====================================================
 
-// =====================================
-// GÁN DỮ LIỆU CHO PARSE OBJECT
-// =====================================
+    function ensureDossierBack4AppReady() {
 
-function setDossierParseFields(
-    dossierObject,
-    data
-){
+        if (typeof Parse === "undefined") {
 
-    dossierObject.set(
-        "code",
-        String(data.code || "").trim()
-    );
+            throw new Error(
+                "Parse SDK chưa được tải."
+            );
 
-
-    dossierObject.set(
-        "codeNormalized",
-        normalizeDossierText(
-            data.code
-        )
-    );
+        }
 
 
-    dossierObject.set(
-        "projectId",
-        String(
-            data.projectId || ""
-        )
-    );
+        if (
+            window.BACK4APP_CONFIG_READY !==
+            true
+        ) {
+
+            throw new Error(
+                "Back4App chưa được khởi tạo."
+            );
+
+        }
 
 
-    dossierObject.set(
-        "content",
-        String(
-            data.content || ""
-        )
-    );
+        if (!Parse.User.current()) {
+
+            throw new Error(
+                "Phiên đăng nhập không còn hiệu lực."
+            );
+
+        }
+
+    }
 
 
-    dossierObject.set(
-        "supplierId",
-        String(
-            data.supplierId || ""
-        )
-    );
+    function dossierParseObjectToPlain(
+        parseObject,
+        fallbackDossier = null
+    ) {
+
+        const fallbackLegacyId =
+            fallbackDossier?.id
+
+            &&
+
+            String(fallbackDossier.id)
+
+            !==
+
+            String(
+                fallbackDossier.back4appId || ""
+            )
+
+                ? String(
+                    fallbackDossier.id
+                )
+
+                : "";
 
 
-    dossierObject.set(
-        "value",
-        parseDossierValue(
-            data.value
-        )
-    );
+        const legacyId =
+            String(
+
+                parseObject.get(
+                    "legacyId"
+                )
+
+                ||
+
+                fallbackDossier?.legacyId
+
+                ||
+
+                fallbackLegacyId
+
+                ||
+
+                ""
+
+            ).trim();
 
 
-    dossierObject.set(
-        "documents",
-        String(
+        const back4appId =
+            String(
 
-            data.documents
+                parseObject.id
 
-            ||
+                ||
 
-            data.additionalDocuments
+                fallbackDossier?.back4appId
 
-            ||
+                ||
 
-            ""
+                ""
 
-        )
-    );
+            );
 
 
-    dossierObject.set(
-        "fileStatus",
-        String(
-            data.fileStatus ||
-            "Chưa up"
-        )
-    );
+        return {
 
-
-    dossierObject.set(
-        "paymentRequest",
-        Boolean(
-            data.paymentRequest
-        )
-    );
-
-
-    dossierObject.set(
-        "receiveDate",
-        String(
-            data.receiveDate || ""
-        )
-    );
-
-
-    dossierObject.set(
-        "deliveryDate",
-        String(
-            data.deliveryDate || ""
-        )
-    );
-
-
-    dossierObject.set(
-        "paymentStatus",
-        String(
-            data.paymentStatus ||
-            "Chưa thanh toán"
-        )
-    );
-
-
-    dossierObject.set(
-        "status",
-        String(
-
-            data.status
-
-            ||
-
-            data.dossierStatus
-
-            ||
-
-            "Chưa duyệt"
-
-        )
-    );
-
-
-    dossierObject.set(
-        "note",
-        String(
-            data.note || ""
-        )
-    );
-
-}
-
-
-// =====================================
-// TÌM HỒ SƠ ĐÃ MIGRATE
-// =====================================
-
-async function findExistingDossierForMigration(
-    item
-){
-
-    const back4appId =
-        String(
-            item.back4appId || ""
-        ).trim();
-
-
-    if(back4appId){
-
-        try{
-
-            const queryByObjectId =
-                new Parse.Query(
-                    DOSSIER_CLASS_NAME
-                );
-
-
-            return await queryByObjectId.get(
+            id:
                 back4appId
-            );
 
-        }catch(error){
+                ||
 
-            // Tiếp tục tìm bằng ID cũ.
+                legacyId
 
-        }
+                ||
+
+                fallbackDossier?.id
+
+                ||
+
+                "",
+
+
+            legacyId,
+
+
+            back4appId,
+
+
+            code:
+                String(
+
+                    parseObject.get(
+                        "code"
+                    )
+
+                    ??
+
+                    fallbackDossier?.code
+
+                    ??
+
+                    ""
+
+                ),
+
+
+            projectId:
+                String(
+
+                    parseObject.get(
+                        "projectId"
+                    )
+
+                    ??
+
+                    fallbackDossier?.projectId
+
+                    ??
+
+                    ""
+
+                ),
+
+
+            content:
+                String(
+
+                    parseObject.get(
+                        "content"
+                    )
+
+                    ??
+
+                    fallbackDossier?.content
+
+                    ??
+
+                    ""
+
+                ),
+
+
+            supplierId:
+                String(
+
+                    parseObject.get(
+                        "supplierId"
+                    )
+
+                    ??
+
+                    fallbackDossier?.supplierId
+
+                    ??
+
+                    ""
+
+                ),
+
+
+            value:
+                parseDossierValue(
+
+                    parseObject.get(
+                        "value"
+                    )
+
+                    ??
+
+                    fallbackDossier?.value
+
+                    ??
+
+                    0
+
+                ),
+
+
+            documents:
+                String(
+
+                    parseObject.get(
+                        "documents"
+                    )
+
+                    ??
+
+                    fallbackDossier?.documents
+
+                    ??
+
+                    fallbackDossier?.additionalDocuments
+
+                    ??
+
+                    ""
+
+                ),
+
+
+            fileStatus:
+                String(
+
+                    parseObject.get(
+                        "fileStatus"
+                    )
+
+                    ??
+
+                    fallbackDossier?.fileStatus
+
+                    ??
+
+                    "Chưa up"
+
+                ),
+
+
+            paymentRequest:
+                parseDossierBoolean(
+
+                    parseObject.get(
+                        "paymentRequest"
+                    )
+
+                    ??
+
+                    fallbackDossier?.paymentRequest
+
+                    ??
+
+                    false
+
+                ),
+
+
+            receiveDate:
+                String(
+
+                    parseObject.get(
+                        "receiveDate"
+                    )
+
+                    ??
+
+                    fallbackDossier?.receiveDate
+
+                    ??
+
+                    ""
+
+                ),
+
+
+            deliveryDate:
+                String(
+
+                    parseObject.get(
+                        "deliveryDate"
+                    )
+
+                    ??
+
+                    fallbackDossier?.deliveryDate
+
+                    ??
+
+                    ""
+
+                ),
+
+
+            paymentStatus:
+                String(
+
+                    parseObject.get(
+                        "paymentStatus"
+                    )
+
+                    ??
+
+                    fallbackDossier?.paymentStatus
+
+                    ??
+
+                    "Chưa thanh toán"
+
+                ),
+
+
+            status:
+                String(
+
+                    parseObject.get(
+                        "status"
+                    )
+
+                    ??
+
+                    parseObject.get(
+                        "dossierStatus"
+                    )
+
+                    ??
+
+                    fallbackDossier?.status
+
+                    ??
+
+                    fallbackDossier?.dossierStatus
+
+                    ??
+
+                    "Chưa duyệt"
+
+                ),
+
+
+            note:
+                String(
+
+                    parseObject.get(
+                        "note"
+                    )
+
+                    ??
+
+                    fallbackDossier?.note
+
+                    ??
+
+                    ""
+
+                ),
+
+
+            createdAt:
+                parseObject.createdAt
+
+                    ? parseObject.createdAt
+                        .toISOString()
+
+                    : fallbackDossier?.createdAt
+                        || "",
+
+
+            updatedAt:
+                parseObject.updatedAt
+
+                    ? parseObject.updatedAt
+                        .toISOString()
+
+                    : fallbackDossier?.updatedAt
+                        || ""
+
+        };
 
     }
 
 
-    const legacyId =
-        String(
-            item.id || ""
-        ).trim();
+    function setDossierParseFields(
+        dossierObject,
+        data
+    ) {
 
-
-    if(legacyId){
-
-        const queryByLegacyId =
-            new Parse.Query(
-                DOSSIER_CLASS_NAME
-            );
-
-
-        queryByLegacyId.equalTo(
-            "legacyId",
-            legacyId
+        dossierObject.set(
+            "code",
+            String(data.code || "").trim()
         );
 
 
-        const foundByLegacyId =
-            await queryByLegacyId.first();
-
-
-        if(foundByLegacyId){
-
-            return foundByLegacyId;
-
-        }
-
-    }
-
-
-    const normalizedCode =
-        normalizeDossierText(
-            item.code
-        );
-
-
-    if(normalizedCode){
-
-        const queryByCode =
-            new Parse.Query(
-                DOSSIER_CLASS_NAME
-            );
-
-
-        queryByCode.equalTo(
+        dossierObject.set(
             "codeNormalized",
-            normalizedCode
+            normalizeDossierText(
+                data.code
+            )
         );
 
 
-        return await queryByCode.first();
+        dossierObject.set(
+            "projectId",
+            String(
+                data.projectId || ""
+            )
+        );
+
+
+        dossierObject.set(
+            "content",
+            String(
+                data.content || ""
+            )
+        );
+
+
+        dossierObject.set(
+            "supplierId",
+            String(
+                data.supplierId || ""
+            )
+        );
+
+
+        dossierObject.set(
+            "value",
+            parseDossierValue(
+                data.value
+            )
+        );
+
+
+        dossierObject.set(
+            "documents",
+            String(
+
+                data.documents
+
+                ||
+
+                data.additionalDocuments
+
+                ||
+
+                ""
+
+            )
+        );
+
+
+        dossierObject.set(
+            "fileStatus",
+            String(
+                data.fileStatus
+
+                ||
+
+                "Chưa up"
+            )
+        );
+
+
+        dossierObject.set(
+            "paymentRequest",
+            Boolean(
+                data.paymentRequest
+            )
+        );
+
+
+        dossierObject.set(
+            "receiveDate",
+            String(
+                data.receiveDate || ""
+            )
+        );
+
+
+        dossierObject.set(
+            "deliveryDate",
+            String(
+                data.deliveryDate || ""
+            )
+        );
+
+
+        dossierObject.set(
+            "paymentStatus",
+            String(
+                data.paymentStatus
+
+                ||
+
+                "Chưa thanh toán"
+            )
+        );
+
+
+        dossierObject.set(
+            "status",
+            String(
+
+                data.status
+
+                ||
+
+                data.dossierStatus
+
+                ||
+
+                "Chưa duyệt"
+
+            )
+        );
+
+
+        dossierObject.set(
+            "note",
+            String(
+                data.note || ""
+            )
+        );
 
     }
 
 
-    return null;
+    async function findDossierObjectOnBack4App(
+        dossier
+    ) {
 
-}
+        const possibleObjectIds =
+            [
 
+                dossier?.back4appId,
 
-// =====================================
-// MIGRATE HỒ SƠ CŨ LÊN BACK4APP
-// =====================================
+                dossier?.objectId,
 
-async function migrateDossiersToBack4App(
-    force = false
-){
+                dossier?.id
 
-    if(dossierMigrationPromise){
+            ]
+                .map(value =>
+                    String(value || "").trim()
+                )
 
-        return dossierMigrationPromise;
-
-    }
-
-
-    dossierMigrationPromise =
-        (async function(){
-
-            ensureDossierBack4AppReady();
+                .filter(Boolean);
 
 
-            if(
-                !force
+        const legacyId =
+            String(
+
+                dossier?.legacyId
+
+                ||
+
+                ""
+
+            ).trim();
+
+
+        const uniqueObjectIds =
+            [...new Set(possibleObjectIds)];
+
+
+        for (const objectId of uniqueObjectIds) {
+
+            if (
+                legacyId
 
                 &&
 
-                localStorage.getItem(
-                    DOSSIER_MIGRATION_KEY
-                )
-            ){
+                objectId === legacyId
+            ) {
 
-                return {
-
-                    migrated: 0,
-                    skipped: 0,
-                    failed: 0,
-                    alreadyCompleted: true
-
-                };
+                continue;
 
             }
 
 
-            const oldDossiers =
-                getDossierStorageArray(
-                    "dossiers"
+            try {
+
+                const query =
+                    new Parse.Query(
+                        DOSSIER_PAGE_CLASS_NAME
+                    );
+
+
+                return await query.get(
+                    objectId
                 );
 
+            } catch (error) {
 
-            const currentUser =
-                Parse.User.current();
+                if (Number(error?.code) !== 101) {
 
-
-            let migrated = 0;
-            let skipped = 0;
-            let failed = 0;
-
-
-            for(const item of oldDossiers){
-
-                try{
-
-                    const code =
-                        String(
-                            item.code || ""
-                        ).trim();
-
-
-                    if(!code){
-
-                        failed += 1;
-
-                        continue;
-
-                    }
-
-
-                    const legacyId =
-                        String(
-                            item.id || ""
-                        ).trim();
-
-
-                    const existingDossier =
-                        await findExistingDossierForMigration(
-                            item
-                        );
-
-
-                    if(existingDossier){
-
-                        if(
-                            legacyId
-
-                            &&
-
-                            !existingDossier.get(
-                                "legacyId"
-                            )
-                        ){
-
-                            existingDossier.set(
-                                "legacyId",
-                                legacyId
-                            );
-
-
-                            if(currentUser){
-
-                                existingDossier.set(
-                                    "updatedBy",
-                                    currentUser
-                                );
-
-                            }
-
-
-                            await existingDossier.save();
-
-                        }
-
-
-                        skipped += 1;
-
-                        continue;
-
-                    }
-
-
-                    const dossierObject =
-                        new Parse.Object(
-                            DOSSIER_CLASS_NAME
-                        );
-
-
-                    setDossierParseFields(
-                        dossierObject,
-                        item
-                    );
-
-
-                    if(legacyId){
-
-                        dossierObject.set(
-                            "legacyId",
-                            legacyId
-                        );
-
-                    }
-
-
-                    if(currentUser){
-
-                        dossierObject.set(
-                            "createdBy",
-                            currentUser
-                        );
-
-
-                        dossierObject.set(
-                            "updatedBy",
-                            currentUser
-                        );
-
-                    }
-
-
-                    await dossierObject.save();
-
-
-                    migrated += 1;
-
-                }catch(error){
-
-                    failed += 1;
-
-
-                    console.error(
-                        "Không migrate được hồ sơ:",
-                        item,
-                        error
-                    );
+                    throw error;
 
                 }
 
             }
 
+        }
 
-            localStorage.setItem(
 
-                DOSSIER_MIGRATION_KEY,
+        if (legacyId) {
 
-                JSON.stringify({
+            const legacyQuery =
+                new Parse.Query(
+                    DOSSIER_PAGE_CLASS_NAME
+                );
 
-                    completedAt:
-                        new Date()
-                            .toISOString(),
 
-                    migrated,
-                    skipped,
-                    failed
-
-                })
-
+            legacyQuery.equalTo(
+                "legacyId",
+                legacyId
             );
 
 
-            return {
-
-                migrated,
-                skipped,
-                failed,
-                alreadyCompleted: false
-
-            };
-
-        })();
+            const foundByLegacyId =
+                await legacyQuery.first();
 
 
-    try{
+            if (foundByLegacyId) {
 
-        return await dossierMigrationPromise;
+                return foundByLegacyId;
 
-    }finally{
+            }
+
+        }
+
+
+        const normalizedCode =
+            normalizeDossierText(
+                dossier?.code
+            );
+
+
+        if (normalizedCode) {
+
+            const normalizedCodeQuery =
+                new Parse.Query(
+                    DOSSIER_PAGE_CLASS_NAME
+                );
+
+
+            normalizedCodeQuery.equalTo(
+                "codeNormalized",
+                normalizedCode
+            );
+
+
+            const foundByNormalizedCode =
+                await normalizedCodeQuery.first();
+
+
+            if (foundByNormalizedCode) {
+
+                return foundByNormalizedCode;
+
+            }
+
+        }
+
+
+        const rawCode =
+            String(
+                dossier?.code || ""
+            ).trim();
+
+
+        if (rawCode) {
+
+            const rawCodeQuery =
+                new Parse.Query(
+                    DOSSIER_PAGE_CLASS_NAME
+                );
+
+
+            rawCodeQuery.equalTo(
+                "code",
+                rawCode
+            );
+
+
+            const foundByRawCode =
+                await rawCodeQuery.first();
+
+
+            if (foundByRawCode) {
+
+                return foundByRawCode;
+
+            }
+
+        }
+
+
+        return null;
+
+    }
+
+
+    async function migrateDossiersToBack4App(
+        force = false
+    ) {
+
+        if (dossierMigrationPromise) {
+
+            return dossierMigrationPromise;
+
+        }
+
 
         dossierMigrationPromise =
-            null;
+            (async function () {
 
-    }
+                ensureDossierBack4AppReady();
 
-}
 
+                if (
+                    !force
 
-// =====================================
-// SẮP XẾP HỒ SƠ MỚI NHẤT
-// =====================================
+                    &&
 
-function getDossierCreatedTime(item){
+                    localStorage.getItem(
+                        DOSSIER_MIGRATION_KEY
+                    )
+                ) {
 
-    const createdAtTime =
-        Date.parse(
-            item.createdAt || ""
-        );
+                    return {
 
+                        migrated:
+                            0,
 
-    if(!Number.isNaN(createdAtTime)){
+                        skipped:
+                            0,
 
-        return createdAtTime;
+                        failed:
+                            0,
 
-    }
+                        alreadyCompleted:
+                            true
 
+                    };
 
-    const oldIdTime =
-        Number(
-            item.legacyId ||
-            item.id ||
-            0
-        );
+                }
 
 
-    return Number.isFinite(oldIdTime)
+                const oldDossiers =
+                    getDossierStorageArray(
+                        DOSSIER_STORAGE_KEY
+                    );
 
-        ? oldIdTime
 
-        : 0;
+                const currentUser =
+                    Parse.User.current();
 
-}
 
+                let migrated =
+                    0;
 
-function sortDossiersNewestFirst(){
 
-    dossiers.sort(
+                let skipped =
+                    0;
 
-        (a, b) =>
 
-            getDossierCreatedTime(b)
+                let failed =
+                    0;
 
-            -
 
-            getDossierCreatedTime(a)
+                for (const item of oldDossiers) {
 
-    );
+                    try {
 
-}
-// =====================================
-// TÍNH TỔNG SỐ TRANG
-// =====================================
+                        const code =
+                            String(
+                                item.code || ""
+                            ).trim();
 
-function getDossierTotalPages(){
 
-    const totalItems =
-        dossierFilteredData.length;
+                        if (!code) {
 
+                            failed += 1;
 
-    return Math.max(
 
-        1,
+                            continue;
 
-        Math.ceil(
+                        }
 
-            totalItems
 
-            /
+                        const existingDossier =
+                            await findDossierObjectOnBack4App(
+                                item
+                            );
 
-            dossierPageSize
 
-        )
+                        if (existingDossier) {
 
-    );
+                            skipped += 1;
 
-}
 
+                            continue;
 
-// =====================================
-// HIỂN THỊ TRANG HIỆN TẠI
-// =====================================
+                        }
 
-function renderCurrentDossierPage(){
 
-    const totalItems =
-        dossierFilteredData.length;
+                        const dossierObject =
+                            new Parse.Object(
+                                DOSSIER_PAGE_CLASS_NAME
+                            );
 
 
-    const totalPages =
-        getDossierTotalPages();
+                        setDossierParseFields(
+                            dossierObject,
+                            item
+                        );
 
 
-    /*
-    Đảm bảo trang hiện tại không vượt giới hạn.
-    */
+                        const legacyId =
+                            String(
 
-    dossierCurrentPage =
-        Math.min(
+                                item.legacyId
 
-            Math.max(
-                dossierCurrentPage,
-                1
-            ),
+                                ||
 
-            totalPages
+                                item.id
 
-        );
+                                ||
 
+                                ""
 
-    const startIndex =
+                            ).trim();
 
-        (
-            dossierCurrentPage - 1
-        )
 
-        *
+                        if (legacyId) {
 
-        dossierPageSize;
+                            dossierObject.set(
+                                "legacyId",
+                                legacyId
+                            );
 
+                        }
 
-    const endIndex =
-        Math.min(
 
-            startIndex
+                        if (currentUser) {
 
-            +
+                            dossierObject.set(
+                                "createdBy",
+                                currentUser
+                            );
 
-            dossierPageSize,
 
-            totalItems
+                            dossierObject.set(
+                                "updatedBy",
+                                currentUser
+                            );
 
-        );
+                        }
 
 
-    const pageItems =
-        dossierFilteredData.slice(
+                        await dossierObject.save();
 
-            startIndex,
 
-            endIndex
+                        migrated += 1;
 
-        );
+                    } catch (error) {
 
+                        failed += 1;
 
-    /*
-    Hàm renderDossier chỉ nhận dữ liệu của
-    trang hiện tại, ví dụ 20 hồ sơ.
-    */
 
-    renderDossier(
-        pageItems
-    );
+                        console.error(
+                            "Không migrate được hồ sơ:",
+                            item,
+                            error
+                        );
 
-
-    renderDossierPagination(
-
-        totalItems,
-
-        totalPages,
-
-        startIndex,
-
-        endIndex
-
-    );
-
-}
-
-
-// =====================================
-// HIỂN THỊ THANH PHÂN TRANG
-// =====================================
-
-function renderDossierPagination(
-    totalItems,
-    totalPages,
-    startIndex,
-    endIndex
-){
-
-    const infoElement =
-        getDossierElement(
-            "dossierPaginationInfo"
-        );
-
-
-    const totalPagesElement =
-        getDossierElement(
-            "dossierTotalPages"
-        );
-
-
-    const pageSelect =
-        getDossierElement(
-            "dossierPageSelect"
-        );
-
-
-    const firstButton =
-        getDossierElement(
-            "dossierFirstPageButton"
-        );
-
-
-    const previousButton =
-        getDossierElement(
-            "dossierPreviousPageButton"
-        );
-
-
-    const nextButton =
-        getDossierElement(
-            "dossierNextPageButton"
-        );
-
-
-    const lastButton =
-        getDossierElement(
-            "dossierLastPageButton"
-        );
-
-
-    /*
-    Ví dụ:
-    Hiển thị 21–40 trên 200 hồ sơ.
-    */
-
-    if(infoElement){
-
-        if(totalItems === 0){
-
-            infoElement.textContent =
-                "Không có hồ sơ phù hợp";
-
-        }else{
-
-            infoElement.textContent =
-
-                `Hiển thị ${startIndex + 1}–${endIndex} trên ${totalItems} hồ sơ`;
-
-        }
-
-    }
-
-
-    if(totalPagesElement){
-
-        totalPagesElement.textContent =
-            `/ ${totalPages}`;
-
-    }
-
-
-    /*
-    Tạo danh sách số trang.
-    */
-
-    if(pageSelect){
-
-        let pageOptions =
-            "";
-
-
-        for(
-            let page = 1;
-
-            page <= totalPages;
-
-            page += 1
-        ){
-
-            pageOptions += `
-
-                <option
-                    value="${page}"
-                    ${
-                        page ===
-                        dossierCurrentPage
-
-                        ? "selected"
-
-                        : ""
                     }
-                >
-                    ${page}
-                </option>
 
-            `;
+                }
+
+
+                if (failed === 0) {
+
+                    localStorage.setItem(
+
+                        DOSSIER_MIGRATION_KEY,
+
+                        JSON.stringify({
+
+                            completedAt:
+                                new Date()
+                                    .toISOString(),
+
+                            migrated,
+
+                            skipped,
+
+                            failed
+
+                        })
+
+                    );
+
+                }
+
+
+                return {
+
+                    migrated,
+
+                    skipped,
+
+                    failed,
+
+                    alreadyCompleted:
+                        false
+
+                };
+
+            })();
+
+
+        try {
+
+            return await dossierMigrationPromise;
+
+        } finally {
+
+            dossierMigrationPromise =
+                null;
 
         }
 
+    }
 
-        pageSelect.innerHTML =
-            pageOptions;
+
+    function sortDossiersNewestFirst() {
+
+        dossiers.sort(
+
+            (a, b) =>
+
+                getDossierCreatedTime(b)
+
+                -
+
+                getDossierCreatedTime(a)
+
+        );
 
     }
 
 
-    const isFirstPage =
-        dossierCurrentPage <= 1;
+    async function fetchDossiersFromBack4App(
+        forceReload = false
+    ) {
+
+        ensureDossierBack4AppReady();
 
 
-    const isLastPage =
-        dossierCurrentPage >= totalPages;
-
-
-    if(firstButton){
-
-        firstButton.disabled =
-            isFirstPage;
-
-    }
-
-
-    if(previousButton){
-
-        previousButton.disabled =
-            isFirstPage;
-
-    }
-
-
-    if(nextButton){
-
-        nextButton.disabled =
-            isLastPage;
-
-    }
-
-
-    if(lastButton){
-
-        lastButton.disabled =
-            isLastPage;
-
-    }
-
-}
-
-
-// =====================================
-// CHUYỂN TRANG
-// =====================================
-
-function goToDossierPage(targetPage){
-
-    const totalPages =
-        getDossierTotalPages();
-
-
-    if(targetPage === "first"){
-
-        dossierCurrentPage =
-            1;
-
-    }else if(
-        targetPage === "previous"
-    ){
-
-        dossierCurrentPage -=
-            1;
-
-    }else if(
-        targetPage === "next"
-    ){
-
-        dossierCurrentPage +=
-            1;
-
-    }else if(
-        targetPage === "last"
-    ){
-
-        dossierCurrentPage =
-            totalPages;
-
-    }else{
-
-        const pageNumber =
-            Number(targetPage);
-
-
-        if(
-            Number.isFinite(pageNumber)
+        if (
+            dossierDataLoaded
 
             &&
 
-            pageNumber >= 1
-        ){
+            !forceReload
+        ) {
 
-            dossierCurrentPage =
-                pageNumber;
+            return dossiers;
+
+        }
+
+
+        if (dossierLoadingPromise) {
+
+            return dossierLoadingPromise;
+
+        }
+
+
+        dossierLoadingPromise =
+            (async function () {
+
+                const allResults =
+                    [];
+
+
+                const batchSize =
+                    1000;
+
+
+                let skip =
+                    0;
+
+
+                while (true) {
+
+                    const query =
+                        new Parse.Query(
+                            DOSSIER_PAGE_CLASS_NAME
+                        );
+
+
+                    query.descending(
+                        "createdAt"
+                    );
+
+
+                    query.limit(
+                        batchSize
+                    );
+
+
+                    query.skip(
+                        skip
+                    );
+
+
+                    const batch =
+                        await query.find();
+
+
+                    allResults.push(
+                        ...batch
+                    );
+
+
+                    if (batch.length < batchSize) {
+
+                        break;
+
+                    }
+
+
+                    skip +=
+                        batchSize;
+
+                }
+
+
+                dossiers =
+                    allResults.map(
+                        item =>
+
+                            dossierParseObjectToPlain(
+                                item
+                            )
+                    );
+
+
+                sortDossiersNewestFirst();
+
+
+                dossierDataLoaded =
+                    true;
+
+
+                saveDossiersToStorage();
+
+
+                return dossiers;
+
+            })();
+
+
+        try {
+
+            return await dossierLoadingPromise;
+
+        } finally {
+
+            dossierLoadingPromise =
+                null;
 
         }
 
     }
 
 
-    dossierCurrentPage =
-        Math.min(
+    // =====================================================
+    // BADGE
+    // =====================================================
 
-            Math.max(
-                dossierCurrentPage,
-                1
-            ),
+    function renderDossierBadge(
+        type,
+        value
+    ) {
 
-            totalPages
-
-        );
-
-
-    renderCurrentDossierPage();
+        const text =
+            String(value || "").trim();
 
 
-    /*
-    Đưa vùng bảng trở lại đầu khi chuyển trang.
-    */
-
-    const tableScroll =
-        document.querySelector(
-            ".dossier-table-scroll"
-        );
+        let className =
+            "";
 
 
-    if(tableScroll){
+        if (type === "status") {
 
-        tableScroll.scrollTop =
-            0;
+            className =
+                text === "Đã duyệt"
 
-    }
+                    ? "dossier-badge-approved"
 
-}
+                    : "dossier-badge-pending";
 
-
-// =====================================
-// ĐỔI SỐ HỒ SƠ MỖI TRANG
-// =====================================
-
-function changeDossierPageSize(value){
-
-    const newPageSize =
-        Number(value);
+        }
 
 
-    if(
-        !Number.isFinite(newPageSize)
+        if (type === "file") {
 
-        ||
+            className =
+                text === "Đã up"
 
-        newPageSize <= 0
-    ){
+                    ? "dossier-badge-file-uploaded"
 
-        return;
+                    : "dossier-badge-file-missing";
 
-    }
-
-
-    dossierPageSize =
-        newPageSize;
+        }
 
 
-    /*
-    Khi đổi số dòng, quay về trang đầu.
-    */
+        if (type === "payment") {
 
-    dossierCurrentPage =
-        1;
+            if (text === "Đã thanh toán") {
+
+                className =
+                    "dossier-badge-paid";
+
+            } else if (text === "Đang xử lý") {
+
+                className =
+                    "dossier-badge-processing";
+
+            } else if (text === "Đã xuất ĐNTT") {
+
+                className =
+                    "dossier-badge-requested";
+
+            } else {
+
+                className =
+                    "dossier-badge-unpaid";
+
+            }
+
+        }
 
 
-    renderCurrentDossierPage();
+        if (type === "delivery") {
 
-}
-// =====================================
-// THỐNG KÊ TỔNG QUAN HỒ SƠ
-// =====================================
+            className =
+                text === "Chưa bàn giao"
 
-function setDossierSummaryNumber(
-    elementId,
-    value
-){
+                    ? "dossier-badge-not-delivered"
 
-    const element =
-        getDossierElement(
-            elementId
-        );
+                    : "dossier-badge-delivered";
+
+        }
 
 
-    if(!element){
+        return `
 
-        return;
+            <span
+                class="dossier-badge ${className}"
+            >
+                ${escapeDossierHtml(text)}
+            </span>
+
+        `;
 
     }
 
 
-    const newValue =
-        String(value);
+    // =====================================================
+    // THỐNG KÊ
+    // =====================================================
+
+    function setDossierSummaryNumber(
+        elementId,
+        value
+    ) {
+
+        const element =
+            getDossierElement(
+                elementId
+            );
 
 
-    /*
-    Chỉ chạy animation khi số thực sự thay đổi.
-    */
+        if (!element) {
 
-    if(
-        element.textContent.trim()
+            return;
 
-        !==
-
-        newValue
-    ){
-
-        element.textContent =
-            newValue;
+        }
 
 
-        element.classList.remove(
-            "is-updated"
-        );
+        const newValue =
+            String(value);
 
 
-        /*
-        Buộc trình duyệt nhận diện lại animation.
-        */
+        if (
+            element.textContent.trim()
 
-        void element.offsetWidth;
+            !==
+
+            newValue
+        ) {
+
+            element.textContent =
+                newValue;
 
 
-        element.classList.add(
-            "is-updated"
-        );
+            element.classList.remove(
+                "is-updated"
+            );
 
-    }else{
 
-        element.textContent =
-            newValue;
+            void element.offsetWidth;
+
+
+            element.classList.add(
+                "is-updated"
+            );
+
+        } else {
+
+            element.textContent =
+                newValue;
+
+        }
 
     }
 
-}
+
+    function updateDossierSummary() {
+
+        const dossierList =
+            Array.isArray(dossiers)
+
+                ? dossiers
+
+                : [];
 
 
-// =====================================
-// TÍNH SỐ LIỆU THỐNG KÊ
-// =====================================
-
-function updateDossierSummary(){
-
-    const dossierList =
-
-        Array.isArray(dossiers)
-
-        ? dossiers
-
-        : [];
+        const totalCount =
+            dossierList.length;
 
 
-    /*
-    Tổng hồ sơ
-    */
+        const pendingCount =
+            dossierList.filter(item =>
 
-    const totalCount =
-        dossierList.length;
-
-
-    /*
-    Hồ sơ chưa duyệt
-    */
-
-    const pendingCount =
-        dossierList.filter(item => {
-
-            const status =
                 String(
 
                     item.status
@@ -1997,1859 +4076,4056 @@ function updateDossierSummary(){
 
                     "Chưa duyệt"
 
-                ).trim();
-
-
-            return status ===
-                "Chưa duyệt";
-
-        }).length;
-
-
-    /*
-    Hồ sơ đã bàn giao:
-    Có giá trị trong deliveryDate.
-    */
-
-    const deliveredCount =
-        dossierList.filter(item => {
-
-            return Boolean(
-
-                String(
-                    item.deliveryDate || ""
                 ).trim()
 
-            );
+                ===
 
-        }).length;
+                "Chưa duyệt"
 
-
-    /*
-    Hồ sơ đã thanh toán.
-    */
-
-    const paidCount =
-        dossierList.filter(item => {
-
-            const paymentStatus =
-                String(
-
-                    item.paymentStatus
-
-                    ||
-
-                    ""
-
-                ).trim();
+            ).length;
 
 
-            return paymentStatus ===
-                "Đã thanh toán";
+        const deliveredCount =
+            dossierList.filter(item =>
 
-        }).length;
-
-
-    /*
-    Đưa số liệu ra giao diện.
-    */
-
-    setDossierSummaryNumber(
-
-        "totalDossierCount",
-
-        totalCount
-
-    );
-
-
-    setDossierSummaryNumber(
-
-        "pendingDossierCount",
-
-        pendingCount
-
-    );
-
-
-    setDossierSummaryNumber(
-
-        "deliveredDossierCount",
-
-        deliveredCount
-
-    );
-
-
-    setDossierSummaryNumber(
-
-        "paidDossierCount",
-
-        paidCount
-
-    );
-
-}
-
-// =====================================
-// CHỌN NHIỀU HỒ SƠ
-// =====================================
-
-function updateDossierSelectionUI(){
-
-    const selectedCount =
-        selectedDossierIds.size;
-
-
-    const bulkBar =
-        getDossierElement(
-            "dossierBulkBar"
-        );
-
-
-    const countElement =
-        getDossierElement(
-            "selectedDossierCount"
-        );
-
-
-    if(bulkBar){
-
-        bulkBar.hidden =
-            selectedCount === 0;
-
-    }
-
-
-    if(countElement){
-
-        countElement.textContent =
-            String(selectedCount);
-
-    }
-
-
-    document
-        .querySelectorAll(
-            ".dossier-row-checkbox"
-        )
-        .forEach(checkbox => {
-
-            checkbox.checked =
-                selectedDossierIds.has(
+                Boolean(
 
                     String(
-                        checkbox.value
-                    )
+                        item.deliveryDate || ""
+                    ).trim()
 
-                );
-
-        });
-
-
-    const selectAll =
-        getDossierElement(
-            "selectAllDossiers"
-        );
-
-
-    if(!selectAll){
-
-        return;
-
-    }
-
-
-    const visibleIds =
-        currentRenderedDossiers.map(
-
-            item =>
-                String(item.id)
-
-        );
-
-
-    const selectedVisibleCount =
-        visibleIds.filter(
-
-            id =>
-                selectedDossierIds.has(id)
-
-        ).length;
-
-
-    selectAll.checked =
-
-        visibleIds.length > 0
-
-        &&
-
-        selectedVisibleCount ===
-        visibleIds.length;
-
-
-    selectAll.indeterminate =
-
-        selectedVisibleCount > 0
-
-        &&
-
-        selectedVisibleCount <
-        visibleIds.length;
-
-}
-
-
-function toggleDossierSelection(
-    id,
-    checked
-){
-
-    const dossierId =
-        String(id);
-
-
-    if(checked){
-
-        selectedDossierIds.add(
-            dossierId
-        );
-
-    }else{
-
-        selectedDossierIds.delete(
-            dossierId
-        );
-
-    }
-
-
-    updateDossierSelectionUI();
-
-}
-
-
-function toggleSelectAllDossiers(
-    checked
-){
-    let rowsHtml = "";
-    currentRenderedDossiers.forEach(item => {
-
-        const id =
-            String(item.id);
-
-
-        if(checked){
-
-            selectedDossierIds.add(id);
-
-        }else{
-
-            selectedDossierIds.delete(id);
-
-        }
-
-    });
-
-
-    updateDossierSelectionUI();
-
-}
-
-
-function clearDossierSelection(){
-
-    selectedDossierIds.clear();
-
-
-    const selectAll =
-        getDossierElement(
-            "selectAllDossiers"
-        );
-
-
-    if(selectAll){
-
-        selectAll.checked =
-            false;
-
-        selectAll.indeterminate =
-            false;
-
-    }
-
-
-    updateDossierSelectionUI();
-
-}
-
-// =====================================
-// CẬP NHẬT HỒ SƠ HÀNG LOẠT - BẢN NHANH
-// =====================================
-
-function getBulkDossierChanges(){
-
-    const changes = {};
-
-
-    const fileStatus =
-        getDossierInputValue(
-            "bulkFileStatus"
-        );
-
-
-    const dossierStatus =
-        getDossierInputValue(
-            "bulkDossierStatus"
-        );
-
-
-    const paymentRequest =
-        getDossierInputValue(
-            "bulkPaymentRequest"
-        );
-
-
-    const paymentStatus =
-        getDossierInputValue(
-            "bulkPaymentStatus"
-        );
-
-
-    const deliveryDate =
-        getDossierInputValue(
-            "bulkDeliveryDate"
-        );
-
-
-    const clearDeliveryDate =
-        Boolean(
-
-            getDossierElement(
-                "bulkClearDeliveryDate"
-            )?.checked
-
-        );
-
-
-    if(fileStatus !== ""){
-
-        changes.fileStatus =
-            fileStatus;
-
-    }
-
-
-    if(dossierStatus !== ""){
-
-        changes.status =
-            dossierStatus;
-
-    }
-
-
-    if(paymentRequest !== ""){
-
-        changes.paymentRequest =
-            paymentRequest === "true";
-
-    }
-
-
-    if(paymentStatus !== ""){
-
-        changes.paymentStatus =
-            paymentStatus;
-
-    }
-
-
-    if(clearDeliveryDate){
-
-        changes.deliveryDate =
-            "";
-
-    }else if(deliveryDate !== ""){
-
-        changes.deliveryDate =
-            deliveryDate;
-
-    }
-
-
-    return changes;
-
-}
-
-
-// =====================================
-// RESET THANH CẬP NHẬT HÀNG LOẠT
-// =====================================
-
-function resetBulkDossierControls(){
-
-    setDossierInputValue(
-        "bulkFileStatus",
-        ""
-    );
-
-
-    setDossierInputValue(
-        "bulkDossierStatus",
-        ""
-    );
-
-
-    setDossierInputValue(
-        "bulkPaymentRequest",
-        ""
-    );
-
-
-    setDossierInputValue(
-        "bulkPaymentStatus",
-        ""
-    );
-
-
-    setDossierInputValue(
-        "bulkDeliveryDate",
-        ""
-    );
-
-
-    setDossierChecked(
-        "bulkClearDeliveryDate",
-        false
-    );
-
-}
-
-
-// =====================================
-// CẬP NHẬT OBJECT TRONG BỘ NHỚ
-// =====================================
-
-function applyBulkChangesToLocalItem(
-    item,
-    changes,
-    updatedAt
-){
-
-    if(
-        Object.prototype.hasOwnProperty.call(
-            changes,
-            "fileStatus"
-        )
-    ){
-
-        item.fileStatus =
-            changes.fileStatus;
-
-    }
-
-
-    if(
-        Object.prototype.hasOwnProperty.call(
-            changes,
-            "status"
-        )
-    ){
-
-        item.status =
-            changes.status;
-
-
-        // Giữ tương thích dữ liệu cũ
-        item.dossierStatus =
-            changes.status;
-
-    }
-
-
-    if(
-        Object.prototype.hasOwnProperty.call(
-            changes,
-            "paymentRequest"
-        )
-    ){
-
-        item.paymentRequest =
-            changes.paymentRequest;
-
-    }
-
-
-    if(
-        Object.prototype.hasOwnProperty.call(
-            changes,
-            "paymentStatus"
-        )
-    ){
-
-        item.paymentStatus =
-            changes.paymentStatus;
-
-    }
-
-
-    if(
-        Object.prototype.hasOwnProperty.call(
-            changes,
-            "deliveryDate"
-        )
-    ){
-
-        item.deliveryDate =
-            changes.deliveryDate;
-
-    }
-
-
-    item.updatedAt =
-        updatedAt;
-
-}
-
-
-// =====================================
-// CẬP NHẬT HÀNG LOẠT LÊN BACK4APP
-// =====================================
-
-async function applyBulkDossierUpdate(){
-
-    const selectedItems =
-        dossiers.filter(item =>
-
-            selectedDossierIds.has(
-                String(item.id)
-            )
-
-        );
-
-
-    if(selectedItems.length === 0){
-
-        alert(
-            "Vui lòng chọn ít nhất một hồ sơ."
-        );
-
-        return;
-
-    }
-
-
-    const changes =
-        getBulkDossierChanges();
-
-
-    if(
-        Object.keys(changes).length === 0
-    ){
-
-        alert(
-            "Vui lòng chọn ít nhất một nội dung cần cập nhật."
-        );
-
-        return;
-
-    }
-
-
-    const itemWithoutObjectId =
-        selectedItems.find(item =>
-
-            !String(
-                item.back4appId || ""
-            ).trim()
-
-        );
-
-
-    if(itemWithoutObjectId){
-
-        alert(
-
-            `Hồ sơ "${itemWithoutObjectId.code}" chưa có objectId trên Back4App.`
-
-        );
-
-        return;
-
-    }
-
-
-    const confirmed =
-        confirm(
-
-            `Cập nhật ${selectedItems.length} hồ sơ đã chọn?`
-
-        );
-
-
-    if(!confirmed){
-
-        return;
-
-    }
-
-
-    const button =
-        getDossierElement(
-            "applyBulkDossierButton"
-        );
-
-
-    if(button){
-
-        button.disabled =
-            true;
-
-        button.textContent =
-            "Đang cập nhật...";
-
-    }
-
-
-    const startedAt =
-        performance.now();
-
-
-    try{
-
-        ensureDossierBack4AppReady();
-
-
-        const currentUser =
-            Parse.User.current();
-
-
-        /*
-        Tạo object trực tiếp từ objectId.
-
-        Không query.get từng hồ sơ.
-        Không đọc lại từng hồ sơ sau khi lưu.
-        */
-
-        const parseObjects =
-            selectedItems.map(item => {
-
-                const dossierObject =
-                    Parse.Object.createWithoutData(
-
-                        DOSSIER_CLASS_NAME,
-
-                        String(
-                            item.back4appId
-                        ).trim()
-
-                    );
-
-
-                /*
-                Chỉ gửi những trường được chọn thay đổi.
-                Không gửi lại toàn bộ hồ sơ.
-                */
-
-                Object.entries(changes)
-                    .forEach(
-                        ([field, value]) => {
-
-                            dossierObject.set(
-                                field,
-                                value
-                            );
-
-                        }
-                    );
-
-
-                if(currentUser){
-
-                    dossierObject.set(
-                        "updatedBy",
-                        currentUser
-                    );
-
-                }
-
-
-                return dossierObject;
-
-            });
-
-
-        /*
-        Chia thành nhóm 20 hồ sơ.
-
-        Ví dụ:
-        1–20 hồ sơ: 1 batch
-        21–40 hồ sơ: 2 batch
-        */
-
-        const batchSize =
-            20;
-
-
-        let completedCount =
-            0;
-
-
-        for(
-            let index = 0;
-
-            index < parseObjects.length;
-
-            index += batchSize
-        ){
-
-            const batch =
-                parseObjects.slice(
-
-                    index,
-
-                    index + batchSize
-
-                );
-
-
-            if(button){
-
-                button.textContent =
-
-                    `Đang cập nhật ${completedCount}/${parseObjects.length}...`;
-
-            }
-
-
-            await Parse.Object.saveAll(
-                batch
-            );
-
-
-            completedCount +=
-                batch.length;
-
-
-            if(button){
-
-                button.textContent =
-
-                    `Đang cập nhật ${completedCount}/${parseObjects.length}...`;
-
-            }
-
-        }
-
-
-        /*
-        Cập nhật ngay dữ liệu đang có trong bộ nhớ.
-
-        Không tải lại toàn bộ class Dossier.
-        */
-
-        const updatedAt =
-            new Date()
-                .toISOString();
-
-
-        selectedItems.forEach(item => {
-
-            applyBulkChangesToLocalItem(
-
-                item,
-
-                changes,
-
-                updatedAt
-
-            );
-
-        });
-
-
-        saveDossiersToStorage();
-
-
-        clearDossierSelection();
-
-
-        resetBulkDossierControls();
-
-
-        refreshAllDossierViews();
-
-
-        const elapsedSeconds =
-            (
-
-                (
-                    performance.now()
-
-                    -
-
-                    startedAt
                 )
+
+            ).length;
+
+
+        const paidCount =
+            dossierList.filter(item =>
+
+                String(
+                    item.paymentStatus || ""
+                ).trim()
+
+                ===
+
+                "Đã thanh toán"
+
+            ).length;
+
+
+        setDossierSummaryNumber(
+
+            "totalDossierCount",
+
+            totalCount
+
+        );
+
+
+        setDossierSummaryNumber(
+
+            "pendingDossierCount",
+
+            pendingCount
+
+        );
+
+
+        setDossierSummaryNumber(
+
+            "deliveredDossierCount",
+
+            deliveredCount
+
+        );
+
+
+        setDossierSummaryNumber(
+
+            "paidDossierCount",
+
+            paidCount
+
+        );
+
+    }
+
+
+    // =====================================================
+    // PHÂN TRANG
+    // =====================================================
+
+    function getDossierTotalPages() {
+
+        return Math.max(
+
+            1,
+
+            Math.ceil(
+
+                dossierFilteredData.length
 
                 /
 
-                1000
+                dossierPageSize
 
-            ).toFixed(2);
-
-
-        if(
-    typeof window.showAppToast ===
-    "function"
-){
-
-    window.showAppToast(
-
-        `Đã cập nhật ${selectedItems.length} hồ sơ trong ${elapsedSeconds} giây.`,
-
-        "success"
-
-    );
-
-}else{
-
-    alert(
-
-        `Đã cập nhật ${selectedItems.length} hồ sơ.`
-
-    );
-
-}
-
-    }catch(error){
-
-        console.error(
-            "Không cập nhật được hồ sơ hàng loạt:",
-            error
-        );
-
-
-        alert(
-
-            "Không cập nhật được hồ sơ.\n\n"
-
-            +
-
-            (
-                error.message
-
-                ||
-
-                String(error)
             )
 
         );
 
-    }finally{
+    }
 
-        if(button){
 
-            button.disabled =
-                false;
+    function renderCurrentDossierPage() {
 
-            button.textContent =
-                "Cập nhật hàng loạt";
+        const totalItems =
+            dossierFilteredData.length;
+
+
+        const totalPages =
+            getDossierTotalPages();
+
+
+        dossierCurrentPage =
+            Math.min(
+
+                Math.max(
+                    dossierCurrentPage,
+                    1
+                ),
+
+                totalPages
+
+            );
+
+
+        const startIndex =
+            (
+                dossierCurrentPage - 1
+            )
+
+            *
+
+            dossierPageSize;
+
+
+        const endIndex =
+            Math.min(
+
+                startIndex
+
+                +
+
+                dossierPageSize,
+
+                totalItems
+
+            );
+
+
+        const pageItems =
+            dossierFilteredData.slice(
+
+                startIndex,
+
+                endIndex
+
+            );
+
+
+        renderDossier(
+            pageItems
+        );
+
+
+        renderDossierPagination(
+
+            totalItems,
+
+            totalPages,
+
+            startIndex,
+
+            endIndex
+
+        );
+
+    }
+
+
+    function renderDossierPagination(
+        totalItems,
+        totalPages,
+        startIndex,
+        endIndex
+    ) {
+
+        const infoElement =
+            getDossierElement(
+                "dossierPaginationInfo"
+            );
+
+
+        const totalPagesElement =
+            getDossierElement(
+                "dossierTotalPages"
+            );
+
+
+        const pageSelect =
+            getDossierElement(
+                "dossierPageSelect"
+            );
+
+
+        const firstButton =
+            getDossierElement(
+                "dossierFirstPageButton"
+            );
+
+
+        const previousButton =
+            getDossierElement(
+                "dossierPreviousPageButton"
+            );
+
+
+        const nextButton =
+            getDossierElement(
+                "dossierNextPageButton"
+            );
+
+
+        const lastButton =
+            getDossierElement(
+                "dossierLastPageButton"
+            );
+
+
+        if (infoElement) {
+
+            infoElement.textContent =
+                totalItems === 0
+
+                    ? "Không có hồ sơ phù hợp"
+
+                    : `Hiển thị ${startIndex + 1}–${endIndex} trên ${totalItems} hồ sơ`;
+
+        }
+
+
+        if (totalPagesElement) {
+
+            totalPagesElement.textContent =
+                `/ ${totalPages}`;
+
+        }
+
+
+        if (pageSelect) {
+
+            let pageOptions =
+                "";
+
+
+            for (
+                let page = 1;
+
+                page <= totalPages;
+
+                page += 1
+            ) {
+
+                pageOptions += `
+
+                    <option
+                        value="${page}"
+                        ${
+                            page === dossierCurrentPage
+
+                                ? "selected"
+
+                                : ""
+                        }
+                    >
+                        ${page}
+                    </option>
+
+                `;
+
+            }
+
+
+            pageSelect.innerHTML =
+                pageOptions;
+
+        }
+
+
+        const isFirstPage =
+            dossierCurrentPage <= 1;
+
+
+        const isLastPage =
+            dossierCurrentPage >= totalPages;
+
+
+        if (firstButton) {
+
+            firstButton.disabled =
+                isFirstPage;
+
+        }
+
+
+        if (previousButton) {
+
+            previousButton.disabled =
+                isFirstPage;
+
+        }
+
+
+        if (nextButton) {
+
+            nextButton.disabled =
+                isLastPage;
+
+        }
+
+
+        if (lastButton) {
+
+            lastButton.disabled =
+                isLastPage;
 
         }
 
     }
 
-}
-// =====================================
-// ĐỌC HỒ SƠ TỪ BACK4APP
-// =====================================
 
-async function fetchDossiersFromBack4App(
-    forceReload = false
-){
+    function goToDossierPage(targetPage) {
 
-    ensureDossierBack4AppReady();
+        const totalPages =
+            getDossierTotalPages();
 
 
-    if(
-        dossierDataLoaded
+        if (targetPage === "first") {
 
-        &&
+            dossierCurrentPage =
+                1;
 
-        !forceReload
-    ){
+        } else if (targetPage === "previous") {
 
-        return dossiers;
+            dossierCurrentPage -=
+                1;
 
-    }
+        } else if (targetPage === "next") {
 
+            dossierCurrentPage +=
+                1;
 
-    if(dossierLoadingPromise){
+        } else if (targetPage === "last") {
 
-        return dossierLoadingPromise;
+            dossierCurrentPage =
+                totalPages;
 
-    }
+        } else {
 
-
-    dossierLoadingPromise =
-        (async function(){
-
-            const query =
-                new Parse.Query(
-                    DOSSIER_CLASS_NAME
-                );
+            const pageNumber =
+                Number(targetPage);
 
 
-            query.descending(
-                "createdAt"
+            if (
+                Number.isFinite(pageNumber)
+
+                &&
+
+                pageNumber >= 1
+            ) {
+
+                dossierCurrentPage =
+                    pageNumber;
+
+            }
+
+        }
+
+
+        dossierCurrentPage =
+            Math.min(
+
+                Math.max(
+                    dossierCurrentPage,
+                    1
+                ),
+
+                totalPages
+
             );
 
 
-            query.limit(1000);
+        renderCurrentDossierPage();
 
 
-            const results =
-                await query.find();
+        const tableScroll =
+            document.querySelector(
+                ".dossier-table-scroll"
+            );
 
 
-            dossiers =
-                results.map(
+        if (tableScroll) {
 
-                    item =>
+            tableScroll.scrollTop =
+                0;
 
-                        dossierParseObjectToPlain(
-                            item
-                        )
-
-                );
-
-
-            sortDossiersNewestFirst();
-
-
-            dossierDataLoaded =
-                true;
-
-
-            saveDossiersToStorage();
-
-
-            return dossiers;
-
-        })();
-
-
-    try{
-
-        return await dossierLoadingPromise;
-
-    }finally{
-
-        dossierLoadingPromise =
-            null;
-
-    }
-
-}
-
-
-// =====================================
-// CẬP NHẬT CÁC TRANG HỒ SƠ
-// =====================================
-
-function refreshAllDossierViews(){
-
-    updateDossierSummary();
-
-    if(
-        getDossierElement(
-            "dossierTable"
-        )
-    ){
-
-        filterDossier();
+        }
 
     }
 
 
-    if(
-        getDossierElement(
-            "deliveryTable"
-        )
-    ){
+    function changeDossierPageSize(value) {
 
-        loadDeliveryDossierFilters();
-
-        filterDeliveryDossier();
-
-    }
+        const newPageSize =
+            Number(value);
 
 
-    if(
-        getDossierElement(
-            "paidTable"
-        )
-    ){
-
-        loadPaidDossierFilters();
-
-        filterPaidDossier();
-
-    }
-
-
-    if(
-        getDossierElement(
-            "missingTable"
-        )
-    ){
-
-        loadMissingDossierFilters();
-
-        filterMissingDossier();
-
-    }
-
-}
-
-
-// =====================================
-// LOAD HỒ SƠ
-// =====================================
-
-async function loadDossier(){
-
-    setDossierTableMessage(
-        "Đang tải hồ sơ..."
-    );
-
-
-    try{
-
-        await Promise.all([
-
-            typeof loadProjectSelect ===
-            "function"
-
-            ? loadProjectSelect()
-
-            : Promise.resolve(),
-
-
-            typeof loadSupplierSelect ===
-            "function"
-
-            ? loadSupplierSelect()
-
-            : Promise.resolve()
-
-        ]);
-
-
-        await migrateDossiersToBack4App();
-
-
-        refreshAllDossierViews();
-
-
-        return dossiers;
-
-    }catch(error){
-
-        console.error(
-            "Không tải được Hồ sơ:",
-            error
-        );
-
-
-        setDossierTableMessage(
-
-            error.message
+        if (
+            !Number.isFinite(newPageSize)
 
             ||
 
-            "Không tải được Hồ sơ.",
-
-            true
-
-        );
-
-
-        return [];
-
-    }
-
-}
-
-
-// =====================================
-// POPUP FORM
-// =====================================
-
-function showDossierModal(){
-
-    const modal =
-        getDossierElement(
-            "dossierModal"
-        );
-
-
-    if(!modal){
-
-        console.error(
-            "Không tìm thấy dossierModal."
-        );
-
-        return;
-
-    }
-
-
-    modal.classList.add(
-        "is-open"
-    );
-
-
-    modal.setAttribute(
-        "aria-hidden",
-        "false"
-    );
-
-
-    document.body.classList.add(
-        "dossier-modal-open"
-    );
-
-
-    setTimeout(() => {
-
-        const codeInput =
-            getDossierElement(
-                "dossierCode"
-            );
-
-
-        if(!codeInput){
+            newPageSize <= 0
+        ) {
 
             return;
 
         }
 
 
-        try{
+        dossierPageSize =
+            newPageSize;
 
-            codeInput.focus({
-                preventScroll: true
-            });
 
-        }catch(error){
+        dossierCurrentPage =
+            1;
 
-            codeInput.focus();
+
+        renderCurrentDossierPage();
+
+    }
+
+
+    // =====================================================
+    // BẢNG HỒ SƠ
+    // =====================================================
+
+    function setDossierTableMessage(
+        message,
+        isError = false
+    ) {
+
+        const table =
+            getDossierElement(
+                "dossierTable"
+            );
+
+
+        if (!table) {
+
+            return;
 
         }
 
-    }, 100);
 
-}
+        currentRenderedDossiers =
+            [];
 
 
-function hideDossierModal(){
+        table.innerHTML = `
 
-    const modal =
-        getDossierElement(
-            "dossierModal"
+            <tr>
+
+                <td
+                    colspan="14"
+                    style="
+                        text-align:center;
+                        padding:25px;
+                        color:${
+                            isError
+                                ? "#dc2626"
+                                : "#6b7280"
+                        };
+                    "
+                >
+                    ${escapeDossierHtml(message)}
+                </td>
+
+            </tr>
+
+        `;
+
+
+        updateDossierSelectionUI();
+
+    }
+
+
+    function buildEntityMap(items) {
+
+        const map =
+            new Map();
+
+
+        items.forEach(item => {
+
+            getEntityIdentifiers(item)
+                .forEach(id => {
+
+                    map.set(
+                        String(id),
+                        item
+                    );
+
+                });
+
+        });
+
+
+        return map;
+
+    }
+
+
+    function renderDossier(
+        data = dossiers
+    ) {
+
+        const table =
+            getDossierElement(
+                "dossierTable"
+            );
+
+
+        if (!table) {
+
+            return;
+
+        }
+
+
+        currentRenderedDossiers =
+            Array.isArray(data)
+
+                ? data
+
+                : [];
+
+
+        if (
+            currentRenderedDossiers.length ===
+            0
+        ) {
+
+            setDossierTableMessage(
+                "Chưa có hồ sơ phù hợp"
+            );
+
+
+            return;
+
+        }
+
+
+        const projectMap =
+            buildEntityMap(
+                getDossierProjects()
+            );
+
+
+        const supplierMap =
+            buildEntityMap(
+                getDossierSuppliers()
+            );
+
+
+        let rowsHtml =
+            "";
+
+
+        currentRenderedDossiers.forEach(
+            item => {
+
+                const project =
+                    projectMap.get(
+                        String(item.projectId)
+                    );
+
+
+                const supplier =
+                    supplierMap.get(
+                        String(item.supplierId)
+                    );
+
+
+                const itemId =
+                    escapeDossierHtml(
+                        String(item.id)
+                    );
+
+
+                const itemCode =
+                    escapeDossierHtml(
+                        item.code || "—"
+                    );
+
+
+                const projectName =
+                    project?.ten
+
+                    ||
+
+                    project?.name
+
+                    ||
+
+                    "Dự án đã xóa";
+
+
+                const supplierName =
+                    supplier?.ten
+
+                    ||
+
+                    supplier?.name
+
+                    ||
+
+                    "Nhà cung cấp đã xóa";
+
+
+                rowsHtml += `
+
+                    <tr>
+
+                        <td class="dossier-select-cell">
+
+                            <input
+                                type="checkbox"
+                                class="dossier-row-checkbox"
+                                value="${itemId}"
+                                ${
+                                    selectedDossierIds.has(
+                                        String(item.id)
+                                    )
+
+                                        ? "checked"
+
+                                        : ""
+                                }
+                                onchange="
+                                    window.toggleDossierSelection(
+                                        this.value,
+                                        this.checked
+                                    )
+                                "
+                                aria-label="Chọn hồ sơ ${itemCode}"
+                            >
+
+                        </td>
+
+
+                        <td>
+                            ${itemCode}
+                        </td>
+
+
+                        <td>
+                            ${escapeDossierHtml(
+                                projectName
+                            )}
+                        </td>
+
+
+                        <td
+                            class="dossier-content-cell"
+                            title="${escapeDossierHtml(
+                                item.content || ""
+                            )}"
+                        >
+                            ${escapeDossierHtml(
+                                item.content || "—"
+                            )}
+                        </td>
+
+
+                        <td>
+                            ${escapeDossierHtml(
+                                supplierName
+                            )}
+                        </td>
+
+
+                        <td
+                            class="dossier-value-cell"
+                            title="${Number(
+                                item.value || 0
+                            ).toLocaleString(
+                                "vi-VN"
+                            )}"
+                        >
+                            ${Number(
+                                item.value || 0
+                            ).toLocaleString(
+                                "vi-VN"
+                            )}
+                        </td>
+
+
+                        <td
+                            class="dossier-additional-cell"
+                            title="${escapeDossierHtml(
+                                item.documents || ""
+                            )}"
+                        >
+                            ${escapeDossierHtml(
+                                item.documents || "—"
+                            )}
+                        </td>
+
+
+                        <td>
+
+                            ${renderDossierBadge(
+
+                                "file",
+
+                                item.fileStatus
+
+                                ||
+
+                                "Chưa up"
+
+                            )}
+
+                        </td>
+
+
+                        <td>
+
+                            ${renderDossierBadge(
+
+                                "status",
+
+                                item.status
+
+                                ||
+
+                                "Chưa duyệt"
+
+                            )}
+
+                        </td>
+
+
+                        <td>
+                            ${
+                                item.paymentRequest
+                                    ? "✓"
+                                    : "—"
+                            }
+                        </td>
+
+
+                        <td>
+
+                            ${renderDossierBadge(
+
+                                "delivery",
+
+                                item.deliveryDate
+
+                                    ? formatDossierDate(
+                                        item.deliveryDate
+                                    )
+
+                                    : "Chưa bàn giao"
+
+                            )}
+
+                        </td>
+
+
+                        <td>
+
+                            ${renderDossierBadge(
+
+                                "payment",
+
+                                item.paymentStatus
+
+                                ||
+
+                                "Chưa thanh toán"
+
+                            )}
+
+                        </td>
+
+
+                        <td
+                            class="dossier-note-cell"
+                            title="${escapeDossierHtml(
+                                item.note || ""
+                            )}"
+                        >
+                            ${escapeDossierHtml(
+                                item.note || "—"
+                            )}
+                        </td>
+
+
+                        <td class="dossier-action-cell">
+
+                            <button
+                                type="button"
+                                onclick="
+                                    window.editDossier(
+                                        '${itemId}'
+                                    )
+                                "
+                                aria-label="Sửa hồ sơ"
+                                title="Sửa hồ sơ"
+                            >
+                                ✏️
+                            </button>
+
+
+                            <button
+                                type="button"
+                                class="dossier-delete-button"
+                                onclick="
+                                    window.deleteDossier(
+                                        '${itemId}',
+                                        this
+                                    )
+                                "
+                                aria-label="Xóa hồ sơ"
+                                title="Xóa hồ sơ"
+                            >
+                                🗑
+                            </button>
+
+                        </td>
+
+                    </tr>
+
+                `;
+
+            }
         );
 
 
-    if(modal){
+        table.innerHTML =
+            rowsHtml;
 
-        modal.classList.remove(
+
+        updateDossierSelectionUI();
+
+    }
+
+
+    // =====================================================
+    // LỌC DANH SÁCH CHÍNH
+    // =====================================================
+
+    function filterDossier() {
+
+        const keyword =
+            normalizeDossierText(
+
+                getDossierInputValue(
+                    "searchDossier"
+                )
+
+            );
+
+
+        const statusFilter =
+            getDossierInputValue(
+                "filterStatus"
+            );
+
+
+        const paymentFilter =
+            getDossierInputValue(
+                "filterPayment"
+            );
+
+
+        const deliveryFilter =
+            getDossierInputValue(
+                "filterDelivery"
+            );
+
+
+        const fileFilter =
+            getDossierInputValue(
+                "filterFile"
+            );
+
+
+        const projectSort =
+            getDossierInputValue(
+                "filterProjectSort"
+            );
+
+
+        const filtered =
+            dossiers.filter(item => {
+
+                const project =
+                    getDossierProjectById(
+                        item.projectId
+                    );
+
+
+                const supplier =
+                    getDossierSupplierById(
+                        item.supplierId
+                    );
+
+
+                const searchText =
+                    normalizeDossierText(`
+
+                        ${item.code || ""}
+
+                        ${item.content || ""}
+
+                        ${item.documents || ""}
+
+                        ${project?.ten || project?.name || ""}
+
+                        ${getDossierSupplierName(supplier)}
+
+                        ${item.note || ""}
+
+                    `);
+
+
+                const matchKeyword =
+                    searchText.includes(
+                        keyword
+                    );
+
+
+                const matchStatus =
+                    !statusFilter
+
+                    ||
+
+                    String(
+                        item.status || "Chưa duyệt"
+                    )
+
+                    ===
+
+                    statusFilter;
+
+
+                const matchPayment =
+                    !paymentFilter
+
+                    ||
+
+                    String(
+                        item.paymentStatus
+
+                        ||
+
+                        "Chưa thanh toán"
+                    )
+
+                    ===
+
+                    paymentFilter;
+
+
+                const hasDeliveryDate =
+                    Boolean(
+
+                        String(
+                            item.deliveryDate || ""
+                        ).trim()
+
+                    );
+
+
+                const matchDelivery =
+                    !deliveryFilter
+
+                    ||
+
+                    (
+                        deliveryFilter === "done"
+
+                        &&
+
+                        hasDeliveryDate
+                    )
+
+                    ||
+
+                    (
+                        deliveryFilter === "not"
+
+                        &&
+
+                        !hasDeliveryDate
+                    );
+
+
+                const matchFile =
+                    !fileFilter
+
+                    ||
+
+                    String(
+                        item.fileStatus || "Chưa up"
+                    )
+
+                    ===
+
+                    fileFilter;
+
+
+                return (
+
+                    matchKeyword
+
+                    &&
+
+                    matchStatus
+
+                    &&
+
+                    matchPayment
+
+                    &&
+
+                    matchDelivery
+
+                    &&
+
+                    matchFile
+
+                );
+
+            });
+
+
+        if (
+            projectSort === "project-az"
+
+            ||
+
+            projectSort === "project-za"
+        ) {
+
+            filtered.sort((a, b) => {
+
+                const nameA =
+                    getDossierProjectName(a);
+
+
+                const nameB =
+                    getDossierProjectName(b);
+
+
+                const compared =
+                    nameA.localeCompare(
+
+                        nameB,
+
+                        "vi",
+
+                        {
+                            sensitivity:
+                                "base",
+
+                            numeric:
+                                true
+                        }
+
+                    );
+
+
+                if (compared !== 0) {
+
+                    return projectSort ===
+                        "project-za"
+
+                        ? -compared
+
+                        : compared;
+
+                }
+
+
+                return (
+
+                    getDossierCreatedTime(b)
+
+                    -
+
+                    getDossierCreatedTime(a)
+
+                );
+
+            });
+
+        } else {
+
+            filtered.sort(
+
+                (a, b) =>
+
+                    getDossierCreatedTime(b)
+
+                    -
+
+                    getDossierCreatedTime(a)
+
+            );
+
+        }
+
+
+        dossierFilteredData =
+            filtered;
+
+
+        dossierCurrentPage =
+            1;
+
+
+        renderCurrentDossierPage();
+
+    }
+
+
+    // =====================================================
+    // CHỌN NHIỀU HỒ SƠ
+    // =====================================================
+
+    function updateDossierSelectionUI() {
+
+        const selectedCount =
+            selectedDossierIds.size;
+
+
+        const bulkBar =
+            getDossierElement(
+                "dossierBulkBar"
+            );
+
+
+        const countElement =
+            getDossierElement(
+                "selectedDossierCount"
+            );
+
+
+        if (bulkBar) {
+
+            bulkBar.hidden =
+                selectedCount === 0;
+
+        }
+
+
+        if (countElement) {
+
+            countElement.textContent =
+                String(selectedCount);
+
+        }
+
+
+        document
+            .querySelectorAll(
+                ".dossier-row-checkbox"
+            )
+            .forEach(checkbox => {
+
+                checkbox.checked =
+                    selectedDossierIds.has(
+
+                        String(
+                            checkbox.value
+                        )
+
+                    );
+
+            });
+
+
+        const selectAll =
+            getDossierElement(
+                "selectAllDossiers"
+            );
+
+
+        if (!selectAll) {
+
+            return;
+
+        }
+
+
+        const visibleIds =
+            currentRenderedDossiers.map(
+                item =>
+                    String(item.id)
+            );
+
+
+        const selectedVisibleCount =
+            visibleIds.filter(id =>
+
+                selectedDossierIds.has(id)
+
+            ).length;
+
+
+        selectAll.checked =
+            visibleIds.length > 0
+
+            &&
+
+            selectedVisibleCount ===
+            visibleIds.length;
+
+
+        selectAll.indeterminate =
+            selectedVisibleCount > 0
+
+            &&
+
+            selectedVisibleCount <
+            visibleIds.length;
+
+    }
+
+
+    function toggleDossierSelection(
+        id,
+        checked
+    ) {
+
+        const dossierId =
+            String(id);
+
+
+        if (checked) {
+
+            selectedDossierIds.add(
+                dossierId
+            );
+
+        } else {
+
+            selectedDossierIds.delete(
+                dossierId
+            );
+
+        }
+
+
+        updateDossierSelectionUI();
+
+    }
+
+
+    function toggleSelectAllDossiers(
+        checked
+    ) {
+
+        currentRenderedDossiers.forEach(
+            item => {
+
+                const id =
+                    String(item.id);
+
+
+                if (checked) {
+
+                    selectedDossierIds.add(id);
+
+                } else {
+
+                    selectedDossierIds.delete(id);
+
+                }
+
+            }
+        );
+
+
+        updateDossierSelectionUI();
+
+    }
+
+
+    function clearDossierSelection() {
+
+        selectedDossierIds.clear();
+
+
+        const selectAll =
+            getDossierElement(
+                "selectAllDossiers"
+            );
+
+
+        if (selectAll) {
+
+            selectAll.checked =
+                false;
+
+
+            selectAll.indeterminate =
+                false;
+
+        }
+
+
+        updateDossierSelectionUI();
+
+    }
+
+
+    // =====================================================
+    // CẬP NHẬT HÀNG LOẠT
+    // =====================================================
+
+    function getBulkDossierChanges() {
+
+        const changes =
+            {};
+
+
+        const fileStatus =
+            getDossierInputValue(
+                "bulkFileStatus"
+            );
+
+
+        const dossierStatus =
+            getDossierInputValue(
+                "bulkDossierStatus"
+            );
+
+
+        const paymentRequest =
+            getDossierInputValue(
+                "bulkPaymentRequest"
+            );
+
+
+        const paymentStatus =
+            getDossierInputValue(
+                "bulkPaymentStatus"
+            );
+
+
+        const deliveryDate =
+            getDossierInputValue(
+                "bulkDeliveryDate"
+            );
+
+
+        const clearDeliveryDate =
+            Boolean(
+
+                getDossierElement(
+                    "bulkClearDeliveryDate"
+                )?.checked
+
+            );
+
+
+        if (fileStatus !== "") {
+
+            changes.fileStatus =
+                fileStatus;
+
+        }
+
+
+        if (dossierStatus !== "") {
+
+            changes.status =
+                dossierStatus;
+
+        }
+
+
+        if (paymentRequest !== "") {
+
+            changes.paymentRequest =
+                paymentRequest === "true";
+
+        }
+
+
+        if (paymentStatus !== "") {
+
+            changes.paymentStatus =
+                paymentStatus;
+
+        }
+
+
+        if (clearDeliveryDate) {
+
+            changes.deliveryDate =
+                "";
+
+        } else if (deliveryDate !== "") {
+
+            changes.deliveryDate =
+                deliveryDate;
+
+        }
+
+
+        return changes;
+
+    }
+
+
+    function resetBulkDossierControls() {
+
+        setDossierInputValue(
+            "bulkFileStatus",
+            ""
+        );
+
+
+        setDossierInputValue(
+            "bulkDossierStatus",
+            ""
+        );
+
+
+        setDossierInputValue(
+            "bulkPaymentRequest",
+            ""
+        );
+
+
+        setDossierInputValue(
+            "bulkPaymentStatus",
+            ""
+        );
+
+
+        setDossierInputValue(
+            "bulkDeliveryDate",
+            ""
+        );
+
+
+        setDossierChecked(
+            "bulkClearDeliveryDate",
+            false
+        );
+
+    }
+
+
+    function applyBulkChangesToLocalItem(
+        item,
+        changes,
+        updatedAt
+    ) {
+
+        Object.entries(changes)
+            .forEach(([field, value]) => {
+
+                item[field] =
+                    value;
+
+
+                if (field === "status") {
+
+                    item.dossierStatus =
+                        value;
+
+                }
+
+            });
+
+
+        item.updatedAt =
+            updatedAt;
+
+    }
+
+
+    async function applyBulkDossierUpdate() {
+
+        const selectedItems =
+            dossiers.filter(item =>
+
+                selectedDossierIds.has(
+                    String(item.id)
+                )
+
+            );
+
+
+        if (selectedItems.length === 0) {
+
+            showDossierNotice(
+                "Vui lòng chọn ít nhất một hồ sơ.",
+                "warning"
+            );
+
+
+            return;
+
+        }
+
+
+        const changes =
+            getBulkDossierChanges();
+
+
+        if (
+            Object.keys(changes).length === 0
+        ) {
+
+            showDossierNotice(
+                "Vui lòng chọn nội dung cần cập nhật.",
+                "warning"
+            );
+
+
+            return;
+
+        }
+
+
+        const itemWithoutObjectId =
+            selectedItems.find(item =>
+
+                !String(
+                    item.back4appId || ""
+                ).trim()
+
+            );
+
+
+        if (itemWithoutObjectId) {
+
+            showDossierNotice(
+
+                `Hồ sơ "${itemWithoutObjectId.code}" chưa có objectId trên Back4App.`,
+
+                "error"
+
+            );
+
+
+            return;
+
+        }
+
+
+        const confirmed =
+            window.confirm(
+
+                `Cập nhật ${selectedItems.length} hồ sơ đã chọn?`
+
+            );
+
+
+        if (!confirmed) {
+
+            return;
+
+        }
+
+
+        const button =
+            getDossierElement(
+                "applyBulkDossierButton"
+            );
+
+
+        if (button) {
+
+            button.disabled =
+                true;
+
+
+            button.textContent =
+                "Đang cập nhật...";
+
+        }
+
+
+        try {
+
+            ensureDossierBack4AppReady();
+
+
+            const currentUser =
+                Parse.User.current();
+
+
+            const parseObjects =
+                selectedItems.map(item => {
+
+                    const dossierObject =
+                        Parse.Object.createWithoutData(
+
+                            DOSSIER_PAGE_CLASS_NAME,
+
+                            String(
+                                item.back4appId
+                            )
+
+                        );
+
+
+                    Object.entries(changes)
+                        .forEach(
+                            ([field, value]) => {
+
+                                dossierObject.set(
+                                    field,
+                                    value
+                                );
+
+                            }
+                        );
+
+
+                    if (currentUser) {
+
+                        dossierObject.set(
+                            "updatedBy",
+                            currentUser
+                        );
+
+                    }
+
+
+                    return dossierObject;
+
+                });
+
+
+            const batchSize =
+                20;
+
+
+            let completedCount =
+                0;
+
+
+            for (
+                let index = 0;
+
+                index < parseObjects.length;
+
+                index += batchSize
+            ) {
+
+                const batch =
+                    parseObjects.slice(
+
+                        index,
+
+                        index + batchSize
+
+                    );
+
+
+                await Parse.Object.saveAll(
+                    batch
+                );
+
+
+                completedCount +=
+                    batch.length;
+
+
+                if (button) {
+
+                    button.textContent =
+                        `Đang cập nhật ${completedCount}/${parseObjects.length}...`;
+
+                }
+
+            }
+
+
+            const updatedAt =
+                new Date()
+                    .toISOString();
+
+
+            selectedItems.forEach(item => {
+
+                applyBulkChangesToLocalItem(
+
+                    item,
+
+                    changes,
+
+                    updatedAt
+
+                );
+
+            });
+
+
+            saveDossiersToStorage();
+
+
+            clearDossierSelection();
+
+
+            resetBulkDossierControls();
+
+
+            refreshAllDossierViews();
+
+
+            showDossierNotice(
+
+                `Đã cập nhật ${selectedItems.length} hồ sơ.`,
+
+                "success"
+
+            );
+
+        } catch (error) {
+
+            console.error(
+                "Không cập nhật được hồ sơ hàng loạt:",
+                error
+            );
+
+
+            showDossierNotice(
+
+                error?.message
+
+                ||
+
+                "Không cập nhật được hồ sơ.",
+
+                "error"
+
+            );
+
+        } finally {
+
+            if (button) {
+
+                button.disabled =
+                    false;
+
+
+                button.textContent =
+                    "Cập nhật hàng loạt";
+
+            }
+
+        }
+
+    }
+
+
+    // =====================================================
+    // MODAL PORTAL
+    // =====================================================
+
+    function mountDossierModalToBody() {
+
+        const modal =
+            getDossierElement(
+                "dossierModal"
+            );
+
+
+        if (!modal) {
+
+            return null;
+
+        }
+
+
+        if (
+            !dossierModalMountState
+
+            &&
+
+            modal.parentNode
+
+            &&
+
+            modal.parentNode !==
+            document.body
+        ) {
+
+            dossierModalMountState = {
+
+                parent:
+                    modal.parentNode,
+
+                nextSibling:
+                    modal.nextSibling
+
+            };
+
+        }
+
+
+        if (
+            modal.parentNode !==
+            document.body
+        ) {
+
+            document.body.appendChild(
+                modal
+            );
+
+        }
+
+
+        return modal;
+
+    }
+
+
+    function restoreDossierModalPosition(
+        modal
+    ) {
+
+        const mountState =
+            dossierModalMountState;
+
+
+        dossierModalMountState =
+            null;
+
+
+        if (
+            !modal
+
+            ||
+
+            !mountState
+        ) {
+
+            return;
+
+        }
+
+
+        if (
+            mountState.parent
+
+            &&
+
+            mountState.parent.isConnected
+        ) {
+
+            const validNextSibling =
+                mountState.nextSibling
+
+                &&
+
+                mountState.nextSibling.parentNode
+                ===
+                mountState.parent
+
+                    ? mountState.nextSibling
+
+                    : null;
+
+
+            mountState.parent.insertBefore(
+
+                modal,
+
+                validNextSibling
+
+            );
+
+
+            return;
+
+        }
+
+
+        modal.remove();
+
+    }
+
+
+    function showDossierModal() {
+
+        const modal =
+            mountDossierModalToBody();
+
+
+        if (!modal) {
+
+            showDossierNotice(
+                "Không tìm thấy popup Hồ sơ.",
+                "error"
+            );
+
+
+            return false;
+
+        }
+
+
+        modal.classList.add(
             "is-open"
         );
 
 
         modal.setAttribute(
             "aria-hidden",
-            "true"
-        );
-
-    }
-
-
-    document.body.classList.remove(
-        "dossier-modal-open"
-    );
-
-}
-
-
-async function openDossierForm(){
-
-    editingDossierId =
-        null;
-
-
-    resetDossierForm();
-
-
-    const formTitle =
-        getDossierElement(
-            "dossierFormTitle"
+            "false"
         );
 
 
-    if(formTitle){
-
-        formTitle.textContent =
-            "Thêm Hồ sơ";
-
-    }
-
-
-    try{
-
-        await Promise.all([
-
-            typeof loadProjectSelect ===
-            "function"
-
-            ? loadProjectSelect()
-
-            : Promise.resolve(),
-
-
-            typeof loadSupplierSelect ===
-            "function"
-
-            ? loadSupplierSelect()
-
-            : Promise.resolve()
-
-        ]);
-
-    }catch(error){
-
-        console.error(
-            "Không tải được Dự án hoặc NCC:",
-            error
-        );
-
-    }
-
-
-    setDossierSaveBusy(
-        false,
-        false
-    );
-
-
-    showDossierModal();
-
-}
-
-
-function closeDossierForm(){
-
-    hideDossierModal();
-
-
-    editingDossierId =
-        null;
-
-
-    resetDossierForm();
-
-}
-
-
-function resetDossierForm(){
-
-    setDossierInputValue(
-        "dossierCode",
-        ""
-    );
-
-
-    setDossierInputValue(
-        "dossierProject",
-        ""
-    );
-
-
-    setDossierInputValue(
-        "dossierContent",
-        ""
-    );
-
-
-    setDossierInputValue(
-        "dossierSupplier",
-        ""
-    );
-
-
-    setDossierInputValue(
-        "dossierValue",
-        ""
-    );
-
-
-    setDossierInputValue(
-        "additionalDocuments",
-        ""
-    );
-
-
-    setDossierInputValue(
-        "fileStatus",
-        "Chưa up"
-    );
-
-
-    setDossierChecked(
-        "paymentRequest",
-        false
-    );
-
-
-    setDossierInputValue(
-        "receiveDate",
-        ""
-    );
-
-
-    setDossierInputValue(
-        "deliveryDate",
-        ""
-    );
-
-
-    setDossierInputValue(
-        "paymentStatus",
-        "Chưa thanh toán"
-    );
-
-
-    setDossierInputValue(
-        "dossierStatus",
-        "Chưa duyệt"
-    );
-
-
-    setDossierInputValue(
-        "note",
-        ""
-    );
-
-}
-
-
-// =====================================
-// LƯU / CẬP NHẬT HỒ SƠ
-// =====================================
-
-async function saveDossier(){
-
-    const code =
-        getDossierInputValue(
-            "dossierCode"
+        modal.style.setProperty(
+            "display",
+            "flex",
+            "important"
         );
 
 
-    const projectId =
-        getDossierInputValue(
-            "dossierProject"
-        );
+        document.documentElement
+            .classList
+            .add(
+                "dossier-modal-open"
+            );
 
 
-    const supplierId =
-        getDossierInputValue(
-            "dossierSupplier"
-        );
+        document.body
+            .classList
+            .add(
+                "dossier-modal-open"
+            );
 
 
-    const content =
-        getDossierInputValue(
-            "dossierContent"
-        );
+        const form =
+            getDossierElement(
+                "dossierForm"
+            );
 
 
-    if(!code){
+        if (form) {
 
-        alert(
-            "Vui lòng nhập mã hồ sơ."
-        );
+            form.scrollTop =
+                0;
 
-        return;
-
-    }
+        }
 
 
-    if(!projectId){
+        window.setTimeout(() => {
 
-        alert(
-            "Vui lòng chọn Dự án."
-        );
-
-        return;
-
-    }
-
-
-    if(!supplierId){
-
-        alert(
-            "Vui lòng chọn Nhà cung cấp."
-        );
-
-        return;
-
-    }
-
-
-    if(!content){
-
-        alert(
-            "Vui lòng nhập nội dung hồ sơ."
-        );
-
-        return;
-
-    }
-
-
-    const isEditing =
-        editingDossierId !== null;
-
-
-    const data = {
-
-        code:
-            code,
-
-
-        projectId:
-            projectId,
-
-
-        content:
-            content,
-
-
-        supplierId:
-            supplierId,
-
-
-        value:
-            getDossierInputValue(
-                "dossierValue"
-            ),
-
-
-        documents:
-            getDossierInputValue(
-                "additionalDocuments"
-            ),
-
-
-        fileStatus:
-            getDossierInputValue(
-                "fileStatus"
-            )
-
-            ||
-
-            "Chưa up",
-
-
-        paymentRequest:
-            Boolean(
-
+            const codeInput =
                 getDossierElement(
-                    "paymentRequest"
-                )?.checked
-
-            ),
-
-
-        receiveDate:
-            getDossierInputValue(
-                "receiveDate"
-            ),
-
-
-        deliveryDate:
-            getDossierInputValue(
-                "deliveryDate"
-            ),
-
-
-        paymentStatus:
-            getDossierInputValue(
-                "paymentStatus"
-            )
-
-            ||
-
-            "Chưa thanh toán",
-
-
-        status:
-            getDossierInputValue(
-                "dossierStatus"
-            )
-
-            ||
-
-            "Chưa duyệt",
-
-
-        note:
-            getDossierInputValue(
-                "note"
-            )
-
-    };
-
-
-    setDossierSaveBusy(
-        true,
-        isEditing
-    );
-
-
-    try{
-
-        ensureDossierBack4AppReady();
-
-
-        if(!dossierDataLoaded){
-
-            await fetchDossiersFromBack4App(
-                true
-            );
-
-        }
-
-
-        const editingDossier =
-
-            isEditing
-
-            ? dossiers.find(item =>
-
-                String(item.id)
-
-                ===
-
-                String(
-                    editingDossierId
-                )
-
-            )
-
-            : null;
-
-
-        if(
-            isEditing
-
-            &&
-
-            !editingDossier
-        ){
-
-            throw new Error(
-                "Không tìm thấy hồ sơ cần chỉnh sửa."
-            );
-
-        }
-
-
-        const duplicatedLocally =
-            dossiers.some(item => {
-
-                const sameCode =
-
-                    normalizeDossierText(
-                        item.code
-                    )
-
-                    ===
-
-                    normalizeDossierText(
-                        code
-                    );
-
-
-                const differentDossier =
-
-                    !isEditing
-
-                    ||
-
-                    String(item.id)
-
-                    !==
-
-                    String(
-                        editingDossierId
-                    );
-
-
-                return (
-                    sameCode
-
-                    &&
-
-                    differentDossier
+                    "dossierCode"
                 );
 
-            });
+
+            try {
+
+                codeInput?.focus({
+                    preventScroll:
+                        true
+                });
+
+            } catch (error) {
+
+                codeInput?.focus();
+
+            }
+
+        }, 80);
 
 
-        if(duplicatedLocally){
+        return true;
 
-            alert(
-                "Mã hồ sơ này đã tồn tại."
+    }
+
+
+    function hideDossierModal() {
+
+        const modal =
+            getDossierElement(
+                "dossierModal"
             );
+
+
+        if (modal) {
+
+            modal.classList.remove(
+                "is-open"
+            );
+
+
+            modal.setAttribute(
+                "aria-hidden",
+                "true"
+            );
+
+
+            modal.style.setProperty(
+                "display",
+                "none",
+                "important"
+            );
+
+        }
+
+
+        document.documentElement
+            .classList
+            .remove(
+                "dossier-modal-open"
+            );
+
+
+        document.body
+            .classList
+            .remove(
+                "dossier-modal-open"
+            );
+
+
+        restoreDossierModalPosition(
+            modal
+        );
+
+    }
+
+
+    // =====================================================
+    // FORM
+    // =====================================================
+
+    function setDossierSaveBusy(
+        isBusy,
+        isEditing
+    ) {
+
+        const button =
+            getDossierElement(
+                "dossierSaveButton"
+            );
+
+
+        if (!button) {
 
             return;
 
         }
 
 
-        let dossierObject;
+        button.disabled =
+            isBusy;
 
 
-        if(isEditing){
+        button.textContent =
+            isBusy
 
-            const back4appId =
-                String(
+                ? "Đang lưu..."
 
-                    editingDossier.back4appId
+                : isEditing
+                    ? "Cập nhật hồ sơ"
+                    : "Lưu hồ sơ";
 
-                    ||
-
-                    ""
-
-                );
+    }
 
 
-            if(!back4appId){
+    function resetDossierForm() {
 
-                throw new Error(
-                    "Hồ sơ chưa có objectId trên Back4App."
-                );
-
-            }
-
-
-            dossierObject =
-                Parse.Object.createWithoutData(
-
-                    DOSSIER_CLASS_NAME,
-
-                    back4appId
-
-                );
-
-
-            const legacyId =
-                String(
-
-                    editingDossier.legacyId
-
-                    ||
-
-                    (
-                        String(
-                            editingDossier.id
-                        )
-
-                        !==
-
-                        back4appId
-
-                        ? editingDossier.id
-
-                        : ""
-                    )
-
-                ).trim();
-
-
-            if(legacyId){
-
-                dossierObject.set(
-                    "legacyId",
-                    legacyId
-                );
-
-            }
-
-        }else{
-
-            dossierObject =
-                new Parse.Object(
-                    DOSSIER_CLASS_NAME
-                );
-
-        }
-
-
-        setDossierParseFields(
-            dossierObject,
-            data
+        setDossierInputValue(
+            "dossierCode",
+            ""
         );
 
 
-        const currentUser =
-            Parse.User.current();
-
-
-        if(
-            !isEditing
-
-            &&
-
-            currentUser
-        ){
-
-            dossierObject.set(
-                "createdBy",
-                currentUser
-            );
-
-        }
-
-
-        if(currentUser){
-
-            dossierObject.set(
-                "updatedBy",
-                currentUser
-            );
-
-        }
-
-
-        const savedObject =
-            await dossierObject.save();
-
-
-        const savedDossier =
-            dossierParseObjectToPlain(
-
-                savedObject,
-
-                editingDossier
-
-            );
-
-
-        if(isEditing){
-
-            const index =
-                dossiers.findIndex(item =>
-
-                    String(item.id)
-
-                    ===
-
-                    String(
-                        editingDossierId
-                    )
-
-                );
-
-
-            if(index !== -1){
-
-                dossiers[index] =
-                    savedDossier;
-
-            }
-
-        }else{
-
-            dossiers.push(
-                savedDossier
-            );
-
-        }
-
-
-        sortDossiersNewestFirst();
-
-
-        saveDossiersToStorage();
-
-
-        refreshAllDossierViews();
-
-
-        closeDossierForm();
-
-
-        alert(
-
-            isEditing
-
-            ? "Đã cập nhật hồ sơ."
-
-            : "Đã thêm hồ sơ."
-
-        );
-
-    }catch(error){
-
-        console.error(
-            "Không lưu được Hồ sơ:",
-            error
+        setDossierInputValue(
+            "dossierProject",
+            ""
         );
 
 
-        alert(
-
-            "Không lưu được Hồ sơ.\n\n"
-
-            +
-
-            (
-                error.message
-
-                ||
-
-                "Không thể lưu Hồ sơ."
-            )
-
+        setDossierInputValue(
+            "dossierSupplier",
+            ""
         );
 
-    }finally{
 
-        setDossierSaveBusy(
-            false,
-            isEditing
+        setDossierInputValue(
+            "dossierSupplierSearch",
+            ""
+        );
+
+
+        updateDossierSupplierHint(
+            "empty"
+        );
+
+
+        setDossierInputValue(
+            "dossierContent",
+            ""
+        );
+
+
+        setDossierInputValue(
+            "dossierValue",
+            ""
+        );
+
+
+        setDossierInputValue(
+            "additionalDocuments",
+            ""
+        );
+
+
+        setDossierInputValue(
+            "fileStatus",
+            "Chưa up"
+        );
+
+
+        setDossierChecked(
+            "paymentRequest",
+            false
+        );
+
+
+        setDossierInputValue(
+            "receiveDate",
+            ""
+        );
+
+
+        setDossierInputValue(
+            "deliveryDate",
+            ""
+        );
+
+
+        setDossierInputValue(
+            "dossierStatus",
+            "Chưa duyệt"
+        );
+
+
+        setDossierInputValue(
+            "paymentStatus",
+            "Chưa thanh toán"
+        );
+
+
+        setDossierInputValue(
+            "note",
+            ""
         );
 
     }
 
+
+    async function openDossierForm() {
+
+        editingDossierId =
+            null;
+
+
+        resetDossierForm();
+
+
+        const formTitle =
+            getDossierElement(
+                "dossierFormTitle"
+            );
+
+
+        if (formTitle) {
+
+            formTitle.textContent =
+                "Thêm Hồ sơ";
+
+        }
+
+
+        setDossierSaveBusy(
+            false,
+            false
+        );
+
+
+        showDossierModal();
+
+
+        try {
+
+    const referenceResult =
+        await loadDossierReferenceData();
+
+
+    if (
+        referenceResult.optionCount === 0
+    ) {
+
+        showDossierNotice(
+
+            "Chưa tải được danh sách Nhà cung cấp. Hãy kiểm tra supplier.js hoặc dữ liệu Back4App.",
+
+            "warning"
+
+        );
+
+    }
+
+
+    if (editingDossierId === null) {
+
+        setDossierInputValue(
+            "dossierProject",
+            ""
+        );
+
+
+        setDossierSupplierById(
+            ""
+        );
+
+    }
+
+} catch (error) {
+
+    console.error(
+        "Không tải được Dự án hoặc Nhà cung cấp:",
+        error
+    );
+
+
+    showDossierNotice(
+
+        "Form đã mở nhưng chưa tải được danh sách Nhà cung cấp.",
+
+        "warning"
+
+    );
+
 }
 
-// =====================================
-// HIỂN THỊ DANH SÁCH HỒ SƠ
-// Bản tối ưu: chỉ cập nhật DOM một lần
-// =====================================
+    }
 
-function renderDossier(
-    data = dossiers
+
+    function closeDossierForm() {
+
+        hideDossierModal();
+
+
+        editingDossierId =
+            null;
+
+
+        resetDossierForm();
+
+    }
+
+
+    // =====================================================
+    // LƯU HỒ SƠ
+    // =====================================================
+
+    async function saveDossier() {
+
+        const code =
+            getDossierInputValue(
+                "dossierCode"
+            );
+
+
+        const projectId =
+            getDossierInputValue(
+                "dossierProject"
+            );
+
+
+        const supplierId =
+            handleDossierSupplierSearchChange(
+                true
+            );
+
+
+        const content =
+            getDossierInputValue(
+                "dossierContent"
+            );
+
+
+        if (!code) {
+
+            showDossierNotice(
+                "Vui lòng nhập mã hồ sơ.",
+                "warning"
+            );
+
+
+            getDossierElement(
+                "dossierCode"
+            )?.focus();
+
+
+            return;
+
+        }
+
+
+        if (!projectId) {
+
+            showDossierNotice(
+                "Vui lòng chọn Dự án.",
+                "warning"
+            );
+
+
+            getDossierElement(
+                "dossierProject"
+            )?.focus();
+
+
+            return;
+
+        }
+
+
+        if (!supplierId) {
+
+            showDossierNotice(
+
+                "Vui lòng nhập chính xác hơn hoặc chọn Nhà cung cấp trong danh sách gợi ý.",
+
+                "warning"
+
+            );
+
+
+            getDossierElement(
+                "dossierSupplierSearch"
+            )?.focus();
+
+
+            return;
+
+        }
+
+
+        if (!content) {
+
+            showDossierNotice(
+                "Vui lòng nhập nội dung hồ sơ.",
+                "warning"
+            );
+
+
+            getDossierElement(
+                "dossierContent"
+            )?.focus();
+
+
+            return;
+
+        }
+
+
+        const isEditing =
+            editingDossierId !== null;
+
+
+        const data = {
+
+            code,
+
+            projectId,
+
+            supplierId,
+
+            content,
+
+
+            value:
+                getDossierInputValue(
+                    "dossierValue"
+                ),
+
+
+            documents:
+                getDossierInputValue(
+                    "additionalDocuments"
+                ),
+
+
+            fileStatus:
+                getDossierInputValue(
+                    "fileStatus"
+                )
+
+                ||
+
+                "Chưa up",
+
+
+            paymentRequest:
+                Boolean(
+
+                    getDossierElement(
+                        "paymentRequest"
+                    )?.checked
+
+                ),
+
+
+            receiveDate:
+                getDossierInputValue(
+                    "receiveDate"
+                ),
+
+
+            deliveryDate:
+                getDossierInputValue(
+                    "deliveryDate"
+                ),
+
+
+            status:
+                getDossierInputValue(
+                    "dossierStatus"
+                )
+
+                ||
+
+                "Chưa duyệt",
+
+
+            paymentStatus:
+                getDossierInputValue(
+                    "paymentStatus"
+                )
+
+                ||
+
+                "Chưa thanh toán",
+
+
+            note:
+                getDossierInputValue(
+                    "note"
+                )
+
+        };
+
+
+        setDossierSaveBusy(
+            true,
+            isEditing
+        );
+
+
+        try {
+
+            ensureDossierBack4AppReady();
+
+
+            if (!dossierDataLoaded) {
+
+                await fetchDossiersFromBack4App(
+                    true
+                );
+
+            }
+
+
+            const editingDossier =
+                isEditing
+
+                    ? findLocalDossierByAnyId(
+                        editingDossierId
+                    )
+
+                    : null;
+
+
+            if (
+                isEditing
+
+                &&
+
+                !editingDossier
+            ) {
+
+                throw new Error(
+                    "Không tìm thấy hồ sơ cần chỉnh sửa."
+                );
+
+            }
+
+
+            const normalizedCode =
+                normalizeDossierText(
+                    code
+                );
+
+
+            const duplicatedLocally =
+                dossiers.some(item => {
+
+                    const sameCode =
+                        normalizeDossierText(
+                            item.code
+                        )
+
+                        ===
+
+                        normalizedCode;
+
+
+                    const sameCurrentDossier =
+                        isEditing
+
+                        &&
+
+                        sameDossierIdentity(
+                            item,
+                            editingDossier
+                        );
+
+
+                    return (
+                        sameCode
+
+                        &&
+
+                        !sameCurrentDossier
+                    );
+
+                });
+
+
+            if (duplicatedLocally) {
+
+                showDossierNotice(
+                    "Mã hồ sơ này đã tồn tại.",
+                    "warning"
+                );
+
+
+                return;
+
+            }
+
+
+            let dossierObject;
+
+
+            if (isEditing) {
+
+                dossierObject =
+                    await findDossierObjectOnBack4App(
+                        editingDossier
+                    );
+
+
+                if (!dossierObject) {
+
+                    throw new Error(
+                        "Không tìm thấy hồ sơ này trên Back4App."
+                    );
+
+                }
+
+
+                const legacyId =
+                    String(
+
+                        editingDossier.legacyId
+
+                        ||
+
+                        (
+                            String(
+                                editingDossier.id
+                            )
+
+                            !==
+
+                            String(
+                                dossierObject.id
+                            )
+
+                                ? editingDossier.id
+
+                                : ""
+                        )
+
+                        ||
+
+                        ""
+
+                    ).trim();
+
+
+                if (legacyId) {
+
+                    dossierObject.set(
+                        "legacyId",
+                        legacyId
+                    );
+
+                }
+
+            } else {
+
+                dossierObject =
+                    new Parse.Object(
+                        DOSSIER_PAGE_CLASS_NAME
+                    );
+
+            }
+
+
+            setDossierParseFields(
+                dossierObject,
+                data
+            );
+
+
+            const currentUser =
+                Parse.User.current();
+
+
+            if (
+                !isEditing
+
+                &&
+
+                currentUser
+            ) {
+
+                dossierObject.set(
+                    "createdBy",
+                    currentUser
+                );
+
+            }
+
+
+            if (currentUser) {
+
+                dossierObject.set(
+                    "updatedBy",
+                    currentUser
+                );
+
+            }
+
+
+            const savedObject =
+                await dossierObject.save();
+
+
+            const savedDossier =
+                dossierParseObjectToPlain(
+
+                    savedObject,
+
+                    editingDossier
+
+                );
+
+
+            if (isEditing) {
+
+                const index =
+                    dossiers.findIndex(item =>
+
+                        sameDossierIdentity(
+                            item,
+                            editingDossier
+                        )
+
+                    );
+
+
+                if (index !== -1) {
+
+                    dossiers[index] =
+                        savedDossier;
+
+                } else {
+
+                    dossiers.push(
+                        savedDossier
+                    );
+
+                }
+
+            } else {
+
+                dossiers.push(
+                    savedDossier
+                );
+
+            }
+
+
+            sortDossiersNewestFirst();
+
+
+            saveDossiersToStorage();
+
+
+            refreshAllDossierViews();
+
+
+            closeDossierForm();
+
+
+            showDossierNotice(
+
+                isEditing
+
+                    ? "Đã cập nhật hồ sơ."
+
+                    : "Đã thêm hồ sơ.",
+
+                "success"
+
+            );
+
+        } catch (error) {
+
+            console.error(
+                "Không lưu được Hồ sơ:",
+                {
+                    code:
+                        error?.code,
+
+                    message:
+                        error?.message,
+
+                    error
+                }
+            );
+
+
+            let message =
+                error?.message
+
+                ||
+
+                "Không thể lưu Hồ sơ.";
+
+
+            if (Number(error?.code) === 119) {
+
+                message =
+                    "Tài khoản hiện tại chưa có quyền tạo hoặc cập nhật class Dossier.";
+
+            }
+
+
+            if (Number(error?.code) === 209) {
+
+                message =
+                    "Phiên đăng nhập đã hết hạn. Hãy đăng nhập lại.";
+
+            }
+
+
+            if (Number(error?.code) === 101) {
+
+                message =
+                    "Không tìm thấy hồ sơ cần cập nhật trên Back4App.";
+
+            }
+
+
+            showDossierNotice(
+                message,
+                "error"
+            );
+
+        } finally {
+
+            setDossierSaveBusy(
+                false,
+                isEditing
+            );
+
+        }
+
+    }
+
+
+    // =====================================================
+    // SỬA HỒ SƠ
+    // =====================================================
+
+    async function editDossier(id) {
+
+        const item =
+            findLocalDossierByAnyId(id);
+
+
+        if (!item) {
+
+            showDossierNotice(
+                "Không tìm thấy hồ sơ.",
+                "error"
+            );
+
+
+            return;
+
+        }
+
+
+        editingDossierId =
+            item.back4appId
+
+            ||
+
+            item.id
+
+            ||
+
+            item.legacyId;
+
+
+        const formTitle =
+            getDossierElement(
+                "dossierFormTitle"
+            );
+
+
+        if (formTitle) {
+
+            formTitle.textContent =
+                "Chỉnh sửa Hồ sơ";
+
+        }
+
+
+        showDossierModal();
+
+
+        try {
+
+            await loadDossierReferenceData();
+
+        } catch (error) {
+
+            console.error(
+                "Không tải được dropdown:",
+                error
+            );
+
+        }
+
+
+        setDossierInputValue(
+            "dossierCode",
+            item.code
+        );
+
+
+        setDossierProjectById(
+            item.projectId
+        );
+
+
+        setDossierSupplierById(
+            item.supplierId
+        );
+
+
+        setDossierInputValue(
+            "dossierContent",
+            item.content
+        );
+
+
+        setDossierInputValue(
+            "dossierValue",
+            item.value
+        );
+
+
+        setDossierInputValue(
+            "additionalDocuments",
+            item.documents
+        );
+
+
+        setDossierInputValue(
+            "fileStatus",
+            item.fileStatus
+
+            ||
+
+            "Chưa up"
+        );
+
+
+        setDossierChecked(
+            "paymentRequest",
+            item.paymentRequest
+        );
+
+
+        setDossierInputValue(
+            "receiveDate",
+            item.receiveDate || ""
+        );
+
+
+        setDossierInputValue(
+            "deliveryDate",
+            item.deliveryDate || ""
+        );
+
+
+        setDossierInputValue(
+            "dossierStatus",
+            item.status
+
+            ||
+
+            "Chưa duyệt"
+        );
+
+
+        setDossierInputValue(
+            "paymentStatus",
+            item.paymentStatus
+
+            ||
+
+            "Chưa thanh toán"
+        );
+
+
+        setDossierInputValue(
+            "note",
+            item.note || ""
+        );
+
+
+        setDossierSaveBusy(
+            false,
+            true
+        );
+
+    }
+
+
+    // =====================================================
+    // XÓA HỒ SƠ
+    // =====================================================
+
+    async function deleteDossier(
+        id,
+        deleteButton = null
+    ) {
+
+        const dossier =
+            findLocalDossierByAnyId(id);
+
+
+        if (!dossier) {
+
+            showDossierNotice(
+                "Không tìm thấy hồ sơ.",
+                "error"
+            );
+
+
+            return;
+
+        }
+
+
+        const confirmed =
+            window.confirm(
+
+                `Bạn có chắc chắn muốn xóa hồ sơ "${dossier.code}"?\n\n`
+
+                +
+
+                "Thao tác này không thể hoàn tác."
+
+            );
+
+
+        if (!confirmed) {
+
+            return;
+
+        }
+
+
+        const oldButtonHtml =
+            deleteButton?.innerHTML || "🗑";
+
+
+        if (deleteButton) {
+
+            deleteButton.disabled =
+                true;
+
+
+            deleteButton.innerHTML =
+                "…";
+
+        }
+
+
+        try {
+
+            ensureDossierBack4AppReady();
+
+
+            const dossierObject =
+                await findDossierObjectOnBack4App(
+                    dossier
+                );
+
+
+            if (!dossierObject) {
+
+                const removeStaleRow =
+                    window.confirm(
+
+                        `Không tìm thấy hồ sơ "${dossier.code}" trên Back4App.\n\n`
+
+                        +
+
+                        "Xóa dòng dữ liệu cũ khỏi giao diện?"
+
+                    );
+
+
+                if (!removeStaleRow) {
+
+                    return;
+
+                }
+
+
+                dossiers =
+                    dossiers.filter(item =>
+
+                        !sameDossierIdentity(
+                            item,
+                            dossier
+                        )
+
+                    );
+
+
+                saveDossiersToStorage();
+
+
+                refreshAllDossierViews();
+
+
+                showDossierNotice(
+                    "Đã loại dữ liệu cũ khỏi danh sách.",
+                    "info"
+                );
+
+
+                return;
+
+            }
+
+
+            await dossierObject.destroy();
+
+
+            dossiers =
+                dossiers.filter(item =>
+
+                    !sameDossierIdentity(
+                        item,
+                        dossier
+                    )
+
+                );
+
+
+            getDossierIdentifiers(dossier)
+                .forEach(dossierId => {
+
+                    selectedDossierIds.delete(
+                        dossierId
+                    );
+
+                });
+
+
+            selectedDossierIds.delete(
+                String(
+                    dossierObject.id
+                )
+            );
+
+
+            saveDossiersToStorage();
+
+
+            if (
+                editingDossierId !== null
+
+                &&
+
+                entityMatchesId(
+                    dossier,
+                    editingDossierId
+                )
+            ) {
+
+                closeDossierForm();
+
+            }
+
+
+            refreshAllDossierViews();
+
+
+            showDossierNotice(
+
+                `Đã xóa hồ sơ "${dossier.code}".`,
+
+                "success"
+
+            );
+
+        } catch (error) {
+
+            console.error(
+                "Không xóa được Hồ sơ:",
+                {
+                    code:
+                        error?.code,
+
+                    message:
+                        error?.message,
+
+                    error
+                }
+            );
+
+
+            let message =
+                error?.message
+
+                ||
+
+                "Không thể xóa Hồ sơ.";
+
+
+            if (Number(error?.code) === 119) {
+
+                message =
+                    "Tài khoản hiện tại chưa có quyền Delete đối với class Dossier.";
+
+            }
+
+
+            if (Number(error?.code) === 101) {
+
+                message =
+                    "Back4App không tìm thấy hồ sơ hoặc ACL đang chặn quyền truy cập.";
+
+            }
+
+
+            if (Number(error?.code) === 209) {
+
+                message =
+                    "Phiên đăng nhập đã hết hạn. Hãy đăng nhập lại.";
+
+            }
+
+
+            showDossierNotice(
+                message,
+                "error"
+            );
+
+        } finally {
+
+            if (deleteButton) {
+
+                deleteButton.disabled =
+                    false;
+
+
+                deleteButton.innerHTML =
+                    oldButtonHtml;
+
+            }
+
+        }
+
+    }
+
+
+    // =====================================================
+    // FILTER OPTION CHO CÁC TRANG CON
+    // =====================================================
+
+    function loadDossierFilterOptions(
+        selectId,
+        items,
+        placeholder
+    ) {
+
+        const select =
+            getDossierElement(
+                selectId
+            );
+
+
+        if (!select) {
+
+            return;
+
+        }
+
+
+        const currentValue =
+            String(
+                select.value || ""
+            );
+
+
+        select.innerHTML =
+            "";
+
+
+        const defaultOption =
+            document.createElement(
+                "option"
+            );
+
+
+        defaultOption.value =
+            "";
+
+
+        defaultOption.textContent =
+            placeholder;
+
+
+        select.appendChild(
+            defaultOption
+        );
+
+
+        [...items]
+            .sort((a, b) =>
+
+                String(
+                    a.ten
+
+                    ||
+
+                    a.name
+
+                    ||
+
+                    ""
+                ).localeCompare(
+
+                    String(
+                        b.ten
+
+                        ||
+
+                        b.name
+
+                        ||
+
+                        ""
+                    ),
+
+                    "vi",
+
+                    {
+                        sensitivity:
+                            "base",
+
+                        numeric:
+                            true
+                    }
+
+                )
+
+            )
+            .forEach(item => {
+
+                const stableId =
+                    getEntityStableId(
+                        item
+                    );
+
+
+                if (!stableId) {
+
+                    return;
+
+                }
+
+
+                const option =
+                    document.createElement(
+                        "option"
+                    );
+
+
+                option.value =
+                    stableId;
+
+
+                option.textContent =
+                    item.ten
+
+                    ||
+
+                    item.name
+
+                    ||
+
+                    "Không có tên";
+
+
+                select.appendChild(
+                    option
+                );
+
+            });
+
+
+        const currentEntity =
+            items.find(item =>
+
+                entityMatchesId(
+                    item,
+                    currentValue
+                )
+
+            );
+
+
+        select.value =
+            currentEntity
+
+                ? getEntityStableId(
+                    currentEntity
+                )
+
+                : "";
+
+    }
+
+
+    function compareDossierVietnameseText(
+        valueA,
+        valueB
+    ) {
+
+        return String(valueA || "")
+            .localeCompare(
+
+                String(valueB || ""),
+
+                "vi",
+
+                {
+                    sensitivity:
+                        "base",
+
+                    numeric:
+                        true
+                }
+
+            );
+
+    }
+
+
+    // =====================================================
+    // HỒ SƠ ĐÃ BÀN GIAO
+    // =====================================================
+
+    function loadDeliveryDossierFilters() {
+
+        loadDossierFilterOptions(
+
+            "deliveryProjectFilter",
+
+            getDossierProjects(),
+
+            "Tất cả dự án"
+
+        );
+
+
+        loadDossierFilterOptions(
+
+            "deliverySupplierFilter",
+
+            getDossierSuppliers(),
+
+            "Tất cả nhà cung cấp"
+
+        );
+
+    }
+
+
+    function sortDeliveryDossierData(
+        data,
+        sortMode
+    ) {
+
+        const sortedData =
+            [...data];
+
+
+        sortedData.sort((a, b) => {
+
+            const projectNameA =
+                getDossierProjectName(a);
+
+
+            const projectNameB =
+                getDossierProjectName(b);
+
+
+            const codeComparison =
+                compareDossierVietnameseText(
+                    a.code,
+                    b.code
+                );
+
+
+            if (sortMode === "project-az") {
+
+                return (
+
+                    compareDossierVietnameseText(
+
+                        projectNameA,
+
+                        projectNameB
+
+                    )
+
+                    ||
+
+                    codeComparison
+
+                );
+
+            }
+
+
+            if (sortMode === "project-za") {
+
+                return (
+
+                    compareDossierVietnameseText(
+
+                        projectNameB,
+
+                        projectNameA
+
+                    )
+
+                    ||
+
+                    codeComparison
+
+                );
+
+            }
+
+
+            if (sortMode === "delivery-oldest") {
+
+                return (
+
+                    String(
+                        a.deliveryDate || ""
+                    ).localeCompare(
+
+                        String(
+                            b.deliveryDate || ""
+                        )
+
+                    )
+
+                    ||
+
+                    codeComparison
+
+                );
+
+            }
+
+
+            return (
+
+                String(
+                    b.deliveryDate || ""
+                ).localeCompare(
+
+                    String(
+                        a.deliveryDate || ""
+                    )
+
+                )
+
+                ||
+
+                codeComparison
+
+            );
+
+        });
+
+
+        return sortedData;
+
+    }
+
+
+    function filterDeliveryDossier() {
+
+        const keyword =
+            normalizeDossierText(
+
+                getDossierInputValue(
+                    "deliverySearch"
+                )
+
+            );
+
+
+        const projectId =
+            getDossierInputValue(
+                "deliveryProjectFilter"
+            );
+
+
+        const supplierId =
+            getDossierInputValue(
+                "deliverySupplierFilter"
+            );
+
+
+        const paymentFilter =
+            getDossierInputValue(
+                "deliveryPaymentFilter"
+            );
+
+
+        const dateFrom =
+            getDossierInputValue(
+                "deliveryDateFrom"
+            );
+
+
+        const dateTo =
+            getDossierInputValue(
+                "deliveryDateTo"
+            );
+
+
+        const sortMode =
+            getDossierInputValue(
+                "deliverySort"
+            )
+
+            ||
+
+            "delivery-newest";
+
+
+        if (
+            dateFrom
+
+            &&
+
+            dateTo
+
+            &&
+
+            dateFrom > dateTo
+        ) {
+
+            renderDeliveryDossier(
+                []
+            );
+
+
+            showDossierNotice(
+                "Từ ngày không được lớn hơn Đến ngày.",
+                "warning"
+            );
+
+
+            return;
+
+        }
+
+
+        const filtered =
+            dossiers.filter(item => {
+
+                const deliveryDate =
+                    String(
+                        item.deliveryDate || ""
+                    ).trim();
+
+
+                if (!deliveryDate) {
+
+                    return false;
+
+                }
+
+
+                const project =
+                    getDossierProjectById(
+                        item.projectId
+                    );
+
+
+                const supplier =
+                    getDossierSupplierById(
+                        item.supplierId
+                    );
+
+
+                const searchText =
+                    normalizeDossierText(`
+
+                        ${item.code || ""}
+
+                        ${item.content || ""}
+
+                        ${item.documents || ""}
+
+                        ${project?.ten || project?.name || ""}
+
+                        ${getDossierSupplierName(supplier)}
+
+                        ${item.note || ""}
+
+                    `);
+
+
+                const matchProject =
+                    !projectId
+
+                    ||
+
+                    (
+                        project
+
+                        &&
+
+                        entityMatchesId(
+                            project,
+                            projectId
+                        )
+                    );
+
+
+                const matchSupplier =
+                    !supplierId
+
+                    ||
+
+                    (
+                        supplier
+
+                        &&
+
+                        entityMatchesId(
+                            supplier,
+                            supplierId
+                        )
+                    );
+
+
+                return (
+
+                    searchText.includes(
+                        keyword
+                    )
+
+                    &&
+
+                    matchProject
+
+                    &&
+
+                    matchSupplier
+
+                    &&
+
+                    (
+                        !paymentFilter
+
+                        ||
+
+                        String(
+                            item.paymentStatus
+
+                            ||
+
+                            "Chưa thanh toán"
+                        )
+
+                        ===
+
+                        paymentFilter
+                    )
+
+                    &&
+
+                    (
+                        !dateFrom
+
+                        ||
+
+                        deliveryDate >= dateFrom
+                    )
+
+                    &&
+
+                    (
+                        !dateTo
+
+                        ||
+
+                        deliveryDate <= dateTo
+                    )
+
+                );
+
+            });
+
+
+        renderDeliveryDossier(
+
+            sortDeliveryDossierData(
+                filtered,
+                sortMode
+            )
+
+        );
+
+    }
+
+
+    function renderDeliveryDossier(data) {
+
+        renderSimpleDossierTable({
+
+            tableId:
+                "deliveryTable",
+
+            countId:
+                "deliveryResultCount",
+
+            data,
+
+            emptyMessage:
+                "Chưa có hồ sơ đã bàn giao phù hợp",
+
+            deliveryMode:
+                true
+
+        });
+
+    }
+
+
+    function resetDeliveryDossierFilters() {
+
+        const values = {
+
+            deliverySearch:
+                "",
+
+            deliveryProjectFilter:
+                "",
+
+            deliverySupplierFilter:
+                "",
+
+            deliveryPaymentFilter:
+                "",
+
+            deliveryDateFrom:
+                "",
+
+            deliveryDateTo:
+                "",
+
+            deliverySort:
+                "delivery-newest"
+
+        };
+
+
+        Object.entries(values)
+            .forEach(([id, value]) => {
+
+                setDossierInputValue(
+                    id,
+                    value
+                );
+
+            });
+
+
+        filterDeliveryDossier();
+
+    }
+
+// =====================================================
+// TRANG HỒ SƠ ĐÃ THANH TOÁN
+// =====================================================
+
+function getPaidEntityIdentifiers(
+    item
+){
+
+    if(!item){
+
+        return [];
+
+    }
+
+
+    return [
+
+        item.id,
+
+        item.back4appId,
+
+        item.objectId,
+
+        item.legacyId
+
+    ]
+    .filter(Boolean)
+    .map(value =>
+        String(value)
+    );
+
+}
+
+
+function getPaidEntityStableId(
+    item
+){
+
+    if(!item){
+
+        return "";
+
+    }
+
+
+    return String(
+
+        item.back4appId
+
+        ||
+
+        item.objectId
+
+        ||
+
+        item.id
+
+        ||
+
+        item.legacyId
+
+        ||
+
+        ""
+
+    ).trim();
+
+}
+
+
+function paidEntityMatchesId(
+    item,
+    id
+){
+
+    const targetId =
+        String(id || "");
+
+
+    if(!targetId){
+
+        return false;
+
+    }
+
+
+    return getPaidEntityIdentifiers(
+        item
+    )
+    .includes(
+        targetId
+    );
+
+}
+
+
+// =====================================================
+// KIỂM TRA HỒ SƠ ĐÃ THANH TOÁN
+// =====================================================
+
+function isPaidDossier(
+    item
+){
+
+    if(!item){
+
+        return false;
+
+    }
+
+
+    /*
+    Hỗ trợ dữ liệu mới và một số tên field cũ.
+    */
+
+    const paymentStatus =
+        String(
+
+            item.paymentStatus
+
+            ||
+
+            item.thanhtoan
+
+            ||
+
+            item.payment_status
+
+            ||
+
+            item.payment
+
+            ||
+
+            ""
+
+        ).trim();
+
+
+    const normalizedPaymentStatus =
+        normalizeDossierText(
+            paymentStatus
+        );
+
+
+    return (
+
+        normalizedPaymentStatus
+
+        ===
+
+        normalizeDossierText(
+            "Đã thanh toán"
+        )
+
+        ||
+
+        item.paid === true
+
+    );
+
+}
+
+
+// =====================================================
+// HIỂN THỊ TRẠNG THÁI ĐANG TẢI
+// =====================================================
+
+function setPaidDossierLoading(
+    message = "Đang tải hồ sơ đã thanh toán..."
 ){
 
     const table =
         getDossierElement(
-            "dossierTable"
+            "paidTable"
         );
+
+
+    const countElement =
+        getDossierElement(
+            "paidResultCount"
+        );
+
+
+    if(countElement){
+
+        countElement.textContent =
+            "0 hồ sơ";
+
+    }
 
 
     if(!table){
@@ -3859,1267 +8135,367 @@ function renderDossier(
     }
 
 
-    currentRenderedDossiers =
+    table.innerHTML = `
 
-        Array.isArray(data)
+        <tr>
 
-        ? data
+            <td
+                colspan="8"
+                class="paid-loading-row"
+            >
 
-        : [];
+                <div class="paid-loading-state">
+
+                    <span class="paid-loading-icon">
+                        🌿
+                    </span>
+
+                    <span>
+                        ${escapeDossierHtml(message)}
+                    </span>
+
+                </div>
+
+            </td>
+
+        </tr>
+
+    `;
+
+}
 
 
-    if(
-        currentRenderedDossiers.length ===
-        0
-    ){
+// =====================================================
+// TẠO OPTION BỘ LỌC
+// =====================================================
 
-        setDossierTableMessage(
-            "Chưa có hồ sơ phù hợp"
+function populatePaidFilter(
+    selectId,
+    items,
+    placeholder
+){
+
+    const select =
+        getDossierElement(
+            selectId
         );
+
+
+    if(!select){
 
         return;
 
     }
 
 
-    /*
-    Tạo Map để tìm dự án và nhà cung cấp nhanh hơn.
-
-    Không dùng projects.find() và suppliers.find()
-    lặp lại cho từng dòng.
-    */
-
-    const projectMap =
-        new Map(
-
-            getDossierProjects()
-                .map(item => [
-
-                    String(item.id),
-
-                    item
-
-                ])
-
+    const currentValue =
+        String(
+            select.value || ""
         );
 
 
-    const supplierMap =
-        new Map(
-
-            getDossierSuppliers()
-                .map(item => [
-
-                    String(item.id),
-
-                    item
-
-                ])
-
-        );
-
-
-    /*
-    Biến này phải được khai báo trước vòng lặp.
-    Đây chính là biến đang bị báo lỗi.
-    */
-
-    let rowsHtml =
+    select.innerHTML =
         "";
 
 
-    currentRenderedDossiers.forEach(item => {
+    const defaultOption =
+        document.createElement(
+            "option"
+        );
 
-        const project =
-            projectMap.get(
-                String(item.projectId)
-            );
 
+    defaultOption.value =
+        "";
 
-        const supplier =
-            supplierMap.get(
-                String(item.supplierId)
-            );
 
+    defaultOption.textContent =
+        placeholder;
 
-        const itemId =
-            escapeDossierHtml(
-                String(item.id)
-            );
 
+    select.appendChild(
+        defaultOption
+    );
 
-        const itemCode =
-            escapeDossierHtml(
-                item.code || "—"
-            );
 
+    [...items]
+    .sort((a, b) => {
 
-        rowsHtml += `
-
-            <tr>
-
-                <!-- 1. CHECKBOX -->
-
-                <td class="dossier-select-cell">
-
-                    <input
-                        type="checkbox"
-                        class="dossier-row-checkbox"
-                        value="${itemId}"
-                        ${
-                            selectedDossierIds.has(
-                                String(item.id)
-                            )
-
-                            ? "checked"
-
-                            : ""
-                        }
-                        onchange="
-                            toggleDossierSelection(
-                                this.value,
-                                this.checked
-                            )
-                        "
-                        aria-label="Chọn hồ sơ ${itemCode}"
-                    >
-
-                </td>
-
-
-                <!-- 2. MÃ HỒ SƠ -->
-
-                <td>
-
-                    ${itemCode}
-
-                </td>
-
-
-                <!-- 3. DỰ ÁN -->
-
-                <td>
-
-                    ${escapeDossierHtml(
-
-                        project
-
-                        ? project.ten || "—"
-
-                        : "Dự án đã xóa"
-
-                    )}
-
-                </td>
-
-
-                <!-- 4. NỘI DUNG -->
-
-                <td
-                    class="dossier-content-cell"
-                    title="${escapeDossierHtml(
-                        item.content || ""
-                    )}"
-                >
-
-                    ${escapeDossierHtml(
-                        item.content || "—"
-                    )}
-
-                </td>
-
-
-                <!-- 5. NHÀ CUNG CẤP -->
-
-                <td>
-
-                    ${escapeDossierHtml(
-
-                        supplier
-
-                        ? supplier.ten || "—"
-
-                        : "Nhà cung cấp đã xóa"
-
-                    )}
-
-                </td>
-
-
-                <!-- 6. GIÁ TRỊ -->
-
-               <td
-    class="dossier-value-cell"
-    title="${Number(
-        item.value || 0
-    ).toLocaleString(
-        "vi-VN"
-    )}"
->
-
-    ${Number(
-        item.value || 0
-    ).toLocaleString(
-        "vi-VN"
-    )}
-
-</td>
-
-
-                <!-- 7. BỔ SUNG HỒ SƠ -->
-
-                <td
-                    class="dossier-additional-cell"
-                    title="${escapeDossierHtml(
-                        item.documents || ""
-                    )}"
-                >
-
-                    ${escapeDossierHtml(
-                        item.documents || "—"
-                    )}
-
-                </td>
-
-
-                <!-- 8. FILE HỒ SƠ -->
-
-                <td>
-
-                    ${renderDossierBadge(
-
-                        "file",
-
-                        item.fileStatus ||
-                        "Chưa up"
-
-                )}
-
-                </td>
-
-
-                <!-- 9. TRẠNG THÁI HỒ SƠ -->
-
-                <td>
-
-                    ${renderDossierBadge(
-
-    "status",
-
-    item.status ||
-    "Chưa duyệt"
-
-)}
-                </td>
-
-
-                <!-- 10. ĐỀ NGHỊ THANH TOÁN -->
-
-                <td>
-
-                    ${
-                        item.paymentRequest
-                        ? "✓"
-                        : ""
-                    }
-
-                </td>
-
-
-                <!-- 11. BÀN GIAO -->
-
-                <td>
-
-                    ${renderDossierBadge(
-
-    "delivery",
-
-    item.deliveryDate
-
-    ? formatDossierDate(
-        item.deliveryDate
-    )
-
-    : "Chưa bàn giao"
-
-)}
-
-                </td>
-
-
-                <!-- 12. THANH TOÁN -->
-
-                <td>
-
-                    ${renderDossierBadge(
-
-    "payment",
-
-    item.paymentStatus ||
-    "Chưa thanh toán"
-
-)}
-
-                </td>
-
-
-                <!-- 13. GHI CHÚ -->
-
-                <td
-                    class="dossier-note-cell"
-                    title="${escapeDossierHtml(
-                        item.note || ""
-                    )}"
-                >
-
-                    ${escapeDossierHtml(
-                        item.note || "—"
-                    )}
-
-                </td>
-
-
-                <!-- 14. THAO TÁC -->
-
-                <td class="dossier-action-cell">
-
-                    <button
-                        type="button"
-                        onclick="
-                            editDossier(
-                                '${itemId}'
-                            )
-                        "
-                        aria-label="Sửa hồ sơ"
-                    >
-                        ✏️
-                    </button>
-
-
-                    <button
-    type="button"
-    class="dossier-delete-button"
-    onclick="
-        deleteDossier(
-            '${itemId}',
-            this
-        )
-    "
-    aria-label="Xóa hồ sơ"
-    title="Xóa hồ sơ"
->
-    🗑
-</button>
-
-                </td>
-
-            </tr>
-
-        `;
-
-    });
-
-
-    /*
-    Chỉ đưa dữ liệu vào bảng một lần
-    sau khi đã tạo xong toàn bộ HTML.
-    */
-
-    table.innerHTML =
-        rowsHtml;
-
-
-    updateDossierSelectionUI();
-
-}
-// =====================================
-// TÌM OBJECT HỒ SƠ THẬT TRÊN BACK4APP
-// =====================================
-
-async function findDossierObjectForDelete(
-    dossier
-){
-
-    const possibleObjectIds = [
-
-        dossier.back4appId,
-
-        dossier.id
-
-    ]
-    .map(value =>
-        String(value || "").trim()
-    )
-    .filter(Boolean);
-
-
-    /*
-    Loại bỏ ID trùng nhau.
-    */
-
-    const uniqueObjectIds =
-        [...new Set(possibleObjectIds)];
-
-
-    /*
-    Thử tìm bằng objectId trước.
-    */
-
-    for(const objectId of uniqueObjectIds){
-
-        /*
-        objectId của Parse thường là chuỗi ID,
-        không phải ID dạng timestamp cũ.
-        */
-
-        if(
-            objectId ===
+        const nameA =
             String(
-                dossier.legacyId || ""
-            ).trim()
-        ){
 
-            continue;
+                a.ten
 
-        }
+                ||
 
+                a.name
 
-        try{
+                ||
 
-            const query =
-                new Parse.Query(
-                    DOSSIER_CLASS_NAME
-                );
+                ""
 
-
-            const foundObject =
-                await query.get(
-                    objectId
-                );
-
-
-            if(foundObject){
-
-                return foundObject;
-
-            }
-
-        }catch(error){
-
-            /*
-            Code 101 nghĩa là không tìm thấy object
-            hoặc object bị ACL che quyền truy cập.
-            */
-
-            if(error?.code !== 101){
-
-                throw error;
-
-            }
-
-        }
-
-    }
-
-
-    /*
-    Thử tìm bằng legacyId.
-    */
-
-    const legacyId =
-        String(
-
-            dossier.legacyId
-
-            ||
-
-            ""
-
-        ).trim();
-
-
-    if(legacyId){
-
-        const legacyQuery =
-            new Parse.Query(
-                DOSSIER_CLASS_NAME
             );
 
 
-        legacyQuery.equalTo(
-            "legacyId",
-            legacyId
-        );
-
-
-        const foundByLegacyId =
-            await legacyQuery.first();
-
-
-        if(foundByLegacyId){
-
-            return foundByLegacyId;
-
-        }
-
-    }
-
-
-    /*
-    Thử tìm bằng codeNormalized.
-    */
-
-    const codeNormalized =
-        normalizeDossierText(
-            dossier.code
-        );
-
-
-    if(codeNormalized){
-
-        const codeQuery =
-            new Parse.Query(
-                DOSSIER_CLASS_NAME
-            );
-
-
-        codeQuery.equalTo(
-            "codeNormalized",
-            codeNormalized
-        );
-
-
-        const foundByCode =
-            await codeQuery.first();
-
-
-        if(foundByCode){
-
-            return foundByCode;
-
-        }
-
-    }
-
-
-    /*
-    Một số dữ liệu cũ có thể chưa có codeNormalized.
-    Thử tìm chính xác bằng code.
-    */
-
-    const code =
-        String(
-            dossier.code || ""
-        ).trim();
-
-
-    if(code){
-
-        const rawCodeQuery =
-            new Parse.Query(
-                DOSSIER_CLASS_NAME
-            );
-
-
-        rawCodeQuery.equalTo(
-            "code",
-            code
-        );
-
-
-        const foundByRawCode =
-            await rawCodeQuery.first();
-
-
-        if(foundByRawCode){
-
-            return foundByRawCode;
-
-        }
-
-    }
-
-
-    return null;
-
-}
-
-// =====================================
-// XÓA HỒ SƠ
-// =====================================
-
-async function deleteDossier(
-    id,
-    deleteButton = null
-){
-
-    const requestedId =
-        String(id || "").trim();
-
-
-    /*
-    Tìm theo cả:
-    - id hiện tại;
-    - back4appId;
-    - legacyId.
-    */
-
-    const dossier =
-        dossiers.find(item =>
-
-            String(item.id || "") ===
-            requestedId
-
-            ||
-
+        const nameB =
             String(
-                item.back4appId || ""
-            ) === requestedId
 
-            ||
+                b.ten
 
-            String(
-                item.legacyId || ""
-            ) === requestedId
+                ||
 
-        );
+                b.name
 
+                ||
 
-    if(!dossier){
+                ""
 
-        alert(
-            "Không tìm thấy hồ sơ trong dữ liệu hiện tại."
-        );
-
-        return;
-
-    }
+            );
 
 
-    const confirmed =
-        confirm(
+        return nameA.localeCompare(
 
-            `Bạn có chắc chắn muốn xóa hồ sơ "${dossier.code}"?\n\n`
+            nameB,
 
-            +
+            "vi",
 
-            "Hồ sơ sẽ bị xóa khỏi Back4App và không thể hoàn tác."
-
-        );
-
-
-    if(!confirmed){
-
-        return;
-
-    }
-
-
-    const oldButtonHtml =
-        deleteButton?.innerHTML || "🗑";
-
-
-    if(deleteButton){
-
-        deleteButton.disabled =
-            true;
-
-        deleteButton.innerHTML =
-            "…";
-
-    }
-
-
-    try{
-
-        ensureDossierBack4AppReady();
-
-
-        console.log(
-            "Thông tin hồ sơ cần xóa:",
             {
-                requestedId,
-                id: dossier.id,
-                back4appId:
-                    dossier.back4appId,
-                legacyId:
-                    dossier.legacyId,
-                code:
-                    dossier.code
+                sensitivity:
+                    "base",
+
+                numeric:
+                    true
             }
+
         );
 
+    })
+    .forEach(item => {
 
-        /*
-        Tìm object thật trên Back4App
-        thay vì tin hoàn toàn vào cache local.
-        */
-
-        const dossierObject =
-            await findDossierObjectForDelete(
-                dossier
+        const stableId =
+            getPaidEntityStableId(
+                item
             );
 
 
-        /*
-        Không tìm thấy object trên server nghĩa là
-        dòng local đang bị cũ hoặc object đã bị xóa.
-        */
-
-        if(!dossierObject){
-
-            const removeStaleRow =
-                confirm(
-
-                    `Không tìm thấy hồ sơ "${dossier.code}" trên Back4App.\n\n`
-
-                    +
-
-                    "Có thể hồ sơ đã bị xóa trước đó hoặc dữ liệu trình duyệt đã cũ.\n\n"
-
-                    +
-
-                    "Bạn có muốn xóa dòng dữ liệu cũ khỏi giao diện không?"
-
-                );
-
-
-            if(!removeStaleRow){
-
-                return;
-
-            }
-
-
-            dossiers =
-                dossiers.filter(item =>
-
-                    item !== dossier
-
-                );
-
-
-            selectedDossierIds.delete(
-                String(dossier.id)
-            );
-
-
-            selectedDossierIds.delete(
-                String(
-                    dossier.back4appId ||
-                    ""
-                )
-            );
-
-
-            saveDossiersToStorage();
-
-
-            refreshAllDossierViews();
-
-
-            updateDossierSelectionUI();
-
-
-            if(
-                typeof window.showAppToast ===
-                "function"
-            ){
-
-                window.showAppToast(
-
-                    `Đã xóa dòng dữ liệu cũ "${dossier.code}".`,
-
-                    "info"
-
-                );
-
-            }else{
-
-                alert(
-                    `Đã xóa dòng dữ liệu cũ "${dossier.code}".`
-                );
-
-            }
-
+        if(!stableId){
 
             return;
 
         }
 
 
-        const realObjectId =
-            String(
-                dossierObject.id
+        const option =
+            document.createElement(
+                "option"
             );
 
 
-        console.log(
-            "Đã tìm thấy object Back4App:",
-            realObjectId
-        );
+        option.value =
+            stableId;
 
 
-        /*
-        Xóa object thật.
-        */
+        option.textContent =
 
-        await dossierObject.destroy();
-
-
-        console.log(
-            "Đã xóa thành công object:",
-            realObjectId
-        );
-
-
-        /*
-        Xóa khỏi dữ liệu local theo mọi ID liên quan.
-        */
-
-        dossiers =
-            dossiers.filter(item => {
-
-                const sameReference =
-                    item === dossier;
-
-
-                const sameId =
-
-                    String(item.id || "")
-
-                    ===
-
-                    String(
-                        dossier.id || ""
-                    );
-
-
-                const sameBack4AppId =
-
-                    String(
-                        item.back4appId || ""
-                    )
-
-                    ===
-
-                    realObjectId;
-
-
-                const sameLegacyId =
-
-                    dossier.legacyId
-
-                    &&
-
-                    String(
-                        item.legacyId || ""
-                    )
-
-                    ===
-
-                    String(
-                        dossier.legacyId
-                    );
-
-
-                return !(
-
-                    sameReference
-
-                    ||
-
-                    sameId
-
-                    ||
-
-                    sameBack4AppId
-
-                    ||
-
-                    sameLegacyId
-
-                );
-
-            });
-
-
-        selectedDossierIds.delete(
-            requestedId
-        );
-
-
-        selectedDossierIds.delete(
-            realObjectId
-        );
-
-
-        selectedDossierIds.delete(
-            String(
-                dossier.id || ""
-            )
-        );
-
-
-        saveDossiersToStorage();
-
-
-        if(
-            editingDossierId !== null
-
-            &&
-
-            (
-                String(editingDossierId)
-                ===
-                requestedId
-
-                ||
-
-                String(editingDossierId)
-                ===
-                realObjectId
-            )
-        ){
-
-            closeDossierForm();
-
-        }
-
-
-        refreshAllDossierViews();
-
-
-        updateDossierSelectionUI();
-
-
-        if(
-            typeof window.showAppToast ===
-            "function"
-        ){
-
-            window.showAppToast(
-
-                `Đã xóa hồ sơ "${dossier.code}".`,
-
-                "success"
-
-            );
-
-        }else{
-
-            alert(
-                `Đã xóa hồ sơ "${dossier.code}".`
-            );
-
-        }
-
-    }catch(error){
-
-        console.error(
-            "LỖI XÓA HỒ SƠ:",
-            {
-                code:
-                    error?.code,
-
-                message:
-                    error?.message,
-
-                error
-            }
-        );
-
-
-        let message =
-            error?.message
+            item.ten
 
             ||
 
-            String(error);
+            item.name
+
+            ||
+
+            "Không có tên";
 
 
-        if(error?.code === 101){
-
-            message =
-                "Back4App không tìm thấy object hoặc ACL đang chặn quyền xóa.";
-
-        }
-
-
-        if(error?.code === 119){
-
-            message =
-                "Tài khoản hiện tại không có quyền Delete đối với class Dossier.";
-
-        }
-
-
-        if(error?.code === 209){
-
-            message =
-                "Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.";
-
-        }
-
-
-        alert(
-
-            "Không xóa được Hồ sơ.\n\n"
-
-            +
-
-            message
-
-            +
-
-            `\n\nMã lỗi: ${error?.code ?? "không có"}`
-
+        select.appendChild(
+            option
         );
 
-    }finally{
+    });
 
-        if(deleteButton){
 
-            deleteButton.disabled =
-                false;
+    const selectedEntity =
+        items.find(item =>
 
-            deleteButton.innerHTML =
-                oldButtonHtml;
-
-        }
-
-    }
-
-}
-
-// =====================================
-// CHỈNH SỬA HỒ SƠ
-// =====================================
-
-async function editDossier(id){
-
-    const item =
-        dossiers.find(dossierItem =>
-
-            String(dossierItem.id)
-
-            ===
-
-            String(id)
+            paidEntityMatchesId(
+                item,
+                currentValue
+            )
 
         );
 
 
-    if(!item){
+    select.value =
+        selectedEntity
 
-        alert(
-            "Không tìm thấy hồ sơ."
-        );
+            ? getPaidEntityStableId(
+                selectedEntity
+            )
 
-        return;
-
-    }
-
-
-    try{
-
-        await Promise.all([
-
-            typeof loadProjectSelect ===
-            "function"
-
-            ? loadProjectSelect()
-
-            : Promise.resolve(),
-
-
-            typeof loadSupplierSelect ===
-            "function"
-
-            ? loadSupplierSelect()
-
-            : Promise.resolve()
-
-        ]);
-
-    }catch(error){
-
-        console.error(
-            "Không tải được dropdown:",
-            error
-        );
-
-    }
-
-
-    editingDossierId =
-        item.id;
-
-
-    const formTitle =
-        getDossierElement(
-            "dossierFormTitle"
-        );
-
-
-    if(formTitle){
-
-        formTitle.textContent =
-            "Chỉnh sửa Hồ sơ";
-
-    }
-
-
-    setDossierInputValue(
-        "dossierCode",
-        item.code
-    );
-
-
-    setDossierInputValue(
-        "dossierProject",
-        item.projectId
-    );
-
-
-    setDossierInputValue(
-        "dossierContent",
-        item.content
-    );
-
-
-    setDossierInputValue(
-        "dossierSupplier",
-        item.supplierId
-    );
-
-
-    setDossierInputValue(
-        "dossierValue",
-        item.value
-    );
-
-
-    setDossierInputValue(
-        "additionalDocuments",
-        item.documents
-    );
-
-
-    setDossierInputValue(
-        "fileStatus",
-        item.fileStatus ||
-        "Chưa up"
-    );
-
-
-    setDossierChecked(
-        "paymentRequest",
-        item.paymentRequest
-    );
-
-
-    setDossierInputValue(
-        "receiveDate",
-        item.receiveDate || ""
-    );
-
-
-    setDossierInputValue(
-        "deliveryDate",
-        item.deliveryDate || ""
-    );
-
-
-    setDossierInputValue(
-        "dossierStatus",
-        item.status ||
-        "Chưa duyệt"
-    );
-
-
-    setDossierInputValue(
-        "paymentStatus",
-        item.paymentStatus ||
-        "Chưa thanh toán"
-    );
-
-
-    setDossierInputValue(
-        "note",
-        item.note || ""
-    );
-
-
-    setDossierSaveBusy(
-        false,
-        true
-    );
-
-
-    showDossierModal();
+            : "";
 
 }
 
 
-// =====================================
-// LỌC VÀ SẮP XẾP HỒ SƠ
-// =====================================
+// =====================================================
+// TẢI DỰ ÁN VÀ NCC CHO BỘ LỌC
+// =====================================================
 
-function filterDossier(){
+function loadPaidDossierFilters(){
+
+    populatePaidFilter(
+
+        "paidProjectFilter",
+
+        getDossierProjects(),
+
+        "Tất cả dự án"
+
+    );
+
+
+    populatePaidFilter(
+
+        "paidSupplierFilter",
+
+        getDossierSuppliers(),
+
+        "Tất cả nhà cung cấp"
+
+    );
+
+}
+
+
+// =====================================================
+// LỌC HỒ SƠ ĐÃ THANH TOÁN
+// =====================================================
+
+function filterPaidDossier(){
 
     const keyword =
         normalizeDossierText(
 
             getDossierInputValue(
-                "searchDossier"
+                "paidSearch"
             )
 
         );
 
 
-    const statusFilter =
+    const selectedProjectId =
         getDossierInputValue(
-            "filterStatus"
+            "paidProjectFilter"
         );
 
 
-    const paymentFilter =
+    const selectedSupplierId =
         getDossierInputValue(
-            "filterPayment"
+            "paidSupplierFilter"
         );
 
 
     const deliveryFilter =
         getDossierInputValue(
-            "filterDelivery"
+            "paidDeliveryFilter"
         );
 
 
     const fileFilter =
         getDossierInputValue(
-            "filterFile"
+            "paidFileFilter"
         );
 
 
-    const projectSort =
+    const sortMode =
         getDossierInputValue(
-            "filterProjectSort"
+            "paidSort"
         );
 
 
-    const filtered =
+    const filteredData =
         dossiers.filter(item => {
+
+            if(!isPaidDossier(item)){
+
+                return false;
+
+            }
+
+
+            const itemProjectId =
+                String(
+
+                    item.projectId
+
+                    ||
+
+                    item.project
+
+                    ||
+
+                    ""
+
+                );
+
+
+            const itemSupplierId =
+                String(
+
+                    item.supplierId
+
+                    ||
+
+                    item.supplier
+
+                    ||
+
+                    ""
+
+                );
+
 
             const project =
                 getDossierProjectById(
-                    item.projectId
+                    itemProjectId
                 );
 
 
             const supplier =
                 getDossierSupplierById(
-                    item.supplierId
+                    itemSupplierId
+                );
+
+
+            const projectName =
+                String(
+
+                    project?.ten
+
+                    ||
+
+                    project?.name
+
+                    ||
+
+                    ""
+
+                );
+
+
+            const supplierName =
+                String(
+
+                    supplier?.ten
+
+                    ||
+
+                    supplier?.name
+
+                    ||
+
+                    ""
+
                 );
 
 
@@ -5132,9 +8508,11 @@ function filterDossier(){
 
                     ${item.documents || ""}
 
-                    ${project?.ten || ""}
+                    ${item.additionalDocuments || ""}
 
-                    ${supplier?.ten || ""}
+                    ${projectName}
+
+                    ${supplierName}
 
                     ${item.note || ""}
 
@@ -5142,56 +8520,76 @@ function filterDossier(){
 
 
             const matchKeyword =
+                !keyword
+
+                ||
+
                 searchText.includes(
                     keyword
                 );
 
 
-            const matchStatus =
-
-                !statusFilter
-
-                ||
-
-                String(
-                    item.status ||
-                    "Chưa duyệt"
-                )
-
-                ===
-
-                statusFilter;
-
-
-            const matchPayment =
-
-                !paymentFilter
+            const matchProject =
+                !selectedProjectId
 
                 ||
 
-                String(
-                    item.paymentStatus ||
-                    "Chưa thanh toán"
+                (
+                    project
+
+                    &&
+
+                    paidEntityMatchesId(
+
+                        project,
+
+                        selectedProjectId
+
+                    )
                 )
 
-                ===
+                ||
 
-                paymentFilter;
+                itemProjectId ===
+                selectedProjectId;
+
+
+            const matchSupplier =
+                !selectedSupplierId
+
+                ||
+
+                (
+                    supplier
+
+                    &&
+
+                    paidEntityMatchesId(
+
+                        supplier,
+
+                        selectedSupplierId
+
+                    )
+                )
+
+                ||
+
+                itemSupplierId ===
+                selectedSupplierId;
 
 
             const hasDeliveryDate =
                 Boolean(
 
                     String(
-                        item.deliveryDate ||
-                        ""
+                        item.deliveryDate || ""
                     ).trim()
 
                 );
 
 
             const matchDelivery =
-
                 !deliveryFilter
 
                 ||
@@ -5215,19 +8613,24 @@ function filterDossier(){
                 );
 
 
-            const matchFile =
+            const itemFileStatus =
+                String(
 
+                    item.fileStatus
+
+                    ||
+
+                    "Chưa up"
+
+                ).trim();
+
+
+            const matchFile =
                 !fileFilter
 
                 ||
 
-                String(
-                    item.fileStatus ||
-                    "Chưa up"
-                )
-
-                ===
-
+                itemFileStatus ===
                 fileFilter;
 
 
@@ -5237,11 +8640,11 @@ function filterDossier(){
 
                 &&
 
-                matchStatus
+                matchProject
 
                 &&
 
-                matchPayment
+                matchSupplier
 
                 &&
 
@@ -5256,17 +8659,22 @@ function filterDossier(){
         });
 
 
+    /*
+    Nếu HTML có thêm paidSort thì hỗ trợ sắp xếp.
+    Không có paidSort vẫn chạy bình thường.
+    */
+
     if(
-        projectSort === "project-az"
+        sortMode === "project-az"
 
         ||
 
-        projectSort === "project-za"
+        sortMode === "project-za"
     ){
 
-        filtered.sort((a, b) => {
+        filteredData.sort((a, b) => {
 
-            const nameA =
+            const projectNameA =
                 String(
 
                     getDossierProjectById(
@@ -5277,10 +8685,10 @@ function filterDossier(){
 
                     ""
 
-                ).trim();
+                );
 
 
-            const nameB =
+            const projectNameB =
                 String(
 
                     getDossierProjectById(
@@ -5291,48 +8699,39 @@ function filterDossier(){
 
                     ""
 
-                ).trim();
-
-
-            if(!nameA && nameB){
-
-                return 1;
-
-            }
-
-
-            if(nameA && !nameB){
-
-                return -1;
-
-            }
+                );
 
 
             const compared =
-                nameA.localeCompare(
+                projectNameA.localeCompare(
 
-                    nameB,
+                    projectNameB,
 
                     "vi",
 
                     {
-                        sensitivity: "base"
+                        sensitivity:
+                            "base",
+
+                        numeric:
+                            true
                     }
 
                 );
 
 
-            if(compared !== 0){
+            return sortMode ===
+                "project-za"
 
-                return projectSort ===
-                    "project-za"
+                ? -compared
 
-                    ? -compared
+                : compared;
 
-                    : compared;
+        });
 
-            }
+    }else{
 
+        filteredData.sort((a, b) => {
 
             return (
 
@@ -5346,226 +8745,369 @@ function filterDossier(){
 
         });
 
-    }else{
-
-        filtered.sort(
-
-            (a, b) =>
-
-                getDossierCreatedTime(b)
-
-                -
-
-                getDossierCreatedTime(a)
-
-        );
-
     }
 
 
-    /*
-Lưu toàn bộ kết quả sau khi lọc.
-*/
-
-dossierFilteredData =
-    filtered;
-
-
-/*
-Mỗi khi thay đổi bộ lọc hoặc tìm kiếm,
-quay về trang đầu.
-*/
-
-dossierCurrentPage =
-    1;
-
-
-/*
-Chỉ hiển thị dữ liệu của trang hiện tại.
-*/
-
-renderCurrentDossierPage();
+    renderPaidDossier(
+        filteredData
+    );
 
 }
 
 
-// =====================================
-// TRANG HỒ SƠ ĐÃ BÀN GIAO
-// =====================================
+// =====================================================
+// HIỂN THỊ HỒ SƠ ĐÃ THANH TOÁN
+// =====================================================
 
-function loadDossierFilterOptions(
-    selectId,
-    items,
-    placeholder
+function renderPaidDossier(
+    data
 ){
 
-    const select =
+    const table =
         getDossierElement(
-            selectId
+            "paidTable"
         );
 
 
-    if(!select){
+    const countElement =
+        getDossierElement(
+            "paidResultCount"
+        );
+
+
+    if(!table){
+
+        console.error(
+            "Không tìm thấy #paidTable trong trang Hồ sơ đã thanh toán."
+        );
+
 
         return;
 
     }
 
 
-    const currentValue =
-        select.value;
+    const resultData =
+        Array.isArray(data)
+
+            ? data
+
+            : [];
 
 
-    select.innerHTML = `
+    if(countElement){
 
-        <option value="">
-            ${escapeDossierHtml(placeholder)}
-        </option>
+        countElement.textContent =
+            `${resultData.length} hồ sơ`;
 
-    `;
+    }
 
 
-    [...items]
-        .sort((a, b) =>
+    if(resultData.length === 0){
 
-            String(
-                a.ten ||
-                a.name ||
-                ""
-            ).localeCompare(
+        table.innerHTML = `
 
-                String(
-                    b.ten ||
-                    b.name ||
-                    ""
-                ),
+            <tr>
 
-                "vi"
+                <td
+                    colspan="8"
+                    class="paid-empty-row"
+                >
 
-            )
+                    <div class="paid-empty-state">
 
-        )
-        .forEach(item => {
+                        <span>
+                            🌿
+                        </span>
 
-            const option =
-                document.createElement(
-                    "option"
+                        <strong>
+                            Chưa có hồ sơ đã thanh toán phù hợp
+                        </strong>
+
+                    </div>
+
+                </td>
+
+            </tr>
+
+        `;
+
+
+        return;
+
+    }
+
+
+    table.innerHTML =
+        resultData.map(item => {
+
+            const project =
+                getDossierProjectById(
+
+                    item.projectId
+
+                    ||
+
+                    item.project
+
                 );
 
 
-            option.value =
-                String(item.id);
+            const supplier =
+                getDossierSupplierById(
+
+                    item.supplierId
+
+                    ||
+
+                    item.supplier
+
+                );
 
 
-            option.textContent =
+            const projectName =
 
-                item.ten
+                project?.ten
 
                 ||
 
-                item.name
+                project?.name
 
                 ||
 
-                "Không có tên";
+                "Dự án đã xóa";
 
 
-            select.appendChild(
-                option
+            const supplierName =
+
+                supplier?.ten
+
+                ||
+
+                supplier?.name
+
+                ||
+
+                "Nhà cung cấp đã xóa";
+
+
+            const documents =
+
+                item.documents
+
+                ||
+
+                item.additionalDocuments
+
+                ||
+
+                "—";
+
+
+            const deliveryDate =
+                item.deliveryDate
+
+                    ? formatDossierDate(
+                        item.deliveryDate
+                    )
+
+                    : "Chưa bàn giao";
+
+
+            return `
+
+                <tr>
+
+                    <td>
+                        ${escapeDossierHtml(
+                            item.code || "—"
+                        )}
+                    </td>
+
+
+                    <td>
+                        ${escapeDossierHtml(
+                            projectName
+                        )}
+                    </td>
+
+
+                    <td>
+                        ${escapeDossierHtml(
+                            item.content || "—"
+                        )}
+                    </td>
+
+
+                    <td>
+                        ${escapeDossierHtml(
+                            supplierName
+                        )}
+                    </td>
+
+
+                    <td class="paid-value-cell">
+
+                        ${Number(
+                            item.value || 0
+                        ).toLocaleString(
+                            "vi-VN"
+                        )} đ
+
+                    </td>
+
+
+                    <td>
+                        ${escapeDossierHtml(
+                            documents
+                        )}
+                    </td>
+
+
+                    <td>
+                        ${escapeDossierHtml(
+                            deliveryDate
+                        )}
+                    </td>
+
+
+                    <td>
+
+                        <span class="dossier-badge dossier-badge-paid">
+                            Đã thanh toán
+                        </span>
+
+                    </td>
+
+                </tr>
+
+            `;
+
+        }).join("");
+
+}
+
+
+// =====================================================
+// KHỞI TẠO TRANG HỒ SƠ ĐÃ THANH TOÁN
+// =====================================================
+
+async function loadPaidDossier(){
+
+    setPaidDossierLoading();
+
+
+    try{
+
+        ensureDossierBack4AppReady();
+
+
+        /*
+        Tải Dự án và Nhà cung cấp trước.
+        Một nguồn lỗi không làm dừng toàn trang.
+        */
+
+        const referenceTasks =
+            [];
+
+
+        if(
+            typeof window.loadProjectSelect ===
+            "function"
+        ){
+
+            referenceTasks.push(
+
+                Promise.resolve(
+                    window.loadProjectSelect()
+                )
+
             );
 
-        });
+        }
 
 
-    select.value =
-        currentValue;
+        if(
+            typeof window.loadSupplierSelect ===
+            "function"
+        ){
 
-}
+            referenceTasks.push(
 
+                Promise.resolve(
+                    window.loadSupplierSelect()
+                )
 
-function loadDeliveryDossierFilters(){
+            );
 
-    loadDossierFilterOptions(
-
-        "deliveryProjectFilter",
-
-        getDossierProjects(),
-
-        "Tất cả dự án"
-
-    );
+        }
 
 
-    loadDossierFilterOptions(
+        if(referenceTasks.length > 0){
 
-        "deliverySupplierFilter",
-
-        getDossierSuppliers(),
-
-        "Tất cả nhà cung cấp"
-
-    );
-
-}
+            const referenceResults =
+                await Promise.allSettled(
+                    referenceTasks
+                );
 
 
-function filterDeliveryDossier(){
+            referenceResults.forEach(result => {
 
-    const keyword =
-        normalizeDossierText(
+                if(
+                    result.status ===
+                    "rejected"
+                ){
 
-            getDossierInputValue(
-                "deliverySearch"
-            )
+                    console.warn(
+                        "Không tải được dữ liệu tham chiếu:",
+                        result.reason
+                    );
 
+                }
+
+            });
+
+        }
+
+
+        /*
+        Luôn lấy dữ liệu mới nhất từ Back4App.
+        */
+
+        await fetchDossiersFromBack4App(
+            true
         );
 
 
-    const projectId =
-        getDossierInputValue(
-            "deliveryProjectFilter"
+        loadPaidDossierFilters();
+
+
+        filterPaidDossier();
+
+
+        return dossiers.filter(
+            isPaidDossier
         );
 
+    }catch(error){
 
-    const supplierId =
-        getDossierInputValue(
-            "deliverySupplierFilter"
+        console.error(
+            "Không tải được hồ sơ đã thanh toán:",
+            {
+                code:
+                    error?.code,
+
+                message:
+                    error?.message,
+
+                error
+            }
         );
 
-
-    const paymentFilter =
-        getDossierInputValue(
-            "deliveryPaymentFilter"
-        );
-
-
-    const dateFrom =
-        getDossierInputValue(
-            "deliveryDateFrom"
-        );
-
-
-    const dateTo =
-        getDossierInputValue(
-            "deliveryDateTo"
-        );
-
-
-    if(
-        dateFrom
-
-        &&
-
-        dateTo
-
-        &&
-
-        dateFrom > dateTo
-    ){
 
         const table =
             getDossierElement(
-                "deliveryTable"
+                "paidTable"
             );
 
 
@@ -5575,8 +9117,20 @@ function filterDeliveryDossier(){
 
                 <tr>
 
-                    <td colspan="8">
-                        Từ ngày không được lớn hơn Đến ngày
+                    <td
+                        colspan="8"
+                        class="paid-error-row"
+                    >
+
+                        Không tải được dữ liệu:
+                        ${escapeDossierHtml(
+                            error?.message
+
+                            ||
+
+                            "Lỗi không xác định"
+                        )}
+
                     </td>
 
                 </tr>
@@ -5586,1030 +9140,445 @@ function filterDeliveryDossier(){
         }
 
 
-        return;
+        return [];
 
     }
-
-
-    const filtered =
-        dossiers.filter(item => {
-
-            const deliveryDate =
-                String(
-                    item.deliveryDate || ""
-                ).trim();
-
-
-            if(!deliveryDate){
-
-                return false;
-
-            }
-
-
-            const project =
-                getDossierProjectById(
-                    item.projectId
-                );
-
-
-            const supplier =
-                getDossierSupplierById(
-                    item.supplierId
-                );
-
-
-            const searchText =
-                normalizeDossierText(`
-
-                    ${item.code || ""}
-
-                    ${item.content || ""}
-
-                    ${item.documents || ""}
-
-                    ${project?.ten || ""}
-
-                    ${supplier?.ten || ""}
-
-                    ${item.note || ""}
-
-                `);
-
-
-            return (
-
-                searchText.includes(
-                    keyword
-                )
-
-                &&
-
-                (
-                    !projectId
-
-                    ||
-
-                    String(item.projectId)
-                    ===
-                    projectId
-                )
-
-                &&
-
-                (
-                    !supplierId
-
-                    ||
-
-                    String(item.supplierId)
-                    ===
-                    supplierId
-                )
-
-                &&
-
-                (
-                    !paymentFilter
-
-                    ||
-
-                    String(
-                        item.paymentStatus ||
-                        "Chưa thanh toán"
-                    )
-
-                    ===
-
-                    paymentFilter
-                )
-
-                &&
-
-                (
-                    !dateFrom
-
-                    ||
-
-                    deliveryDate >=
-                    dateFrom
-                )
-
-                &&
-
-                (
-                    !dateTo
-
-                    ||
-
-                    deliveryDate <=
-                    dateTo
-                )
-
-            );
-
-        });
-
-
-    filtered.sort(
-
-        (a, b) =>
-
-            String(
-                b.deliveryDate || ""
-            ).localeCompare(
-
-                String(
-                    a.deliveryDate || ""
-                )
-
-            )
-
-    );
-
-
-    renderDeliveryDossier(
-        filtered
-    );
 
 }
 
 
-function renderDeliveryDossier(data){
-
-    const table =
-        getDossierElement(
-            "deliveryTable"
-        );
-
-
-    if(!table){
-
-        return;
-
-    }
-
-
-    const resultData =
-        Array.isArray(data)
-
-        ? data
-
-        : [];
-
-
-    const countElement =
-        getDossierElement(
-            "deliveryResultCount"
-        );
-
-
-    if(countElement){
-
-        countElement.textContent =
-            `${resultData.length} hồ sơ`;
-
-    }
-
-
-    if(resultData.length === 0){
-
-        table.innerHTML = `
-
-            <tr>
-
-                <td colspan="8">
-                    Chưa có hồ sơ đã bàn giao phù hợp
-                </td>
-
-            </tr>
-
-        `;
-
-        return;
-
-    }
-
-
-    table.innerHTML =
-        resultData.map(item => {
-
-            const project =
-                getDossierProjectById(
-                    item.projectId
-                );
-
-
-            const supplier =
-                getDossierSupplierById(
-                    item.supplierId
-                );
-
-
-            return `
-
-                <tr>
-
-                    <td>
-                        ${escapeDossierHtml(
-                            item.code || "—"
-                        )}
-                    </td>
-
-                    <td>
-                        ${escapeDossierHtml(
-                            project?.ten ||
-                            "Dự án đã xóa"
-                        )}
-                    </td>
-
-                    <td>
-                        ${escapeDossierHtml(
-                            item.content || "—"
-                        )}
-                    </td>
-
-                    <td>
-                        ${escapeDossierHtml(
-                            supplier?.ten ||
-                            "Nhà cung cấp đã xóa"
-                        )}
-                    </td>
-
-                    <td>
-                        ${Number(
-                            item.value || 0
-                        ).toLocaleString(
-                            "vi-VN"
-                        )} đ
-                    </td>
-
-                    <td>
-                        ${escapeDossierHtml(
-                            item.documents || "—"
-                        )}
-                    </td>
-
-                    <td>
-                        ${escapeDossierHtml(
-                            formatDossierDate(
-                                item.deliveryDate
-                            )
-                        )}
-                    </td>
-
-                    <td>
-                        ${escapeDossierHtml(
-                            item.paymentStatus ||
-                            "Chưa thanh toán"
-                        )}
-                    </td>
-
-                </tr>
-
-            `;
-
-        }).join("");
-
-}
-
-
-function resetDeliveryDossierFilters(){
-
-    [
-
-        "deliverySearch",
-        "deliveryProjectFilter",
-        "deliverySupplierFilter",
-        "deliveryPaymentFilter",
-        "deliveryDateFrom",
-        "deliveryDateTo"
-
-    ].forEach(id =>
-
-        setDossierInputValue(
-            id,
-            ""
-        )
-
-    );
-
-
-    filterDeliveryDossier();
-
-}
-
-
-// =====================================
-// TRANG ĐÃ THANH TOÁN
-// =====================================
-
-function loadPaidDossierFilters(){
-
-    loadDossierFilterOptions(
-
-        "paidProjectFilter",
-
-        getDossierProjects(),
-
-        "Tất cả dự án"
-
-    );
-
-
-    loadDossierFilterOptions(
-
-        "paidSupplierFilter",
-
-        getDossierSuppliers(),
-
-        "Tất cả nhà cung cấp"
-
-    );
-
-}
-
-
-function filterPaidDossier(){
-
-    const keyword =
-        normalizeDossierText(
-
-            getDossierInputValue(
-                "paidSearch"
-            )
-
-        );
-
-
-    const projectId =
-        getDossierInputValue(
-            "paidProjectFilter"
-        );
-
-
-    const supplierId =
-        getDossierInputValue(
-            "paidSupplierFilter"
-        );
-
-
-    const deliveryFilter =
-        getDossierInputValue(
-            "paidDeliveryFilter"
-        );
-
-
-    const fileFilter =
-        getDossierInputValue(
-            "paidFileFilter"
-        );
-
-
-    const filtered =
-        dossiers.filter(item => {
-
-            if(
-                String(
-                    item.paymentStatus || ""
-                ).trim()
-
-                !==
-
-                "Đã thanh toán"
-            ){
-
-                return false;
-
-            }
-
-
-            const project =
-                getDossierProjectById(
-                    item.projectId
-                );
-
-
-            const supplier =
-                getDossierSupplierById(
-                    item.supplierId
-                );
-
-
-            const searchText =
-                normalizeDossierText(`
-
-                    ${item.code || ""}
-
-                    ${item.content || ""}
-
-                    ${project?.ten || ""}
-
-                    ${supplier?.ten || ""}
-
-                `);
-
-
-            const hasDelivery =
-                Boolean(
-
-                    String(
-                        item.deliveryDate || ""
-                    ).trim()
-
-                );
-
-
-            return (
-
-                searchText.includes(
-                    keyword
-                )
-
-                &&
-
-                (
-                    !projectId
-
-                    ||
-
-                    String(item.projectId)
-                    ===
-                    projectId
-                )
-
-                &&
-
-                (
-                    !supplierId
-
-                    ||
-
-                    String(item.supplierId)
-                    ===
-                    supplierId
-                )
-
-                &&
-
-                (
-                    !deliveryFilter
-
-                    ||
-
-                    (
-                        deliveryFilter === "done"
-
-                        &&
-
-                        hasDelivery
-                    )
-
-                    ||
-
-                    (
-                        deliveryFilter === "not"
-
-                        &&
-
-                        !hasDelivery
-                    )
-                )
-
-                &&
-
-                (
-                    !fileFilter
-
-                    ||
-
-                    String(
-                        item.fileStatus ||
-                        "Chưa up"
-                    )
-
-                    ===
-
-                    fileFilter
-                )
-
-            );
-
-        });
-
-
-    renderPaidDossier(
-        filtered
-    );
-
-}
-
-
-function renderPaidDossier(data){
-
-    const table =
-        getDossierElement(
-            "paidTable"
-        );
-
-
-    if(!table){
-
-        return;
-
-    }
-
-
-    const resultData =
-        Array.isArray(data)
-
-        ? data
-
-        : [];
-
-
-    const countElement =
-        getDossierElement(
-            "paidResultCount"
-        );
-
-
-    if(countElement){
-
-        countElement.textContent =
-            `${resultData.length} hồ sơ`;
-
-    }
-
-
-    if(resultData.length === 0){
-
-        table.innerHTML = `
-
-            <tr>
-
-                <td colspan="8">
-                    Chưa có hồ sơ đã thanh toán phù hợp
-                </td>
-
-            </tr>
-
-        `;
-
-        return;
-
-    }
-
-
-    table.innerHTML =
-        resultData.map(item => {
-
-            const project =
-                getDossierProjectById(
-                    item.projectId
-                );
-
-
-            const supplier =
-                getDossierSupplierById(
-                    item.supplierId
-                );
-
-
-            return `
-
-                <tr>
-
-                    <td>
-                        ${escapeDossierHtml(
-                            item.code || "—"
-                        )}
-                    </td>
-
-                    <td>
-                        ${escapeDossierHtml(
-                            project?.ten ||
-                            "Dự án đã xóa"
-                        )}
-                    </td>
-
-                    <td>
-                        ${escapeDossierHtml(
-                            item.content || "—"
-                        )}
-                    </td>
-
-                    <td>
-                        ${escapeDossierHtml(
-                            supplier?.ten ||
-                            "Nhà cung cấp đã xóa"
-                        )}
-                    </td>
-
-                    <td>
-                        ${Number(
-                            item.value || 0
-                        ).toLocaleString(
-                            "vi-VN"
-                        )} đ
-                    </td>
-
-                    <td>
-                        ${escapeDossierHtml(
-                            item.documents || "—"
-                        )}
-                    </td>
-
-                    <td>
-                        ${escapeDossierHtml(
-
-                            item.deliveryDate
-
-                            ? formatDossierDate(
-                                item.deliveryDate
-                            )
-
-                            : "Chưa bàn giao"
-
-                        )}
-                    </td>
-
-                    <td>
-                        Đã thanh toán
-                    </td>
-
-                </tr>
-
-            `;
-
-        }).join("");
-
-}
-
+// =====================================================
+// ĐẶT LẠI BỘ LỌC
+// =====================================================
 
 function resetPaidDossierFilters(){
 
     [
 
         "paidSearch",
-        "paidProjectFilter",
-        "paidSupplierFilter",
-        "paidDeliveryFilter",
-        "paidFileFilter"
 
-    ].forEach(id =>
+        "paidProjectFilter",
+
+        "paidSupplierFilter",
+
+        "paidDeliveryFilter",
+
+        "paidFileFilter",
+
+        "paidSort"
+
+    ].forEach(id => {
 
         setDossierInputValue(
             id,
             ""
-        )
+        );
 
-    );
+    });
 
 
     filterPaidDossier();
 
 }
+    // =====================================================
+    // HỒ SƠ CẦN BỔ SUNG
+    // =====================================================
+
+    function loadMissingDossierFilters() {
+
+        loadDossierFilterOptions(
+
+            "missingProjectFilter",
+
+            getDossierProjects(),
+
+            "Tất cả dự án"
+
+        );
 
 
-// =====================================
-// TRANG HỒ SƠ CẦN BỔ SUNG
-// =====================================
+        loadDossierFilterOptions(
 
-function loadMissingDossierFilters(){
+            "missingSupplierFilter",
 
-    loadDossierFilterOptions(
+            getDossierSuppliers(),
 
-        "missingProjectFilter",
+            "Tất cả nhà cung cấp"
 
-        getDossierProjects(),
+        );
 
-        "Tất cả dự án"
-
-    );
+    }
 
 
-    loadDossierFilterOptions(
+    function filterMissingDossier() {
 
-        "missingSupplierFilter",
+        const keyword =
+            normalizeDossierText(
 
-        getDossierSuppliers(),
+                getDossierInputValue(
+                    "missingSearch"
+                )
 
-        "Tất cả nhà cung cấp"
-
-    );
-
-}
+            );
 
 
-function filterMissingDossier(){
-
-    const keyword =
-        normalizeDossierText(
-
+        const projectId =
             getDossierInputValue(
-                "missingSearch"
+                "missingProjectFilter"
+            );
+
+
+        const supplierId =
+            getDossierInputValue(
+                "missingSupplierFilter"
+            );
+
+
+        const deliveryFilter =
+            getDossierInputValue(
+                "missingDeliveryFilter"
+            );
+
+
+        const paymentFilter =
+            getDossierInputValue(
+                "missingPaymentFilter"
+            );
+
+
+        const sortMode =
+            getDossierInputValue(
+                "missingSort"
             )
 
-        );
+            ||
+
+            "project-az";
 
 
-    const projectId =
-        getDossierInputValue(
-            "missingProjectFilter"
-        );
+        const filtered =
+            dossiers.filter(item => {
+
+                const missingDocuments =
+                    String(
+                        item.documents || ""
+                    ).trim();
 
 
-    const supplierId =
-        getDossierInputValue(
-            "missingSupplierFilter"
-        );
+                if (!missingDocuments) {
+
+                    return false;
+
+                }
 
 
-    const deliveryFilter =
-        getDossierInputValue(
-            "missingDeliveryFilter"
-        );
+                const project =
+                    getDossierProjectById(
+                        item.projectId
+                    );
 
 
-    const paymentFilter =
-        getDossierInputValue(
-            "missingPaymentFilter"
-        );
+                const supplier =
+                    getDossierSupplierById(
+                        item.supplierId
+                    );
 
 
-    const filtered =
-        dossiers.filter(item => {
+                const searchText =
+                    normalizeDossierText(`
 
-            const missingDocuments =
-                String(
-                    item.documents || ""
-                ).trim();
+                        ${item.code || ""}
+
+                        ${item.content || ""}
+
+                        ${missingDocuments}
+
+                        ${project?.ten || project?.name || ""}
+
+                        ${getDossierSupplierName(supplier)}
+
+                    `);
 
 
-            if(!missingDocuments){
+                const hasDelivery =
+                    Boolean(
 
-                return false;
+                        String(
+                            item.deliveryDate || ""
+                        ).trim()
+
+                    );
+
+
+                return (
+
+                    searchText.includes(
+                        keyword
+                    )
+
+                    &&
+
+                    (
+                        !projectId
+
+                        ||
+
+                        (
+                            project
+
+                            &&
+
+                            entityMatchesId(
+                                project,
+                                projectId
+                            )
+                        )
+                    )
+
+                    &&
+
+                    (
+                        !supplierId
+
+                        ||
+
+                        (
+                            supplier
+
+                            &&
+
+                            entityMatchesId(
+                                supplier,
+                                supplierId
+                            )
+                        )
+                    )
+
+                    &&
+
+                    (
+                        !deliveryFilter
+
+                        ||
+
+                        (
+                            deliveryFilter === "done"
+
+                            &&
+
+                            hasDelivery
+                        )
+
+                        ||
+
+                        (
+                            deliveryFilter === "not"
+
+                            &&
+
+                            !hasDelivery
+                        )
+                    )
+
+                    &&
+
+                    (
+                        !paymentFilter
+
+                        ||
+
+                        String(
+                            item.paymentStatus
+
+                            ||
+
+                            "Chưa thanh toán"
+                        )
+
+                        ===
+
+                        paymentFilter
+                    )
+
+                );
+
+            });
+
+
+        filtered.sort((a, b) => {
+
+            if (sortMode === "project-za") {
+
+                return compareDossierVietnameseText(
+
+                    getDossierProjectName(b),
+
+                    getDossierProjectName(a)
+
+                );
 
             }
 
 
-            const project =
-                getDossierProjectById(
-                    item.projectId
-                );
+            if (sortMode === "newest") {
 
+                return (
 
-            const supplier =
-                getDossierSupplierById(
-                    item.supplierId
-                );
+                    getDossierCreatedTime(b)
 
+                    -
 
-            const searchText =
-                normalizeDossierText(`
-
-                    ${item.code || ""}
-
-                    ${item.content || ""}
-
-                    ${missingDocuments}
-
-                    ${project?.ten || ""}
-
-                    ${supplier?.ten || ""}
-
-                `);
-
-
-            const hasDelivery =
-                Boolean(
-
-                    String(
-                        item.deliveryDate || ""
-                    ).trim()
+                    getDossierCreatedTime(a)
 
                 );
 
+            }
 
-            return (
 
-                searchText.includes(
-                    keyword
-                )
+            if (sortMode === "oldest") {
 
-                &&
+                return (
 
-                (
-                    !projectId
+                    getDossierCreatedTime(a)
 
-                    ||
+                    -
 
-                    String(item.projectId)
-                    ===
-                    projectId
-                )
+                    getDossierCreatedTime(b)
 
-                &&
+                );
 
-                (
-                    !supplierId
+            }
 
-                    ||
 
-                    String(item.supplierId)
-                    ===
-                    supplierId
-                )
+            return compareDossierVietnameseText(
 
-                &&
+                getDossierProjectName(a),
 
-                (
-                    !deliveryFilter
-
-                    ||
-
-                    (
-                        deliveryFilter === "done"
-
-                        &&
-
-                        hasDelivery
-                    )
-
-                    ||
-
-                    (
-                        deliveryFilter === "not"
-
-                        &&
-
-                        !hasDelivery
-                    )
-                )
-
-                &&
-
-                (
-                    !paymentFilter
-
-                    ||
-
-                    String(
-                        item.paymentStatus ||
-                        "Chưa thanh toán"
-                    )
-
-                    ===
-
-                    paymentFilter
-                )
+                getDossierProjectName(b)
 
             );
 
         });
 
 
-    renderMissingDossier(
-        filtered
-    );
+        renderMissingDossier(
+            filtered
+        );
 
-}
+    }
 
 
-function renderMissingDossier(data){
+    function renderMissingDossier(data) {
 
-    const table =
-        getDossierElement(
-            "missingTable"
+        renderSimpleDossierTable({
+
+            tableId:
+                "missingTable",
+
+            countId:
+                "missingResultCount",
+
+            data,
+
+            emptyMessage:
+                "Không có hồ sơ cần bổ sung phù hợp"
+
+        });
+
+    }
+
+
+    function resetMissingDossierFilters() {
+
+        [
+
+            "missingSearch",
+
+            "missingProjectFilter",
+
+            "missingSupplierFilter",
+
+            "missingDeliveryFilter",
+
+            "missingPaymentFilter"
+
+        ].forEach(id =>
+
+            setDossierInputValue(
+                id,
+                ""
+            )
         );
 
 
-    if(!table){
-
-        return;
-
-    }
-
-
-    const resultData =
-        Array.isArray(data)
-
-        ? data
-
-        : [];
-
-
-    const countElement =
-        getDossierElement(
-            "missingResultCount"
+        setDossierInputValue(
+            "missingSort",
+            "project-az"
         );
 
 
-    if(countElement){
-
-        countElement.textContent =
-            `${resultData.length} hồ sơ`;
+        filterMissingDossier();
 
     }
 
 
-    if(resultData.length === 0){
+    // =====================================================
+    // BẢNG DÙNG CHUNG CHO TRANG CON
+    // =====================================================
 
-        table.innerHTML = `
+    function renderSimpleDossierTable({
+        tableId,
+        countId,
+        data,
+        emptyMessage,
+        deliveryMode = false,
+        paidMode = false
+    }) {
 
-            <tr>
-
-                <td colspan="8">
-                    Không có hồ sơ cần bổ sung phù hợp
-                </td>
-
-            </tr>
-
-        `;
-
-        return;
-
-    }
-
-
-    table.innerHTML =
-        resultData.map(item => {
-
-            const project =
-                getDossierProjectById(
-                    item.projectId
-                );
+        const table =
+            getDossierElement(
+                tableId
+            );
 
 
-            const supplier =
-                getDossierSupplierById(
-                    item.supplierId
-                );
+        if (!table) {
+
+            return;
+
+        }
 
 
-            return `
+        const resultData =
+            Array.isArray(data)
+
+                ? data
+
+                : [];
+
+
+        const countElement =
+            getDossierElement(
+                countId
+            );
+
+
+        if (countElement) {
+
+            countElement.textContent =
+                `${resultData.length} hồ sơ`;
+
+        }
+
+
+        if (resultData.length === 0) {
+
+            table.innerHTML = `
 
                 <tr>
 
-                    <td>
+                    <td colspan="8">
                         ${escapeDossierHtml(
-                            item.code || "—"
-                        )}
-                    </td>
-
-                    <td>
-                        ${escapeDossierHtml(
-                            project?.ten ||
-                            "Dự án đã xóa"
-                        )}
-                    </td>
-
-                    <td>
-                        ${escapeDossierHtml(
-                            item.content || "—"
-                        )}
-                    </td>
-
-                    <td>
-                        ${escapeDossierHtml(
-                            supplier?.ten ||
-                            "Nhà cung cấp đã xóa"
-                        )}
-                    </td>
-
-                    <td>
-                        ${Number(
-                            item.value || 0
-                        ).toLocaleString(
-                            "vi-VN"
-                        )} đ
-                    </td>
-
-                    <td>
-                        ${escapeDossierHtml(
-                            item.documents || "—"
-                        )}
-                    </td>
-
-                    <td>
-                        ${escapeDossierHtml(
-
-                            item.deliveryDate
-
-                            ? formatDossierDate(
-                                item.deliveryDate
-                            )
-
-                            : "Chưa bàn giao"
-
-                        )}
-                    </td>
-
-                    <td>
-                        ${escapeDossierHtml(
-                            item.paymentStatus ||
-                            "Chưa thanh toán"
+                            emptyMessage
                         )}
                     </td>
 
@@ -6617,264 +9586,732 @@ function renderMissingDossier(data){
 
             `;
 
-        }).join("");
-
-}
-
-
-function resetMissingDossierFilters(){
-
-    [
-
-        "missingSearch",
-        "missingProjectFilter",
-        "missingSupplierFilter",
-        "missingDeliveryFilter",
-        "missingPaymentFilter"
-
-    ].forEach(id =>
-
-        setDossierInputValue(
-            id,
-            ""
-        )
-
-    );
-
-
-    filterMissingDossier();
-
-}
-
-
-// =====================================
-// SỰ KIỆN
-// =====================================
-
-document.addEventListener(
-
-    "input",
-
-    function(event){
-
-        const id =
-            event.target?.id;
-
-
-        if(id === "searchDossier"){
-
-            filterDossier();
-
-        }
-
-
-        if(id === "deliverySearch"){
-
-            filterDeliveryDossier();
-
-        }
-
-
-        if(id === "paidSearch"){
-
-            filterPaidDossier();
-
-        }
-
-
-        if(id === "missingSearch"){
-
-            filterMissingDossier();
-
-        }
-
-    }
-
-);
-
-
-document.addEventListener(
-
-    "change",
-
-    function(event){
-
-        const id =
-            event.target?.id;
-
-
-        if(
-            [
-
-                "filterStatus",
-                "filterPayment",
-                "filterDelivery",
-                "filterFile",
-                "filterProjectSort"
-
-            ].includes(id)
-        ){
-
-            filterDossier();
-
-        }
-
-
-        if(
-            [
-
-                "deliveryProjectFilter",
-                "deliverySupplierFilter",
-                "deliveryPaymentFilter",
-                "deliveryDateFrom",
-                "deliveryDateTo"
-
-            ].includes(id)
-        ){
-
-            filterDeliveryDossier();
-
-        }
-
-
-        if(
-            [
-
-                "paidProjectFilter",
-                "paidSupplierFilter",
-                "paidDeliveryFilter",
-                "paidFileFilter"
-
-            ].includes(id)
-        ){
-
-            filterPaidDossier();
-
-        }
-
-
-        if(
-            [
-
-                "missingProjectFilter",
-                "missingSupplierFilter",
-                "missingDeliveryFilter",
-                "missingPaymentFilter"
-
-            ].includes(id)
-        ){
-
-            filterMissingDossier();
-
-        }
-
-    }
-
-);
-
-
-document.addEventListener(
-
-    "click",
-
-    function(event){
-
-        if(
-            event.target?.id ===
-            "dossierModal"
-        ){
-
-            closeDossierForm();
-
-        }
-
-    }
-
-);
-
-
-document.addEventListener(
-
-    "keydown",
-
-    function(event){
-
-        if(event.key !== "Escape"){
 
             return;
 
         }
 
 
-        const modal =
+        table.innerHTML =
+            resultData.map(item => {
+
+                const project =
+                    getDossierProjectById(
+                        item.projectId
+                    );
+
+
+                const supplier =
+                    getDossierSupplierById(
+                        item.supplierId
+                    );
+
+
+                let lastColumn =
+                    item.paymentStatus
+
+                    ||
+
+                    "Chưa thanh toán";
+
+
+                if (deliveryMode) {
+
+                    lastColumn =
+                        item.paymentStatus
+
+                        ||
+
+                        "Chưa thanh toán";
+
+                }
+
+
+                if (paidMode) {
+
+                    lastColumn =
+                        "Đã thanh toán";
+
+                }
+
+
+                return `
+
+                    <tr>
+
+                        <td>
+                            ${escapeDossierHtml(
+                                item.code || "—"
+                            )}
+                        </td>
+
+                        <td>
+                            ${escapeDossierHtml(
+
+                                project?.ten
+
+                                ||
+
+                                project?.name
+
+                                ||
+
+                                "Dự án đã xóa"
+
+                            )}
+                        </td>
+
+                        <td>
+                            ${escapeDossierHtml(
+                                item.content || "—"
+                            )}
+                        </td>
+
+                        <td>
+                            ${escapeDossierHtml(
+
+                                getDossierSupplierName(
+                                    supplier
+                                )
+
+                                ||
+
+                                "Nhà cung cấp đã xóa"
+
+                            )}
+                        </td>
+
+                        <td>
+                            ${Number(
+                                item.value || 0
+                            ).toLocaleString(
+                                "vi-VN"
+                            )} đ
+                        </td>
+
+                        <td>
+                            ${escapeDossierHtml(
+                                item.documents || "—"
+                            )}
+                        </td>
+
+                        <td>
+                            ${escapeDossierHtml(
+
+                                item.deliveryDate
+
+                                    ? formatDossierDate(
+                                        item.deliveryDate
+                                    )
+
+                                    : "Chưa bàn giao"
+
+                            )}
+                        </td>
+
+                        <td>
+                            ${escapeDossierHtml(
+                                lastColumn
+                            )}
+                        </td>
+
+                    </tr>
+
+                `;
+
+            }).join("");
+
+    }
+
+
+    // =====================================================
+    // LÀM MỚI CÁC VIEW
+    // =====================================================
+
+    function refreshAllDossierViews() {
+
+        updateDossierSummary();
+
+
+        if (
             getDossierElement(
-                "dossierModal"
-            );
-
-
-        if(
-            modal
-
-            &&
-
-            modal.classList.contains(
-                "is-open"
+                "dossierTable"
             )
-        ){
+        ) {
 
-            closeDossierForm();
+            filterDossier();
+
+        }
+
+
+        if (
+            getDossierElement(
+                "deliveryTable"
+            )
+        ) {
+
+            loadDeliveryDossierFilters();
+
+
+            filterDeliveryDossier();
+
+        }
+
+
+        if (
+            getDossierElement(
+                "paidTable"
+            )
+        ) {
+
+            loadPaidDossierFilters();
+
+
+            filterPaidDossier();
+
+        }
+
+
+        if (
+            getDossierElement(
+                "missingTable"
+            )
+        ) {
+
+            loadMissingDossierFilters();
+
+
+            filterMissingDossier();
 
         }
 
     }
 
-);
+// =====================================================
+// TẢI DỮ LIỆU HỒ SƠ TỪ BACK4APP
+// =====================================================
+
+async function loadDossier(){
+
+    const mainTable =
+        getDossierElement(
+            "dossierTable"
+        );
 
 
-// =====================================
-// TẢI NỀN
-// =====================================
+    const paidTable =
+        getDossierElement(
+            "paidTable"
+        );
 
-document.addEventListener(
 
-    "DOMContentLoaded",
+    const deliveryTable =
+        getDossierElement(
+            "deliveryTable"
+        );
 
-    async function(){
 
-        try{
+    const missingTable =
+        getDossierElement(
+            "missingTable"
+        );
 
-            if(
-                typeof Parse ===
-                "undefined"
 
-                ||
+    /*
+    Chỉ hiện trạng thái tải cho bảng
+    đang tồn tại trên trang hiện tại.
+    */
 
-                !Parse.User.current()
-            ){
+    if(mainTable){
+
+        setDossierTableMessage(
+            "Đang tải hồ sơ..."
+        );
+
+    }
+
+
+    try{
+
+        ensureDossierBack4AppReady();
+
+
+        /*
+        Tải Dự án và Nhà cung cấp.
+        Một module lỗi không làm dừng toàn bộ trang.
+        */
+
+        const referenceTasks =
+            [];
+
+
+        if(
+            typeof window.loadProjectSelect ===
+            "function"
+        ){
+
+            referenceTasks.push(
+
+                Promise.resolve(
+                    window.loadProjectSelect()
+                )
+
+            );
+
+        }
+
+
+        if(
+            typeof window.loadSupplierSelect ===
+            "function"
+        ){
+
+            referenceTasks.push(
+
+                Promise.resolve(
+                    window.loadSupplierSelect()
+                )
+
+            );
+
+        }
+
+
+        if(referenceTasks.length > 0){
+
+            const referenceResults =
+                await Promise.allSettled(
+                    referenceTasks
+                );
+
+
+            referenceResults.forEach(result => {
+
+                if(
+                    result.status ===
+                    "rejected"
+                ){
+
+                    console.warn(
+                        "Không tải được dữ liệu tham chiếu:",
+                        result.reason
+                    );
+
+                }
+
+            });
+
+        }
+
+
+        /*
+        Chỉ migrate dữ liệu local cũ.
+        */
+
+        await migrateDossiersToBack4App();
+
+
+        /*
+        BẮT BUỘC:
+        tải dữ liệu mới nhất từ class Dossier.
+        */
+
+        await fetchDossiersFromBack4App(
+            true
+        );
+
+
+        console.log(
+            "✅ Đã tải hồ sơ từ Back4App:",
+            dossiers.length
+        );
+
+
+        /*
+        Cập nhật đúng trang hiện tại.
+        */
+
+        if(mainTable){
+
+            updateDossierSummary();
+
+            filterDossier();
+
+        }
+
+
+        if(paidTable){
+
+            loadPaidDossierFilters();
+
+            filterPaidDossier();
+
+        }
+
+
+        if(deliveryTable){
+
+            loadDeliveryDossierFilters();
+
+            filterDeliveryDossier();
+
+        }
+
+
+        if(missingTable){
+
+            loadMissingDossierFilters();
+
+            filterMissingDossier();
+
+        }
+
+
+        return dossiers;
+
+    }catch(error){
+
+        console.error(
+            "❌ Không tải được Hồ sơ:",
+            {
+                code:
+                    error?.code,
+
+                message:
+                    error?.message,
+
+                error
+            }
+        );
+
+
+        const errorMessage =
+
+            error?.message
+
+            ||
+
+            "Không tải được dữ liệu hồ sơ.";
+
+
+        if(mainTable){
+
+            setDossierTableMessage(
+                errorMessage,
+                true
+            );
+
+        }
+
+
+        if(paidTable){
+
+            paidTable.innerHTML = `
+
+                <tr>
+
+                    <td
+                        colspan="8"
+                        style="
+                            padding:28px;
+                            text-align:center;
+                            color:#b44f53;
+                        "
+                    >
+                        Không tải được dữ liệu:
+                        ${escapeDossierHtml(
+                            errorMessage
+                        )}
+                    </td>
+
+                </tr>
+
+            `;
+
+        }
+
+
+        if(deliveryTable){
+
+            deliveryTable.innerHTML = `
+
+                <tr>
+
+                    <td
+                        colspan="8"
+                        style="
+                            padding:28px;
+                            text-align:center;
+                            color:#b44f53;
+                        "
+                    >
+                        Không tải được dữ liệu:
+                        ${escapeDossierHtml(
+                            errorMessage
+                        )}
+                    </td>
+
+                </tr>
+
+            `;
+
+        }
+
+
+        if(missingTable){
+
+            missingTable.innerHTML = `
+
+                <tr>
+
+                    <td
+                        colspan="8"
+                        style="
+                            padding:28px;
+                            text-align:center;
+                            color:#b44f53;
+                        "
+                    >
+                        Không tải được dữ liệu:
+                        ${escapeDossierHtml(
+                            errorMessage
+                        )}
+                    </td>
+
+                </tr>
+
+            `;
+
+        }
+
+
+        const paidResultCount =
+            getDossierElement(
+                "paidResultCount"
+            );
+
+
+        if(paidResultCount){
+
+            paidResultCount.textContent =
+                "0 hồ sơ";
+
+        }
+
+
+        return [];
+
+    }
+
+}
+
+    // =====================================================
+    // SỰ KIỆN
+    // =====================================================
+
+    document.addEventListener(
+
+        "input",
+
+        function (event) {
+
+            const id =
+                event.target?.id;
+
+
+            if (id === "searchDossier") {
+
+                filterDossier();
+
+            }
+
+
+            if (id === "deliverySearch") {
+
+                filterDeliveryDossier();
+
+            }
+
+
+            if (id === "paidSearch") {
+
+                filterPaidDossier();
+
+            }
+
+
+            if (id === "missingSearch") {
+
+                filterMissingDossier();
+
+            }
+
+        }
+
+    );
+
+
+    document.addEventListener(
+
+        "change",
+
+        function (event) {
+
+            const id =
+                event.target?.id;
+
+
+            if (
+                [
+
+                    "filterStatus",
+
+                    "filterPayment",
+
+                    "filterDelivery",
+
+                    "filterFile",
+
+                    "filterProjectSort"
+
+                ].includes(id)
+            ) {
+
+                filterDossier();
+
+            }
+
+
+            if (
+                [
+
+                    "deliveryProjectFilter",
+
+                    "deliverySupplierFilter",
+
+                    "deliveryPaymentFilter",
+
+                    "deliveryDateFrom",
+
+                    "deliveryDateTo",
+
+                    "deliverySort"
+
+                ].includes(id)
+            ) {
+
+                filterDeliveryDossier();
+
+            }
+
+
+            if (
+                [
+
+                    "paidProjectFilter",
+
+                    "paidSupplierFilter",
+
+                    "paidDeliveryFilter",
+
+                    "paidFileFilter",
+
+                    "paidSort"
+
+                ].includes(id)
+            ) {
+
+                filterPaidDossier();
+
+            }
+
+
+            if (
+                [
+
+                    "missingProjectFilter",
+
+                    "missingSupplierFilter",
+
+                    "missingDeliveryFilter",
+
+                    "missingPaymentFilter",
+
+                    "missingSort"
+
+                ].includes(id)
+            ) {
+
+                filterMissingDossier();
+
+            }
+
+        }
+
+    );
+
+
+    document.addEventListener(
+
+        "keydown",
+
+        function (event) {
+
+            if (event.key !== "Escape") {
 
                 return;
 
             }
 
 
-            await Promise.all([
-
-                typeof loadProjectSelect ===
-                "function"
-
-                ? loadProjectSelect()
-
-                : Promise.resolve(),
+            const modal =
+                getDossierElement(
+                    "dossierModal"
+                );
 
 
-                typeof loadSupplierSelect ===
-                "function"
+            if (
+                modal
 
-                ? loadSupplierSelect()
+                &&
 
-                : Promise.resolve()
+                modal.classList.contains(
+                    "is-open"
+                )
+            ) {
 
-            ]);
+                closeDossierForm();
+
+            }
+
+        }
+
+    );
+
+
+    // =====================================================
+    // TẢI NỀN
+    // =====================================================
+
+    async function bootstrapDossier() {
+
+        try {
+
+            if (
+                typeof Parse ===
+                "undefined"
+
+                ||
+
+                !Parse.User.current()
+            ) {
+
+                return;
+
+            }
+
+
+            await loadDossierReferenceData();
 
 
             await migrateDossiersToBack4App();
@@ -6887,7 +10324,7 @@ document.addEventListener(
 
             refreshAllDossierViews();
 
-        }catch(error){
+        } catch (error) {
 
             console.error(
                 "Không thể đồng bộ Hồ sơ khi khởi động:",
@@ -6898,102 +10335,187 @@ document.addEventListener(
 
     }
 
-);
+
+    if (
+        document.readyState ===
+        "loading"
+    ) {
+
+        document.addEventListener(
+
+            "DOMContentLoaded",
+
+            bootstrapDossier,
+
+            {
+                once:
+                    true
+            }
+
+        );
+
+    } else {
+
+        window.setTimeout(
+            bootstrapDossier,
+            0
+        );
+
+    }
 
 
-// =====================================
-// ĐƯA HÀM RA WINDOW
-// =====================================
-window.goToDossierPage =
-    goToDossierPage;
+    // =====================================================
+    // ĐƯA HÀM RA WINDOW
+    // =====================================================
 
-window.changeDossierPageSize =
-    changeDossierPageSize;
+    window.openDossierForm =
+        openDossierForm;
 
-window.updateDossierSummary =
-    updateDossierSummary;
 
-window.clearDossierSelection =
-    clearDossierSelection;
+    window.closeDossierForm =
+        closeDossierForm;
 
-window.openDossierForm =
-    openDossierForm;
 
-window.closeDossierForm =
-    closeDossierForm;
+    window.saveDossier =
+        saveDossier;
 
-window.saveDossier =
-    saveDossier;
 
-window.loadDossier =
-    loadDossier;
+    window.loadDossier =
+        loadDossier;
 
-window.renderDossier =
-    renderDossier;
 
-window.editDossier =
-    editDossier;
+    window.renderDossier =
+        renderDossier;
 
-window.deleteDossier =
-    deleteDossier;
 
-window.filterDossier =
-    filterDossier;
+    window.editDossier =
+        editDossier;
 
-window.toggleDossierSelection =
-    toggleDossierSelection;
 
-window.toggleSelectAllDossiers =
-    toggleSelectAllDossiers;
+    window.deleteDossier =
+        deleteDossier;
 
-window.applyBulkDossierUpdate =
-    applyBulkDossierUpdate;
 
-window.migrateDossiersToBack4App =
-    migrateDossiersToBack4App;
+    window.filterDossier =
+        filterDossier;
 
-window.fetchDossiersFromBack4App =
-    fetchDossiersFromBack4App;
 
-window.loadDeliveryDossierFilters =
-    loadDeliveryDossierFilters;
+    window.goToDossierPage =
+        goToDossierPage;
 
-window.filterDeliveryDossier =
-    filterDeliveryDossier;
 
-window.renderDeliveryDossier =
-    renderDeliveryDossier;
+    window.changeDossierPageSize =
+        changeDossierPageSize;
 
-window.resetDeliveryDossierFilters =
-    resetDeliveryDossierFilters;
 
-window.loadPaidDossierFilters =
-    loadPaidDossierFilters;
+    window.toggleDossierSelection =
+        toggleDossierSelection;
 
-window.filterPaidDossier =
-    filterPaidDossier;
 
-window.renderPaidDossier =
-    renderPaidDossier;
+    window.toggleSelectAllDossiers =
+        toggleSelectAllDossiers;
 
-window.resetPaidDossierFilters =
-    resetPaidDossierFilters;
 
-window.loadMissingDossierFilters =
-    loadMissingDossierFilters;
+    window.clearDossierSelection =
+        clearDossierSelection;
 
-window.filterMissingDossier =
-    filterMissingDossier;
 
-window.renderMissingDossier =
-    renderMissingDossier;
+    window.applyBulkDossierUpdate =
+        applyBulkDossierUpdate;
 
-window.resetMissingDossierFilters =
-    resetMissingDossierFilters;
 
-window.getDossiersData =
-    function(){
+    window.updateDossierSummary =
+        updateDossierSummary;
 
-        return [...dossiers];
 
-    };
+    window.handleDossierSupplierSearchChange =
+        handleDossierSupplierSearchChange;
+
+    window.searchDossierSuppliers =
+    searchDossierSuppliers;
+
+
+window.selectDossierSupplier =
+    selectDossierSupplier;
+
+
+window.handleDossierSupplierKeydown =
+    handleDossierSupplierKeydown;
+
+
+    window.loadDossierSupplierSearchOptions =
+        loadDossierSupplierSearchOptions;
+
+
+    window.migrateDossiersToBack4App =
+        migrateDossiersToBack4App;
+
+
+    window.fetchDossiersFromBack4App =
+        fetchDossiersFromBack4App;
+
+
+    window.loadDeliveryDossierFilters =
+        loadDeliveryDossierFilters;
+
+
+    window.filterDeliveryDossier =
+        filterDeliveryDossier;
+
+
+    window.renderDeliveryDossier =
+        renderDeliveryDossier;
+
+
+    window.resetDeliveryDossierFilters =
+        resetDeliveryDossierFilters;
+
+    window.loadPaidDossier =
+    loadPaidDossier;
+
+
+    window.loadPaidDossierFilters =
+        loadPaidDossierFilters;
+
+    window.filterPaidDossier =
+        filterPaidDossier;
+
+
+    window.renderPaidDossier =
+        renderPaidDossier;
+
+
+    window.resetPaidDossierFilters =
+        resetPaidDossierFilters;
+
+
+    window.loadMissingDossierFilters =
+        loadMissingDossierFilters;
+
+
+    window.filterMissingDossier =
+        filterMissingDossier;
+
+
+    window.renderMissingDossier =
+        renderMissingDossier;
+
+
+    window.resetMissingDossierFilters =
+        resetMissingDossierFilters;
+
+
+    window.getDossiersData =
+function(){
+
+    return Array.isArray(dossiers)
+
+        ? dossiers.map(item => ({
+            ...item
+        }))
+
+        : [];
+
+};
+
+})();
