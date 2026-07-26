@@ -1,13 +1,26 @@
-<div class="archive-page">
+<div class="archive-page archive-modern-page">
 
-    <div class="archive-header">
+    <!-- =====================================
+         HEADER
+         ===================================== -->
 
-        <div>
+    <header class="archive-page-header">
 
-            <h1>📦 Lưu hồ sơ</h1>
+        <link rel="icon" type="image/png" href="./favicon.png">
+
+        <div class="archive-page-heading">
+
+            <span class="archive-page-eyebrow">
+                QUẢN LÝ HỒ SƠ
+            </span>
+
+            <h1>
+                Lưu hồ sơ
+            </h1>
 
             <p>
-                Quản lý hợp đồng, phụ lục, biên bản và các hồ sơ lưu trữ khác
+                Quản lý hợp đồng, phụ lục, biên bản
+                và các tài liệu lưu trữ khác
             </p>
 
         </div>
@@ -15,212 +28,363 @@
 
         <button
             type="button"
-            class="archive-add-button"
+            class="archive-add-button archive-primary-button"
             onclick="openArchiveForm()"
         >
-            + Thêm hồ sơ lưu
+            ＋ Thêm hồ sơ lưu
         </button>
 
-    </div>
+    </header>
 
 
-    <!-- BỘ LỌC -->
-     <div class="archive-toolbar">
+    <!-- =====================================
+         BANNER CHỮA LÀNH
+         ===================================== -->
 
-    <!-- TÌM KIẾM CHUNG -->
+    <section class="archive-healing-banner">
 
-    <input
-        type="text"
-        id="archiveSearch"
-        placeholder="Tìm mã lưu, tên tài liệu, vị trí lưu..."
-        oninput="filterArchiveDossiers()"
-    >
+        <div
+            class="archive-healing-icon"
+            aria-hidden="true"
+        >
+            🌿
+        </div>
 
 
-    <!-- LOẠI HỒ SƠ -->
+        <div class="archive-healing-copy">
 
-    <select
-        id="archiveTypeFilter"
-        onchange="filterArchiveDossiers()"
-    >
+            <strong>
+                Lưu trữ rõ ràng, tìm kiếm nhẹ nhàng hơn
+            </strong>
 
-        <option value="">
-            Tất cả loại hồ sơ
-        </option>
+            <p>
+                Sắp xếp tài liệu theo mã hồ sơ, dự án và vị trí lưu
+                để thông tin luôn dễ tìm thấy.
+            </p>
 
-        <option value="Hợp đồng">
-            Hợp đồng
-        </option>
+        </div>
 
-        <option value="Phụ lục hợp đồng">
-            Phụ lục hợp đồng
-        </option>
 
-        <option value="Biên bản">
-            Biên bản
-        </option>
+        <span
+            class="archive-healing-dot"
+            aria-hidden="true"
+        ></span>
 
-        <option value="Hóa đơn">
-            Hóa đơn
-        </option>
+    </section>
 
-        <option value="Hồ sơ pháp lý">
-            Hồ sơ pháp lý
-        </option>
 
-        <option value="Khác">
-            Khác
-        </option>
+    <!-- =====================================
+         BỘ LỌC
+         ===================================== -->
 
-    </select>
+    <section class="archive-filter-card">
 
+        <div class="archive-filter-grid">
 
-    <!-- TÌM MÃ HỒ SƠ LIÊN KẾT -->
+            <!-- TỪ KHÓA -->
 
-    <input
-        type="text"
-        id="archiveLinkedDossierFilter"
-        list="archiveDossierFilterList"
-        placeholder="Tìm mã hồ sơ liên kết..."
-        oninput="filterArchiveDossiers()"
-        autocomplete="off"
-    >
+            <div class="archive-filter-field archive-search-field">
 
-    <datalist id="archiveDossierFilterList">
-    </datalist>
+                <label for="archiveSearch">
+                    Từ khóa
+                </label>
 
+                <input
+                    type="search"
+                    id="archiveSearch"
+                    placeholder="Tìm mã lưu, tên tài liệu, vị trí lưu..."
+                    autocomplete="off"
+                    oninput="filterArchiveDossiers()"
+                >
 
-    <!-- LỌC THEO BỘ MÃ -->
+            </div>
 
-    <select
-        id="archiveCodeGroupFilter"
-        onchange="filterArchiveDossiers()"
-    >
 
-        <option value="">
-            Tất cả bộ mã hồ sơ
-        </option>
+            <!-- LOẠI HỒ SƠ -->
 
-    </select>
+            <div class="archive-filter-field">
 
+                <label for="archiveTypeFilter">
+                    Loại hồ sơ
+                </label>
 
-    <!-- LỌC DỰ ÁN -->
+                <select
+                    id="archiveTypeFilter"
+                    onchange="filterArchiveDossiers()"
+                >
 
-    <select
-        id="archiveProjectFilter"
-        onchange="filterArchiveDossiers()"
-    >
+                    <option value="">
+                        Tất cả loại hồ sơ
+                    </option>
 
-        <option value="">
-            Tất cả dự án
-        </option>
+                    <option value="Hợp đồng">
+                        Hợp đồng
+                    </option>
 
-    </select>
+                    <option value="Phụ lục hợp đồng">
+                        Phụ lục hợp đồng
+                    </option>
 
+                    <option value="Biên bản">
+                        Biên bản
+                    </option>
 
-    <!-- TÌM NHÀ CUNG CẤP -->
+                    <option value="Hóa đơn">
+                        Hóa đơn
+                    </option>
 
-    <input
-        type="text"
-        id="archiveSupplierSearchFilter"
-        list="archiveSupplierFilterList"
-        placeholder="Tìm mã hoặc tên nhà cung cấp..."
-        oninput="filterArchiveDossiers()"
-        autocomplete="off"
-    >
+                    <option value="Hồ sơ pháp lý">
+                        Hồ sơ pháp lý
+                    </option>
 
-    <datalist id="archiveSupplierFilterList">
-    </datalist>
+                    <option value="Khác">
+                        Khác
+                    </option>
 
+                </select>
 
-    <button
-        type="button"
-        class="archive-reset-button"
-        onclick="resetArchiveFilters()"
-    >
-        Xóa lọc
-    </button>
+            </div>
 
-</div>
 
+            <!-- HỒ SƠ LIÊN KẾT -->
 
+            <div class="archive-filter-field">
 
-    <div class="archive-result-row">
+                <label for="archiveLinkedDossierFilter">
+                    Hồ sơ liên kết
+                </label>
 
-        <span id="archiveResultCount">
-            0 hồ sơ
-        </span>
+                <input
+                    type="text"
+                    id="archiveLinkedDossierFilter"
+                    list="archiveDossierFilterList"
+                    placeholder="Tìm mã hồ sơ liên kết..."
+                    autocomplete="off"
+                    oninput="filterArchiveDossiers()"
+                >
 
-    </div>
+                <datalist id="archiveDossierFilterList">
+                </datalist>
 
+            </div>
 
-    <!-- BẢNG -->
 
-    <div class="archive-table-scroll">
+            <!-- BỘ MÃ -->
 
-        <table class="data-table archive-table">
+            <div class="archive-filter-field">
 
-            <thead>
+                <label for="archiveCodeGroupFilter">
+                    Bộ mã
+                </label>
 
-                <tr>
+                <select
+                    id="archiveCodeGroupFilter"
+                    onchange="filterArchiveDossiers()"
+                >
 
-                    <th>Loại hồ sơ</th>
+                    <option value="">
+                        Tất cả bộ mã hồ sơ
+                    </option>
 
-                    <th>Số / Mã lưu</th>
+                </select>
 
-                    <th>Mã HS liên kết</th>
+            </div>
 
-                    <th>Tên tài liệu</th>
 
-                    <th>Dự án</th>
+            <!-- DỰ ÁN -->
 
-                    <th>Nhà cung cấp</th>
+            <div class="archive-filter-field">
 
-                    <th>Ngày lưu</th>
+                <label for="archiveProjectFilter">
+                    Dự án
+                </label>
 
-                    <th>Vị trí lưu</th>
+                <select
+                    id="archiveProjectFilter"
+                    onchange="filterArchiveDossiers()"
+                >
 
-                    <th>Số lượng</th>
+                    <option value="">
+                        Tất cả dự án
+                    </option>
 
-                    <th>Thao tác</th>
+                </select>
 
-                </tr>
+            </div>
 
-            </thead>
 
+            <!-- NHÀ CUNG CẤP -->
 
-            <tbody id="archiveTable">
+            <div class="archive-filter-field">
 
-            </tbody>
+                <label for="archiveSupplierSearchFilter">
+                    Nhà cung cấp
+                </label>
 
-        </table>
+                <input
+                    type="text"
+                    id="archiveSupplierSearchFilter"
+                    list="archiveSupplierFilterList"
+                    placeholder="Tìm mã hoặc tên nhà cung cấp..."
+                    autocomplete="off"
+                    oninput="filterArchiveDossiers()"
+                >
 
-    </div>
+                <datalist id="archiveSupplierFilterList">
+                </datalist>
 
+            </div>
 
-    <!-- POPUP THÊM / SỬA -->
+
+            <!-- ĐẶT LẠI -->
+
+            <div class="archive-filter-action">
+
+                <button
+                    type="button"
+                    class="archive-reset-button"
+                    onclick="resetArchiveFilters()"
+                >
+                    Đặt lại
+                </button>
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <!-- =====================================
+         BẢNG HỒ SƠ LƯU
+         ===================================== -->
+
+    <section class="archive-table-card">
+
+        <div class="archive-table-meta">
+
+            <span class="archive-sort-note">
+                Mới lưu gần nhất hiển thị trước
+            </span>
+
+
+            <span
+                id="archiveResultCount"
+                class="archive-result-count"
+            >
+                0 hồ sơ
+            </span>
+
+        </div>
+
+
+        <div class="archive-table-scroll">
+
+            <table class="archive-table archive-modern-table">
+
+                <colgroup>
+                    <col style="width: 10%;">
+                    <col style="width: 11%;">
+                    <col style="width: 10%;">
+                    <col style="width: 17%;">
+                    <col style="width: 12%;">
+                    <col style="width: 13%;">
+                    <col style="width: 9%;">
+                    <col style="width: 10%;">
+                    <col style="width: 4%;">
+                    <col style="width: 8%;">
+                </colgroup>
+
+
+                <thead>
+
+                    <tr>
+                        <th>Loại hồ sơ</th>
+                        <th>Số / Mã lưu</th>
+                        <th>Mã HS liên kết</th>
+                        <th>Tên tài liệu</th>
+                        <th>Dự án</th>
+                        <th>Nhà cung cấp</th>
+                        <th>Ngày lưu</th>
+                        <th>Vị trí lưu</th>
+                        <th>SL</th>
+                        <th>Thao tác</th>
+                    </tr>
+
+                </thead>
+
+
+                <tbody id="archiveTable">
+
+                    <tr>
+
+                        <td
+                            colspan="10"
+                            class="archive-loading-cell"
+                        >
+                            Đang tải hồ sơ lưu...
+                        </td>
+
+                    </tr>
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </section>
+
+
+    <!-- =====================================
+         POPUP THÊM / CHỈNH SỬA
+         ===================================== -->
 
     <div
         id="archiveModal"
-        class="archive-modal"
-        onclick="closeArchiveForm()"
+        class="archive-modal archive-modern-modal"
+        role="dialog"
+        aria-modal="true"
+        aria-hidden="true"
+        aria-labelledby="archiveFormTitle"
+        onclick="
+            if(event.target === this){
+                closeArchiveForm();
+            }
+        "
     >
 
         <div
-            class="archive-modal-box"
+            class="archive-modal-box archive-modern-modal-box"
             onclick="event.stopPropagation()"
         >
 
+            <!-- HEADER POPUP -->
+
             <div class="archive-modal-header">
 
-                <h2 id="archiveFormTitle">
-                    Thêm hồ sơ lưu
-                </h2>
+                <div>
+
+                    <span class="archive-modal-eyebrow">
+                        THÔNG TIN LƯU TRỮ
+                    </span>
+
+                    <h2 id="archiveFormTitle">
+                        Thêm hồ sơ lưu
+                    </h2>
+
+                    <p>
+                        Cập nhật thông tin tài liệu và vị trí lưu trữ.
+                    </p>
+
+                </div>
+
 
                 <button
                     type="button"
                     class="archive-close-button"
                     onclick="closeArchiveForm()"
+                    aria-label="Đóng"
                 >
                     ×
                 </button>
@@ -228,15 +392,36 @@
             </div>
 
 
+            <!-- BODY -->
+
             <div class="archive-modal-body">
 
+                <div class="archive-form-intro">
+
+                    <span aria-hidden="true">
+                        🌿
+                    </span>
+
+                    <p>
+                        Nhập thông tin rõ ràng để tài liệu
+                        luôn dễ tìm kiếm và đối chiếu.
+                    </p>
+
+                </div>
+
+
                 <div class="archive-form-grid">
+
+                    <!-- LOẠI HỒ SƠ -->
 
                     <div class="archive-field">
 
                         <label for="archiveType">
+
                             Loại hồ sơ
+
                             <span>*</span>
+
                         </label>
 
                         <select id="archiveType">
@@ -274,121 +459,140 @@
                     </div>
 
 
+                    <!-- MÃ LƯU -->
+
                     <div class="archive-field">
 
                         <label for="archiveCode">
+
                             Số / Mã hồ sơ
+
                             <span>*</span>
+
                         </label>
 
                         <input
                             type="text"
                             id="archiveCode"
                             placeholder="Ví dụ: HĐ-001/2026"
+                            autocomplete="off"
                         >
 
                     </div>
 
 
+                    <!-- TÊN TÀI LIỆU -->
+
                     <div class="archive-field archive-full-width">
 
                         <label for="archiveName">
+
                             Tên tài liệu / Nội dung
+
                             <span>*</span>
+
                         </label>
 
                         <input
                             type="text"
                             id="archiveName"
                             placeholder="Ví dụ: Hợp đồng cung cấp thiết bị"
+                            autocomplete="off"
                         >
 
                     </div>
 
-<!-- GẮN VỚI MÃ HỒ SƠ -->
 
-<div class="archive-field archive-full-width">
+                    <!-- GẮN VỚI HỒ SƠ -->
 
-    <label for="archiveLinkedDossierSearch">
-        Gắn với mã hồ sơ
-    </label>
+                    <div class="archive-field archive-full-width">
 
-    <input
-        type="text"
-        id="archiveLinkedDossierSearch"
-        list="archiveDossierList"
-        placeholder="Gõ mã HS, nội dung hoặc tên nhà cung cấp..."
-        oninput="handleArchiveDossierLinkChange()"
-        autocomplete="off"
-    >
+                        <label for="archiveLinkedDossierSearch">
+                            Gắn với mã hồ sơ
+                        </label>
 
-    <datalist id="archiveDossierList">
-    </datalist>
+                        <input
+                            type="text"
+                            id="archiveLinkedDossierSearch"
+                            list="archiveDossierList"
+                            placeholder="Gõ mã HS, nội dung hoặc tên nhà cung cấp..."
+                            autocomplete="off"
+                            oninput="handleArchiveDossierLinkChange()"
+                        >
 
-    <input
-        type="hidden"
-        id="archiveLinkedDossierId"
-    >
+                        <datalist id="archiveDossierList">
+                        </datalist>
 
-    <small class="archive-field-note">
-        Khi chọn đúng mã hồ sơ, Dự án và Nhà cung cấp sẽ tự động được điền.
-    </small>
+                        <input
+                            type="hidden"
+                            id="archiveLinkedDossierId"
+                        >
 
-</div>
+                        <small class="archive-field-note">
+                            Dự án và Nhà cung cấp sẽ tự điền
+                            khi chọn đúng hồ sơ liên kết.
+                        </small>
 
-
-<!-- DỰ ÁN -->
-
-<div class="archive-field">
-
-    <label for="archiveProject">
-        Dự án
-    </label>
-
-    <select id="archiveProject">
-
-        <option value="">
-            -- Không liên kết dự án --
-        </option>
-
-    </select>
-
-</div>
+                    </div>
 
 
-<!-- NHÀ CUNG CẤP -->
+                    <!-- DỰ ÁN -->
 
-<div class="archive-field">
+                    <div class="archive-field">
 
-    <label for="archiveSupplierSearch">
-        Nhà cung cấp
-    </label>
+                        <label for="archiveProject">
+                            Dự án
+                        </label>
 
-    <input
-        type="text"
-        id="archiveSupplierSearch"
-        list="archiveSupplierList"
-        placeholder="Gõ mã hoặc tên nhà cung cấp..."
-        oninput="handleArchiveSupplierSearchChange()"
-        autocomplete="off"
-    >
+                        <select id="archiveProject">
 
-    <datalist id="archiveSupplierList">
-    </datalist>
+                            <option value="">
+                                -- Không liên kết dự án --
+                            </option>
 
-    <input
-        type="hidden"
-        id="archiveSupplierId"
-    >
+                        </select>
 
-</div>
+                    </div>
 
+
+                    <!-- NHÀ CUNG CẤP -->
+
+                    <div class="archive-field">
+
+                        <label for="archiveSupplierSearch">
+                            Nhà cung cấp
+                        </label>
+
+                        <input
+                            type="text"
+                            id="archiveSupplierSearch"
+                            list="archiveSupplierList"
+                            placeholder="Gõ mã hoặc tên nhà cung cấp..."
+                            autocomplete="off"
+                            oninput="handleArchiveSupplierSearchChange()"
+                        >
+
+                        <datalist id="archiveSupplierList">
+                        </datalist>
+
+                        <input
+                            type="hidden"
+                            id="archiveSupplierId"
+                        >
+
+                    </div>
+
+
+                    <!-- NGÀY LƯU -->
 
                     <div class="archive-field">
 
                         <label for="archiveDate">
+
                             Ngày lưu
+
                             <span>*</span>
+
                         </label>
 
                         <input
@@ -398,6 +602,8 @@
 
                     </div>
 
+
+                    <!-- VỊ TRÍ -->
 
                     <div class="archive-field">
 
@@ -409,10 +615,13 @@
                             type="text"
                             id="archiveLocation"
                             placeholder="Ví dụ: Tủ A - Kệ 2 - Hộp 03"
+                            autocomplete="off"
                         >
 
                     </div>
 
+
+                    <!-- SỐ LƯỢNG -->
 
                     <div class="archive-field">
 
@@ -429,6 +638,8 @@
 
                     </div>
 
+
+                    <!-- GHI CHÚ -->
 
                     <div class="archive-field archive-full-width">
 
@@ -449,6 +660,8 @@
             </div>
 
 
+            <!-- FOOTER -->
+
             <div class="archive-modal-footer">
 
                 <button
@@ -459,13 +672,15 @@
                     Hủy
                 </button>
 
+
                 <button
-                    type="button"
-                    class="archive-save-button"
-                    onclick="saveArchiveDossier()"
-                >
-                    Lưu hồ sơ
-                </button>
+    type="button"
+    id="archiveSaveButton"
+    class="archive-save-button"
+    onclick="saveArchiveDossier()"
+>
+    Lưu hồ sơ
+</button>
 
             </div>
 
