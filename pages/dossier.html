@@ -1,201 +1,265 @@
 <div class="dossier-page">
 
-    <!-- =================================
+    <!-- =================================================
          TIÊU ĐỀ TRANG
-         ================================= -->
+         ================================================= -->
 
     <div class="dossier-page-header">
 
-        <div>
+    <div>
 
-            <h1>
-                Quản lý Hồ sơ
-            </h1>
+        <link rel="icon" type="image/png" href="./favicon.png?v=5">
 
-            <p>
-                Theo dõi hồ sơ, bàn giao và tình trạng thanh toán
-            </p>
+        <h1>
+            Quản lý Hồ sơ
+        </h1>
 
-        </div>
+        <p>
+            Theo dõi hồ sơ, bàn giao và tình trạng thanh toán
+        </p>
 
+    </div>
+
+
+    <div class="dossier-header-actions">
+
+        <!-- TẢI FILE CSV MẪU -->
+
+        <button
+            type="button"
+            class="dossier-template-button"
+            onclick="
+                window.downloadDossierCsvTemplate()
+            "
+        >
+            <span aria-hidden="true">
+                ⇩
+            </span>
+
+            <span>
+                Tải file mẫu
+            </span>
+        </button>
+
+
+        <!-- CHỌN FILE CSV -->
+
+        <button
+            type="button"
+            class="dossier-import-button"
+            onclick="
+                document
+                    .getElementById(
+                        'dossierCsvFile'
+                    )
+                    ?.click()
+            "
+        >
+            <span aria-hidden="true">
+                ⇧
+            </span>
+
+            <span>
+                Nhập file CSV
+            </span>
+        </button>
+
+
+        <!-- INPUT FILE ĐƯỢC ẨN CÓ CHỦ ĐÍCH -->
+
+        <input
+            type="file"
+            id="dossierCsvFile"
+            accept=".csv,text/csv"
+            hidden
+            onchange="
+                window.importDossierCsvFile(
+                    this.files?.[0]
+                );
+
+                this.value = '';
+            "
+        >
+
+
+        <!-- THÊM HỒ SƠ THỦ CÔNG -->
 
         <button
             type="button"
             class="dossier-add-button"
-            onclick="openDossierForm()"
+            onclick="
+                window.openDossierForm()
+            "
         >
-            <span>＋</span>
-            <span>Thêm hồ sơ</span>
+            <span aria-hidden="true">
+                ＋
+            </span>
+
+            <span>
+                Thêm hồ sơ
+            </span>
         </button>
 
     </div>
 
-    <!-- =================================
-     LỜI CHÀO NHẸ NHÀNG
-     ================================= -->
-
-<div class="healing-banner">
-
-    <div class="healing-banner-icon">
-        🌿
-    </div>
-
-
-    <div class="healing-banner-content">
-
-        <strong id="healingGreeting">
-            Chào bạn
-        </strong>
-
-        <span id="healingMessage">
-            Hôm nay mình cùng xử lý từng hồ sơ thật nhẹ nhàng nhé.
-        </span>
-
-    </div>
-
 </div>
 
-<!-- =================================
-     THỐNG KÊ TỔNG QUAN HỒ SƠ
-     ================================= -->
 
-<div
-    class="dossier-summary"
-    aria-label="Tổng quan hồ sơ"
->
+    <!-- =================================================
+         LỜI CHÀO
+         ================================================= -->
 
-    <!-- TỔNG HỒ SƠ -->
+    <div class="healing-banner">
 
-    <div
-        class="
-            dossier-summary-card
-            dossier-summary-total
-        "
-    >
-
-        <div class="dossier-summary-icon">
-            📁
+        <div class="healing-banner-icon">
+            🌿
         </div>
 
+        <div class="healing-banner-content">
 
-        <div class="dossier-summary-content">
-
-            <span class="dossier-summary-label">
-                Tổng hồ sơ
-            </span>
-
-            <strong
-                id="totalDossierCount"
-                class="dossier-summary-number"
-            >
-                0
+            <strong id="healingGreeting">
+                Chào bạn
             </strong>
+
+            <span id="healingMessage">
+                Hôm nay mình cùng xử lý từng hồ sơ thật nhẹ nhàng nhé.
+            </span>
 
         </div>
 
     </div>
 
 
-    <!-- CHƯA DUYỆT -->
+    <!-- =================================================
+         THỐNG KÊ
+         ================================================= -->
 
     <div
-        class="
-            dossier-summary-card
-            dossier-summary-pending
-        "
+        class="dossier-summary"
+        aria-label="Tổng quan hồ sơ"
     >
 
-        <div class="dossier-summary-icon">
-            ⏳
+        <div
+            class="
+                dossier-summary-card
+                dossier-summary-total
+            "
+        >
+
+            <div class="dossier-summary-icon">
+                📁
+            </div>
+
+            <div class="dossier-summary-content">
+
+                <span class="dossier-summary-label">
+                    Tổng hồ sơ
+                </span>
+
+                <strong
+                    id="totalDossierCount"
+                    class="dossier-summary-number"
+                >
+                    0
+                </strong>
+
+            </div>
+
         </div>
 
 
-        <div class="dossier-summary-content">
+        <div
+            class="
+                dossier-summary-card
+                dossier-summary-pending
+            "
+        >
 
-            <span class="dossier-summary-label">
-                Chưa duyệt
-            </span>
+            <div class="dossier-summary-icon">
+                ⏳
+            </div>
 
-            <strong
-                id="pendingDossierCount"
-                class="dossier-summary-number"
-            >
-                0
-            </strong>
+            <div class="dossier-summary-content">
+
+                <span class="dossier-summary-label">
+                    Chưa duyệt
+                </span>
+
+                <strong
+                    id="pendingDossierCount"
+                    class="dossier-summary-number"
+                >
+                    0
+                </strong>
+
+            </div>
+
+        </div>
+
+
+        <div
+            class="
+                dossier-summary-card
+                dossier-summary-delivered
+            "
+        >
+
+            <div class="dossier-summary-icon">
+                📦
+            </div>
+
+            <div class="dossier-summary-content">
+
+                <span class="dossier-summary-label">
+                    Đã bàn giao
+                </span>
+
+                <strong
+                    id="deliveredDossierCount"
+                    class="dossier-summary-number"
+                >
+                    0
+                </strong>
+
+            </div>
+
+        </div>
+
+
+        <div
+            class="
+                dossier-summary-card
+                dossier-summary-paid
+            "
+        >
+
+            <div class="dossier-summary-icon">
+                ✓
+            </div>
+
+            <div class="dossier-summary-content">
+
+                <span class="dossier-summary-label">
+                    Đã thanh toán
+                </span>
+
+                <strong
+                    id="paidDossierCount"
+                    class="dossier-summary-number"
+                >
+                    0
+                </strong>
+
+            </div>
 
         </div>
 
     </div>
 
 
-    <!-- ĐÃ BÀN GIAO -->
-
-    <div
-        class="
-            dossier-summary-card
-            dossier-summary-delivered
-        "
-    >
-
-        <div class="dossier-summary-icon">
-            📦
-        </div>
-
-
-        <div class="dossier-summary-content">
-
-            <span class="dossier-summary-label">
-                Đã bàn giao
-            </span>
-
-            <strong
-                id="deliveredDossierCount"
-                class="dossier-summary-number"
-            >
-                0
-            </strong>
-
-        </div>
-
-    </div>
-
-
-    <!-- ĐÃ THANH TOÁN -->
-
-    <div
-        class="
-            dossier-summary-card
-            dossier-summary-paid
-        "
-    >
-
-        <div class="dossier-summary-icon">
-            ✓
-        </div>
-
-
-        <div class="dossier-summary-content">
-
-            <span class="dossier-summary-label">
-                Đã thanh toán
-            </span>
-
-            <strong
-                id="paidDossierCount"
-                class="dossier-summary-number"
-            >
-                0
-            </strong>
-
-        </div>
-
-    </div>
-
-</div>
-
-    <!-- =================================
-         TÌM KIẾM, BỘ LỌC VÀ SẮP XẾP
-         ================================= -->
+    <!-- =================================================
+         TÌM KIẾM VÀ BỘ LỌC
+         ================================================= -->
 
     <div class="dossier-toolbar">
 
@@ -314,9 +378,9 @@
     </div>
 
 
-    <!-- =================================
-         CẬP NHẬT HỒ SƠ HÀNG LOẠT
-         ================================= -->
+    <!-- =================================================
+         CẬP NHẬT HÀNG LOẠT
+         ================================================= -->
 
     <div
         id="dossierBulkBar"
@@ -443,7 +507,7 @@
             type="button"
             id="applyBulkDossierButton"
             class="dossier-bulk-apply"
-            onclick="applyBulkDossierUpdate()"
+            onclick="window.applyBulkDossierUpdate()"
         >
             Cập nhật hàng loạt
         </button>
@@ -452,7 +516,7 @@
         <button
             type="button"
             class="dossier-bulk-cancel"
-            onclick="clearDossierSelection()"
+            onclick="window.clearDossierSelection()"
         >
             Bỏ chọn
         </button>
@@ -460,22 +524,31 @@
     </div>
 
 
-    <!-- =================================
+    <!-- =================================================
          POPUP THÊM / CHỈNH SỬA HỒ SƠ
-         ================================= -->
+         ================================================= -->
 
     <div
         id="dossierModal"
         class="dossier-modal-overlay"
         aria-hidden="true"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="dossierFormTitle"
+        onclick="
+            if(event.target === this){
+                window.closeDossierForm();
+            }
+        "
     >
 
         <div
             id="dossierForm"
             class="dossier-form-popup"
+            onclick="event.stopPropagation()"
         >
 
-            <!-- HEADER POPUP -->
+            <!-- HEADER -->
 
             <div class="dossier-form-header">
 
@@ -495,7 +568,7 @@
                 <button
                     type="button"
                     class="dossier-form-close"
-                    onclick="closeDossierForm()"
+                    onclick="window.closeDossierForm()"
                     aria-label="Đóng"
                 >
                     ×
@@ -504,9 +577,9 @@
             </div>
 
 
-            <!-- =================================
+            <!-- =================================================
                  THÔNG TIN CHUNG
-                 ================================= -->
+                 ================================================= -->
 
             <div class="dossier-form-section">
 
@@ -516,6 +589,8 @@
 
 
                 <div class="dossier-form-grid">
+
+                    <!-- MÃ HỒ SƠ -->
 
                     <div class="form-group">
 
@@ -540,6 +615,8 @@
                     </div>
 
 
+                    <!-- DỰ ÁN -->
+
                     <div class="form-group">
 
                         <label for="dossierProject">
@@ -563,9 +640,14 @@
                     </div>
 
 
-                    <div class="form-group">
+                    <!-- NHÀ CUNG CẤP CÓ TÌM KIẾM -->
 
-                        <label for="dossierSupplier">
+                    <div
+                        class="form-group"
+                        id="dossierSupplierField"
+                    >
+
+                        <label for="dossierSupplierSearch">
 
                             Nhà cung cấp
 
@@ -575,16 +657,79 @@
 
                         </label>
 
-                        <select id="dossierSupplier">
 
-                            <option value="">
-                                -- Chọn nhà cung cấp --
-                            </option>
+                        <div class="dossier-supplier-picker">
 
-                        </select>
+                            <input
+                                type="search"
+                                id="dossierSupplierSearch"
+                                placeholder="Nhập mã, tên hoặc số điện thoại NCC..."
+                                autocomplete="off"
+                                spellcheck="false"
+                                role="combobox"
+                                aria-autocomplete="list"
+                                aria-controls="dossierSupplierDropdown"
+                                aria-expanded="false"
+                                aria-haspopup="listbox"
+                                oninput="
+                                    window.searchDossierSuppliers(
+                                        this.value
+                                    )
+                                "
+                                onfocus="
+                                    window.searchDossierSuppliers(
+                                        this.value
+                                    )
+                                "
+                                onkeydown="
+                                    window.handleDossierSupplierKeydown(
+                                        event
+                                    )
+                                "
+                            >
+
+
+                            <div
+                                id="dossierSupplierDropdown"
+                                class="dossier-supplier-dropdown"
+                                role="listbox"
+                                hidden
+                            >
+                            </div>
+
+
+                            <!--
+                                Select ẩn lưu ID thật của NCC.
+                                Không tạo thêm một select dossierSupplier khác.
+                            -->
+
+                            <select
+                                id="dossierSupplier"
+                                class="dossier-supplier-hidden-select"
+                                tabindex="-1"
+                                aria-hidden="true"
+                            >
+
+                                <option value="">
+                                    -- Chọn nhà cung cấp --
+                                </option>
+
+                            </select>
+
+                        </div>
+
+
+                        <small
+                            id="dossierSupplierSearchHint"
+                            class="dossier-supplier-search-hint"
+                        >
+                            Nhập tên, mã hoặc số điện thoại để tìm nhà cung cấp.
+                        </small>
 
                     </div>
 
+
+                    <!-- GIÁ TRỊ HỢP ĐỒNG -->
 
                     <div class="form-group">
 
@@ -603,6 +748,8 @@
 
                     </div>
 
+
+                    <!-- NỘI DUNG -->
 
                     <div class="form-group dossier-full-width">
 
@@ -630,9 +777,9 @@
             </div>
 
 
-            <!-- =================================
+            <!-- =================================================
                  TÌNH TRẠNG TÀI LIỆU
-                 ================================= -->
+                 ================================================= -->
 
             <div class="dossier-form-section">
 
@@ -702,9 +849,9 @@
             </div>
 
 
-            <!-- =================================
+            <!-- =================================================
                  NGÀY VÀ TRẠNG THÁI
-                 ================================= -->
+                 ================================================= -->
 
             <div class="dossier-form-section">
 
@@ -813,9 +960,9 @@
             </div>
 
 
-            <!-- =================================
+            <!-- =================================================
                  NÚT FORM
-                 ================================= -->
+                 ================================================= -->
 
             <div class="form-actions dossier-form-actions">
 
@@ -823,7 +970,7 @@
                     type="button"
                     id="dossierSaveButton"
                     class="dossier-save-button"
-                    onclick="saveDossier()"
+                    onclick="window.saveDossier()"
                 >
                     Lưu hồ sơ
                 </button>
@@ -832,7 +979,7 @@
                 <button
                     type="button"
                     class="dossier-cancel-button"
-                    onclick="closeDossierForm()"
+                    onclick="window.closeDossierForm()"
                 >
                     Hủy
                 </button>
@@ -840,15 +987,13 @@
             </div>
 
         </div>
-        <!-- KẾT THÚC dossierForm -->
 
     </div>
-    <!-- KẾT THÚC dossierModal -->
 
 
-    <!-- =================================
+    <!-- =================================================
          BẢNG DANH SÁCH HỒ SƠ
-         ================================= -->
+         ================================================= -->
 
     <div class="dossier-table-card">
 
@@ -858,119 +1003,79 @@
 
                 <thead>
 
-    <tr>
+                    <tr>
 
-        <!-- 1. CHECKBOX -->
+                        <th class="dossier-col-select">
 
-        <th class="dossier-col-select">
+                            <input
+                                type="checkbox"
+                                id="selectAllDossiers"
+                                onchange="
+                                    window.toggleSelectAllDossiers(
+                                        this.checked
+                                    )
+                                "
+                                aria-label="Chọn tất cả hồ sơ đang hiển thị"
+                            >
 
-            <input
-                type="checkbox"
-                id="selectAllDossiers"
-                onchange="
-                    toggleSelectAllDossiers(
-                        this.checked
-                    )
-                "
-                aria-label="Chọn tất cả hồ sơ đang hiển thị"
-            >
-
-        </th>
+                        </th>
 
 
-        <!-- 2. MÃ HỒ SƠ -->
+                        <th class="dossier-col-code">
+                            Mã HS
+                        </th>
 
-        <th class="dossier-col-code">
-            Mã HS
-        </th>
+                        <th class="dossier-col-project">
+                            Dự án
+                        </th>
 
+                        <th class="dossier-col-content">
+                            Nội dung
+                        </th>
 
-        <!-- 3. DỰ ÁN -->
+                        <th class="dossier-col-supplier">
+                            Nhà cung cấp
+                        </th>
 
-        <th class="dossier-col-project">
-            Dự án
-        </th>
+                        <th class="dossier-col-value">
+                            Giá trị
+                        </th>
 
+                        <th class="dossier-col-additional">
+                            Bổ sung HS
+                        </th>
 
-        <!-- 4. NỘI DUNG -->
+                        <th class="dossier-col-file">
+                            File HS
+                        </th>
 
-        <th class="dossier-col-content">
-            Nội dung
-        </th>
+                        <th class="dossier-col-status">
+                            Trạng thái HS
+                        </th>
 
+                        <th class="dossier-col-request">
+                            ĐNTT
+                        </th>
 
-        <!-- 5. NHÀ CUNG CẤP -->
+                        <th class="dossier-col-delivery">
+                            Bàn giao
+                        </th>
 
-        <th class="dossier-col-supplier">
-            Nhà cung cấp
-        </th>
+                        <th class="dossier-col-payment">
+                            Thanh toán
+                        </th>
 
+                        <th class="dossier-col-note">
+                            Ghi chú
+                        </th>
 
-        <!-- 6. GIÁ TRỊ -->
+                        <th class="dossier-col-action">
+                            Thao tác
+                        </th>
 
-        <th class="dossier-col-value">
-            Giá trị
-        </th>
+                    </tr>
 
-
-        <!-- 7. BỔ SUNG HỒ SƠ -->
-
-        <th class="dossier-col-additional">
-            Bổ sung HS
-        </th>
-
-
-        <!-- 8. FILE HỒ SƠ -->
-
-        <th class="dossier-col-file">
-            File HS
-        </th>
-
-
-        <!-- 9. TRẠNG THÁI HỒ SƠ -->
-
-        <th class="dossier-col-status">
-            Trạng thái HS
-        </th>
-
-
-        <!-- 10. ĐỀ NGHỊ THANH TOÁN -->
-
-        <th class="dossier-col-request">
-            ĐNTT
-        </th>
-
-
-        <!-- 11. BÀN GIAO -->
-
-        <th class="dossier-col-delivery">
-            Bàn giao
-        </th>
-
-
-        <!-- 12. THANH TOÁN -->
-
-        <th class="dossier-col-payment">
-            Thanh toán
-        </th>
-
-
-        <!-- 13. GHI CHÚ -->
-
-        <th class="dossier-col-note">
-            Ghi chú
-        </th>
-
-
-        <!-- 14. THAO TÁC -->
-
-        <th class="dossier-col-action">
-            Thao tác
-        </th>
-
-    </tr>
-
-</thead>
+                </thead>
 
 
                 <tbody id="dossierTable">
@@ -980,135 +1085,153 @@
 
         </div>
 
-        <!-- =================================
-     PHÂN TRANG HỒ SƠ
-     ================================= -->
 
-<div class="dossier-pagination">
+        <!-- =================================================
+             PHÂN TRANG
+             ================================================= -->
 
-    <div class="dossier-pagination-size">
+        <div class="dossier-pagination">
 
-        <span>
-            Hiển thị
-        </span>
+            <div class="dossier-pagination-size">
 
-        <select
-            id="dossierPageSize"
-            onchange="
-                changeDossierPageSize(
-                    this.value
-                )
-            "
-        >
+                <span>
+                    Hiển thị
+                </span>
 
-            <option value="10">
-                10
-            </option>
+                <select
+                    id="dossierPageSize"
+                    onchange="
+                        window.changeDossierPageSize(
+                            this.value
+                        )
+                    "
+                >
 
-            <option
-                value="20"
-                selected
+                    <option value="10">
+                        10
+                    </option>
+
+                    <option
+                        value="20"
+                        selected
+                    >
+                        20
+                    </option>
+
+                    <option value="50">
+                        50
+                    </option>
+
+                    <option value="100">
+                        100
+                    </option>
+
+                </select>
+
+                <span>
+                    hồ sơ/trang
+                </span>
+
+            </div>
+
+
+            <div
+                id="dossierPaginationInfo"
+                class="dossier-pagination-info"
             >
-                20
-            </option>
-
-            <option value="50">
-                50
-            </option>
-
-            <option value="100">
-                100
-            </option>
-
-        </select>
-
-        <span>
-            hồ sơ/trang
-        </span>
-
-    </div>
+                Hiển thị 0–0 trên 0 hồ sơ
+            </div>
 
 
-    <div
-        id="dossierPaginationInfo"
-        class="dossier-pagination-info"
-    >
-        Hiển thị 0–0 trên 0 hồ sơ
-    </div>
+            <div class="dossier-pagination-buttons">
+
+                <button
+                    type="button"
+                    id="dossierFirstPageButton"
+                    onclick="
+                        window.goToDossierPage(
+                            'first'
+                        )
+                    "
+                    title="Trang đầu"
+                >
+                    «
+                </button>
 
 
-    <div class="dossier-pagination-buttons">
-
-        <button
-            type="button"
-            id="dossierFirstPageButton"
-            onclick="goToDossierPage('first')"
-            title="Trang đầu"
-        >
-            «
-        </button>
-
-
-        <button
-            type="button"
-            id="dossierPreviousPageButton"
-            onclick="goToDossierPage('previous')"
-            title="Trang trước"
-        >
-            ‹
-        </button>
+                <button
+                    type="button"
+                    id="dossierPreviousPageButton"
+                    onclick="
+                        window.goToDossierPage(
+                            'previous'
+                        )
+                    "
+                    title="Trang trước"
+                >
+                    ‹
+                </button>
 
 
-        <div class="dossier-page-jump">
+                <div class="dossier-page-jump">
 
-            <span>
-                Trang
-            </span>
+                    <span>
+                        Trang
+                    </span>
 
-            <select
-                id="dossierPageSelect"
-                onchange="
-                    goToDossierPage(
-                        Number(this.value)
-                    )
-                "
-            >
-                <option value="1">
-                    1
-                </option>
-            </select>
+                    <select
+                        id="dossierPageSelect"
+                        onchange="
+                            window.goToDossierPage(
+                                Number(this.value)
+                            )
+                        "
+                    >
 
-            <span id="dossierTotalPages">
-                / 1
-            </span>
+                        <option value="1">
+                            1
+                        </option>
+
+                    </select>
+
+                    <span id="dossierTotalPages">
+                        / 1
+                    </span>
+
+                </div>
+
+
+                <button
+                    type="button"
+                    id="dossierNextPageButton"
+                    onclick="
+                        window.goToDossierPage(
+                            'next'
+                        )
+                    "
+                    title="Trang sau"
+                >
+                    ›
+                </button>
+
+
+                <button
+                    type="button"
+                    id="dossierLastPageButton"
+                    onclick="
+                        window.goToDossierPage(
+                            'last'
+                        )
+                    "
+                    title="Trang cuối"
+                >
+                    »
+                </button>
+
+            </div>
 
         </div>
 
-
-        <button
-            type="button"
-            id="dossierNextPageButton"
-            onclick="goToDossierPage('next')"
-            title="Trang sau"
-        >
-            ›
-        </button>
-
-
-        <button
-            type="button"
-            id="dossierLastPageButton"
-            onclick="goToDossierPage('last')"
-            title="Trang cuối"
-        >
-            »
-        </button>
-
     </div>
 
 </div>
-
-    </div>
-
-</div>
-<!-- KẾT THÚC dossier-page -->
