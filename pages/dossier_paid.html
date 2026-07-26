@@ -1,143 +1,364 @@
-<div class="paid-page">
+<div class="payment-page">
 
-    <h1>💰 Hồ sơ đã thanh toán</h1>
+    <!-- =====================================
+         HEADER
+         ===================================== -->
+
+    <header class="payment-page-header">
+
+        <link rel="icon" type="image/png" href="./favicon.png">
+
+        <div class="payment-page-heading">
+
+            <span class="payment-page-eyebrow">
+                QUẢN LÝ HỒ SƠ
+            </span>
+
+            <h1>
+                Hồ sơ đã thanh toán
+            </h1>
+
+            <p>
+                Theo dõi các hồ sơ đã hoàn tất thanh toán
+                và tình trạng bàn giao
+            </p>
+
+        </div>
+
+    </header>
 
 
-    <!-- BỘ LỌC -->
+    <!-- =====================================
+         BANNER
+         ===================================== -->
 
-    <div class="paid-toolbar">
+    <section class="payment-healing-banner">
 
-        <input
-            type="text"
-            id="paidSearch"
-            placeholder="Tìm mã HS, dự án, nội dung, NCC..."
-            oninput="filterPaidDossier()"
+        <div
+            class="payment-healing-icon"
+            aria-hidden="true"
         >
+            🌿
+        </div>
 
 
-        <select
-            id="paidProjectFilter"
-            onchange="filterPaidDossier()"
-        >
+        <div class="payment-healing-copy">
 
-            <option value="">
-                Tất cả dự án
-            </option>
+            <strong>
+                Hoàn tất từng hồ sơ, nhẹ nhàng từng quy trình
+            </strong>
 
-        </select>
+            <p>
+                Theo dõi thông tin thanh toán và bàn giao
+                để dữ liệu luôn rõ ràng, đầy đủ.
+            </p>
 
-
-        <select
-            id="paidSupplierFilter"
-            onchange="filterPaidDossier()"
-        >
-
-            <option value="">
-                Tất cả nhà cung cấp
-            </option>
-
-        </select>
+        </div>
 
 
-        <select
-            id="paidDeliveryFilter"
-            onchange="filterPaidDossier()"
-        >
+        <span
+            class="payment-healing-dot"
+            aria-hidden="true"
+        ></span>
 
-            <option value="">
-                Tất cả bàn giao
-            </option>
-
-            <option value="done">
-                Đã bàn giao
-            </option>
-
-            <option value="not">
-                Chưa bàn giao
-            </option>
-
-        </select>
+    </section>
 
 
-        <select
-            id="paidFileFilter"
-            onchange="filterPaidDossier()"
-        >
+    <!-- =====================================
+         BỘ LỌC
+         ===================================== -->
 
-            <option value="">
-                Tất cả File HS
-            </option>
+    <section class="payment-filter-card">
 
-            <option value="Đã up">
-                Đã up
-            </option>
+        <div class="payment-filter-grid">
 
-            <option value="Chưa up">
-                Chưa up
-            </option>
+            <!-- TỪ KHÓA -->
 
-        </select>
+            <div class="payment-filter-field payment-search-field">
 
+                <label for="paidSearch">
+                    Từ khóa
+                </label>
 
-        <button
-            type="button"
-            class="paid-reset-button"
-            onclick="resetPaidDossierFilters()"
-        >
-            Xóa lọc
-        </button>
+                <input
+                    type="search"
+                    id="paidSearch"
+                    placeholder="Tìm mã HS, dự án, nội dung, nhà cung cấp..."
+                    autocomplete="off"
+                    oninput="window.filterPaidDossier()"
+                >
 
-    </div>
+            </div>
 
 
-    <!-- ĐẾM KẾT QUẢ -->
+            <!-- DỰ ÁN -->
 
-    <div class="paid-result-row">
+            <div class="payment-filter-field">
 
-        <span id="paidResultCount">
-            0 hồ sơ
-        </span>
+                <label for="paidProjectFilter">
+                    Dự án
+                </label>
 
-    </div>
+                <select
+                    id="paidProjectFilter"
+                    onchange="window.filterPaidDossier()"
+                >
 
+                    <option value="">
+                        Tất cả dự án
+                    </option>
 
-    <!-- BẢNG -->
+                </select>
 
-    <div class="paid-table-scroll">
-
-        <table class="data-table paid-table">
-
-            <thead>
-
-                <tr>
-
-                    <th>Mã HS</th>
-
-                    <th>Dự án</th>
-
-                    <th>Nội dung</th>
-
-                    <th>Nhà cung cấp</th>
-
-                    <th>Giá trị</th>
-
-                    <th>Bổ sung hồ sơ</th>
-
-                    <th>Bàn giao</th>
-
-                    <th>Thanh toán</th>
-
-                </tr>
-
-            </thead>
+            </div>
 
 
-            <tbody id="paidTable">
+            <!-- NHÀ CUNG CẤP -->
 
-            </tbody>
+            <div class="payment-filter-field">
 
-        </table>
+                <label for="paidSupplierFilter">
+                    Nhà cung cấp
+                </label>
 
-    </div>
+                <select
+                    id="paidSupplierFilter"
+                    onchange="window.filterPaidDossier()"
+                >
+
+                    <option value="">
+                        Tất cả nhà cung cấp
+                    </option>
+
+                </select>
+
+            </div>
+
+
+            <!-- BÀN GIAO -->
+
+            <div class="payment-filter-field">
+
+                <label for="paidDeliveryFilter">
+                    Bàn giao
+                </label>
+
+                <select
+                    id="paidDeliveryFilter"
+                    onchange="window.filterPaidDossier()"
+                >
+
+                    <option value="">
+                        Tất cả bàn giao
+                    </option>
+
+                    <option value="done">
+                        Đã bàn giao
+                    </option>
+
+                    <option value="not">
+                        Chưa bàn giao
+                    </option>
+
+                </select>
+
+            </div>
+
+
+            <!-- FILE HỒ SƠ -->
+
+            <div class="payment-filter-field">
+
+                <label for="paidFileFilter">
+                    File hồ sơ
+                </label>
+
+                <select
+                    id="paidFileFilter"
+                    onchange="window.filterPaidDossier()"
+                >
+
+                    <option value="">
+                        Tất cả File HS
+                    </option>
+
+                    <option value="Đã up">
+                        Đã up
+                    </option>
+
+                    <option value="Chưa up">
+                        Chưa up
+                    </option>
+
+                </select>
+
+            </div>
+
+
+            <!-- SẮP XẾP -->
+
+            <div class="payment-filter-field">
+
+                <label for="paidSort">
+                    Sắp xếp
+                </label>
+
+                <select
+                    id="paidSort"
+                    onchange="window.filterPaidDossier()"
+                >
+
+                    <option value="">
+                        Mới nhất trước
+                    </option>
+
+                    <option value="project-az">
+                        Dự án A → Z
+                    </option>
+
+                    <option value="project-za">
+                        Dự án Z → A
+                    </option>
+
+                </select>
+
+            </div>
+
+
+            <!-- ĐẶT LẠI -->
+
+            <div class="payment-filter-action">
+
+                <button
+                    type="button"
+                    class="payment-reset-button"
+                    onclick="window.resetPaidDossierFilters()"
+                >
+                    Đặt lại
+                </button>
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <!-- =====================================
+         BẢNG HỒ SƠ
+         ===================================== -->
+
+    <section class="payment-table-card">
+
+        <div class="payment-table-meta">
+
+            <span
+                id="paidResultCount"
+                class="payment-result-count"
+            >
+                0 hồ sơ
+            </span>
+
+        </div>
+
+
+        <div class="payment-table-scroll">
+
+            <table class="payment-table">
+
+                <colgroup>
+
+                    <col style="width: 10%;">
+
+                    <col style="width: 16%;">
+
+                    <col style="width: 19%;">
+
+                    <col style="width: 17%;">
+
+                    <col style="width: 10%;">
+
+                    <col style="width: 14%;">
+
+                    <col style="width: 7%;">
+
+                    <col style="width: 7%;">
+
+                </colgroup>
+
+
+                <thead>
+
+                    <tr>
+
+                        <th>
+                            Mã HS
+                        </th>
+
+                        <th>
+                            Dự án
+                        </th>
+
+                        <th>
+                            Nội dung
+                        </th>
+
+                        <th>
+                            Nhà cung cấp
+                        </th>
+
+                        <th>
+                            Giá trị
+                        </th>
+
+                        <th>
+                            Bổ sung hồ sơ
+                        </th>
+
+                        <th>
+                            Bàn giao
+                        </th>
+
+                        <th>
+                            Thanh toán
+                        </th>
+
+                    </tr>
+
+                </thead>
+
+
+                <tbody id="paidTable">
+
+                    <tr>
+
+                        <td
+                            colspan="8"
+                            class="payment-loading-cell"
+                        >
+
+                            <div class="payment-loading-state">
+
+                                <span aria-hidden="true">
+                                    🌿
+                                </span>
+
+                                <span>
+                                    Đang tải hồ sơ đã thanh toán...
+                                </span>
+
+                            </div>
+
+                        </td>
+
+                    </tr>
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </section>
 
 </div>
