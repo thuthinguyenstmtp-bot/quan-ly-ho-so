@@ -1,131 +1,385 @@
-<div class="letter-simple-page">
+<div
+    class="letter-simple-page letter-page element-page"
+    data-element="wind"
+>
 
-    <h1>Quản lý Nhận/Gửi thư</h1>
+    <!-- =====================================
+         HEADER
+         ===================================== -->
 
+    <section class="letter-page-header">
 
-    <!-- THANH TÌM KIẾM VÀ BỘ LỌC -->
-    <div class="letter-toolbar">
+        <div class="letter-page-heading">
 
-        <input
-            type="text"
-            id="letterSearch"
-            placeholder="Tìm số thư, nội dung, nhà cung cấp..."
-            oninput="filterLetters()"
-        >
-
-
-        <select
-            id="letterTypeFilter"
-            onchange="filterLetters()"
-        >
-            <option value="">Tất cả loại thư</option>
-            <option value="Nhận">Thư nhận</option>
-            <option value="Gửi">Thư gửi</option>
-        </select>
-
-
-        <select
-            id="letterSupplierFilter"
-            onchange="filterLetters()"
-        >
-            <option value="">
-                Tất cả nhà cung cấp
-            </option>
-        </select>
-
-
-        <!-- LỌC TỪ NGÀY ĐẾN NGÀY -->
-        <div class="letter-date-range">
-
-            <div class="letter-date-field">
-
-                <label for="letterDateFrom">
-                    Từ ngày
-                </label>
-
-                <input
-                    type="date"
-                    id="letterDateFrom"
-                    onchange="filterLetters()"
-                >
-
-            </div>
-
-
-            <span class="letter-date-separator">
-                đến
+            <span class="letter-page-eyebrow">
+                TRUNG TÂM THƯ TÍN
             </span>
 
+            <h1>
+                Quản lý Nhận/Gửi thư
+            </h1>
 
-            <div class="letter-date-field">
-
-                <label for="letterDateTo">
-                    Đến ngày
-                </label>
-
-                <input
-                    type="date"
-                    id="letterDateTo"
-                    onchange="filterLetters()"
-                >
-
-            </div>
+            <p>
+                Theo dõi thư nhận, thư gửi và thông tin người liên hệ
+                trong một nơi tập trung.
+            </p>
 
         </div>
 
 
         <button
             type="button"
-            class="letter-add-button"
+            class="letter-add-button letter-primary-button"
             onclick="openLetterModal()"
         >
-            ＋ Tạo thư
+            <span aria-hidden="true">＋</span>
+            Tạo thư mới
         </button>
 
-    </div>
+    </section>
 
 
-    <!-- BẢNG DANH SÁCH THƯ -->
-    <div class="letter-table-scroll">
+    <!-- =====================================
+         THỐNG KÊ
+         ===================================== -->
 
-        <table class="letter-simple-table">
+    <section
+        class="letter-summary-grid"
+        aria-label="Thống kê thư"
+    >
 
-            <colgroup>
-                <col style="width: 11%;">
-                <col style="width: 12%;">
-                <col style="width: 15%;">
-                <col style="width: 20%;">
-                <col style="width: 32%;">
-                <col style="width: 10%;">
-            </colgroup>
+        <article class="letter-summary-card is-total">
 
+            <span class="letter-summary-label">
+                Tổng số thư
+            </span>
 
-            <thead>
+            <strong id="letterTotalCount">
+                0
+            </strong>
 
-                <tr>
-                    <th>Loại thư</th>
-                    <th>Ngày</th>
-                    <th>Số thư</th>
-                    <th>Nhà cung cấp</th>
-                    <th>Nội dung</th>
-                    <th>Thao tác</th>
-                </tr>
+            <small>
+                Thư đã ghi nhận
+            </small>
 
-            </thead>
+        </article>
 
 
-            <tbody id="letterTable">
-            </tbody>
+        <article class="letter-summary-card is-received">
 
-        </table>
+            <span class="letter-summary-label">
+                Thư nhận
+            </span>
 
-    </div>
+            <strong id="letterReceivedCount">
+                0
+            </strong>
+
+            <small>
+                Văn bản đã tiếp nhận
+            </small>
+
+        </article>
 
 
-    <!-- POPUP TẠO / SỬA THƯ -->
+        <article class="letter-summary-card is-sent">
+
+            <span class="letter-summary-label">
+                Thư gửi
+            </span>
+
+            <strong id="letterSentCount">
+                0
+            </strong>
+
+            <small>
+                Văn bản đã gửi đi
+            </small>
+
+        </article>
+
+
+        <article class="letter-summary-card is-incomplete">
+
+            <span class="letter-summary-label">
+                Thiếu người liên hệ
+            </span>
+
+            <strong id="letterMissingContactCount">
+                0
+            </strong>
+
+            <small>
+                Cần kiểm tra bổ sung
+            </small>
+
+        </article>
+
+    </section>
+
+
+    <!-- =====================================
+         BỘ LỌC
+         ===================================== -->
+
+    <section class="letter-filter-card">
+
+        <div class="letter-filter-header">
+
+            <div>
+
+                <span class="letter-section-eyebrow">
+                    Tìm kiếm
+                </span>
+
+                <h2>
+                    Bộ lọc danh sách thư
+                </h2>
+
+            </div>
+
+
+            <button
+                type="button"
+                class="letter-reset-filter-button"
+                onclick="resetLetterFilters()"
+            >
+                Đặt lại bộ lọc
+            </button>
+
+        </div>
+
+
+        <div class="letter-toolbar">
+
+            <!-- TÌM KIẾM -->
+
+            <div class="letter-filter-field letter-search-field">
+
+                <label for="letterSearch">
+                    Từ khóa
+                </label>
+
+                <input
+                    type="search"
+                    id="letterSearch"
+                    placeholder="Tìm số thư, nội dung, người liên hệ..."
+                    autocomplete="off"
+                    oninput="filterLetters()"
+                >
+
+            </div>
+
+
+            <!-- LOẠI THƯ -->
+
+            <div class="letter-filter-field">
+
+                <label for="letterTypeFilter">
+                    Loại thư
+                </label>
+
+                <select
+                    id="letterTypeFilter"
+                    onchange="filterLetters()"
+                >
+                    <option value="">
+                        Tất cả loại thư
+                    </option>
+
+                    <option value="Nhận">
+                        Thư nhận
+                    </option>
+
+                    <option value="Gửi">
+                        Thư gửi
+                    </option>
+                </select>
+
+            </div>
+
+
+            <!-- NHÀ CUNG CẤP -->
+
+            <div class="letter-filter-field">
+
+                <label for="letterSupplierFilter">
+                    Nhà cung cấp
+                </label>
+
+                <select
+                    id="letterSupplierFilter"
+                    onchange="filterLetters()"
+                >
+                    <option value="">
+                        Tất cả nhà cung cấp
+                    </option>
+                </select>
+
+            </div>
+
+
+            <!-- SẮP XẾP -->
+
+            <div class="letter-filter-field">
+
+                <label for="letterSort">
+                    Sắp xếp
+                </label>
+
+                <select
+                    id="letterSort"
+                    onchange="filterLetters()"
+                >
+                    <option value="newest" selected>
+                        Mới tạo trước
+                    </option>
+
+                    <option value="oldest">
+                        Cũ tạo trước
+                    </option>
+
+                    <option value="az">
+                        Người gửi/nhận: A → Z
+                    </option>
+
+                    <option value="za">
+                        Người gửi/nhận: Z → A
+                    </option>
+                </select>
+
+            </div>
+
+
+            <!-- KHOẢNG NGÀY -->
+
+            <div class="letter-date-range">
+
+                <div class="letter-filter-field">
+
+                    <label for="letterDateFrom">
+                        Từ ngày
+                    </label>
+
+                    <input
+                        type="date"
+                        id="letterDateFrom"
+                        onchange="filterLetters()"
+                    >
+
+                </div>
+
+
+                <span
+                    class="letter-date-separator"
+                    aria-hidden="true"
+                >
+                    đến
+                </span>
+
+
+                <div class="letter-filter-field">
+
+                    <label for="letterDateTo">
+                        Đến ngày
+                    </label>
+
+                    <input
+                        type="date"
+                        id="letterDateTo"
+                        onchange="filterLetters()"
+                    >
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <!-- =====================================
+         BẢNG DANH SÁCH
+         ===================================== -->
+
+    <section class="letter-table-card">
+
+        <div class="letter-table-card-header">
+
+            <div>
+
+                <span class="letter-section-eyebrow">
+                    Danh sách thư
+                </span>
+
+                <h2>
+                    Thư đã ghi nhận
+                </h2>
+
+            </div>
+
+
+            <span
+                id="letterResultCount"
+                class="letter-result-count"
+            >
+                0 kết quả
+            </span>
+
+        </div>
+
+
+        <div class="letter-table-scroll">
+
+            <table class="letter-simple-table">
+
+                <colgroup>
+                    <col style="width: 8%;">
+                    <col style="width: 10%;">
+                    <col style="width: 13%;">
+                    <col style="width: 17%;">
+                    <col style="width: 16%;">
+                    <col style="width: 25%;">
+                    <col style="width: 11%;">
+                </colgroup>
+
+
+                <thead>
+
+                    <tr>
+                        <th>Loại thư</th>
+                        <th>Ngày</th>
+                        <th>Số thư</th>
+                        <th>Nhà cung cấp</th>
+                        <th>Người gửi/nhận</th>
+                        <th>Nội dung</th>
+                        <th>Thao tác</th>
+                    </tr>
+
+                </thead>
+
+
+                <tbody id="letterTable">
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </section>
+
+
+    <!-- =====================================
+         POPUP TẠO / SỬA
+         ===================================== -->
+
     <div
         id="letterModal"
         class="letter-modal"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="letterModalTitle"
         onclick="closeLetterModal()"
     >
 
@@ -134,16 +388,29 @@
             onclick="event.stopPropagation()"
         >
 
-            <!-- TIÊU ĐỀ POPUP -->
             <div class="letter-modal-header">
 
-                <h2 id="letterModalTitle">
-                    Tạo thư mới
-                </h2>
+                <div>
+
+                    <span class="letter-modal-eyebrow">
+                        THÔNG TIN THƯ
+                    </span>
+
+                    <h2 id="letterModalTitle">
+                        Tạo thư mới
+                    </h2>
+
+                    <p>
+                        Nhập đầy đủ các thông tin cần thiết trước khi lưu.
+                    </p>
+
+                </div>
+
 
                 <button
                     type="button"
                     class="letter-modal-close"
+                    aria-label="Đóng cửa sổ"
                     onclick="closeLetterModal()"
                 >
                     ×
@@ -152,7 +419,6 @@
             </div>
 
 
-            <!-- NỘI DUNG FORM -->
             <div class="letter-modal-body">
 
                 <div class="letter-form-grid">
@@ -160,7 +426,8 @@
                     <div class="letter-field">
 
                         <label for="letterType">
-                            Loại thư <span>*</span>
+                            Loại thư
+                            <span>*</span>
                         </label>
 
                         <select id="letterType">
@@ -181,7 +448,8 @@
                     <div class="letter-field">
 
                         <label for="letterDate">
-                            Ngày nhận/gửi <span>*</span>
+                            Ngày nhận/gửi
+                            <span>*</span>
                         </label>
 
                         <input
@@ -195,13 +463,15 @@
                     <div class="letter-field">
 
                         <label for="letterNumber">
-                            Số thư <span>*</span>
+                            Số thư
+                            <span>*</span>
                         </label>
 
                         <input
                             type="text"
                             id="letterNumber"
                             placeholder="Ví dụ: CV-001/2026"
+                            autocomplete="off"
                         >
 
                     </div>
@@ -209,29 +479,52 @@
 
                     <div class="letter-field">
 
-                        <label for="letterSupplier">
-                            Nhà cung cấp <span>*</span>
-                        </label>
+    <label for="letterSupplierSearch">
+        Nhà cung cấp <span>*</span>
+    </label>
 
-                        <select id="letterSupplier">
+    <div class="letter-supplier-search-box">
 
-                            <option value="">
-                                -- Chọn nhà cung cấp --
-                            </option>
+        <input
+            type="search"
+            id="letterSupplierSearch"
+            list="letterSupplierList"
+            placeholder="Gõ mã hoặc tên nhà cung cấp..."
+            autocomplete="off"
+            oninput="window.handleLetterSupplierSearchChange()"
+            onchange="window.handleLetterSupplierSearchChange()"
+        >
 
-                        </select>
+        <datalist id="letterSupplierList">
+        </datalist>
 
-                    </div>
+        <!-- Lưu ID thật của Nhà cung cấp -->
+        <input
+            type="hidden"
+            id="letterSupplier"
+        >
+
+    </div>
+
+    <small
+        id="letterSupplierSearchHint"
+        class="letter-field-note"
+    >
+        Nhập tên hoặc mã, sau đó chọn một nhà cung cấp trong danh sách.
+    </small>
+
+</div>
 
 
                     <div class="letter-field">
 
-                        <label>
+                        <label for="letterChannel">
                             Hình thức
                         </label>
 
                         <input
                             type="text"
+                            id="letterChannel"
                             value="Bưu điện"
                             readonly
                         >
@@ -242,13 +535,14 @@
                     <div class="letter-field">
 
                         <label for="letterContact">
-                            Người liên hệ
+                            Người gửi/Người nhận
                         </label>
 
                         <input
                             type="text"
                             id="letterContact"
-                            placeholder="Tên người gửi/người nhận"
+                            placeholder="Nhập tên người liên hệ"
+                            autocomplete="off"
                         >
 
                     </div>
@@ -257,7 +551,8 @@
                     <div class="letter-field letter-full-width">
 
                         <label for="letterSubject">
-                            Nội dung / Trích yếu <span>*</span>
+                            Nội dung / Trích yếu
+                            <span>*</span>
                         </label>
 
                         <textarea
@@ -278,7 +573,7 @@
                         <textarea
                             id="letterNote"
                             rows="3"
-                            placeholder="Nhập ghi chú"
+                            placeholder="Nhập ghi chú bổ sung"
                         ></textarea>
 
                     </div>
@@ -288,7 +583,6 @@
             </div>
 
 
-            <!-- NÚT POPUP -->
             <div class="letter-modal-footer">
 
                 <button
@@ -301,6 +595,7 @@
 
                 <button
                     type="button"
+                    id="letterSaveButton"
                     class="letter-save-button"
                     onclick="saveLetter()"
                 >
@@ -312,5 +607,15 @@
         </div>
 
     </div>
+
+
+    <!-- VÙNG THÔNG BÁO GÓC PHẢI -->
+
+    <div
+        id="letterToastRegion"
+        class="letter-toast-region"
+        aria-live="polite"
+        aria-atomic="true"
+    ></div>
 
 </div>
