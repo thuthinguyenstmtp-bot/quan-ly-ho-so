@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="vi">
 
+
 <head>
 
     <meta charset="UTF-8">
@@ -10,16 +11,18 @@
         content="width=device-width, initial-scale=1.0"
     >
 
+    <link rel="icon" type="image/png" href="./favicon.png?v=40">
+
     <title>Quản lý Hồ sơ</title>
 
     <link
     rel="stylesheet"
-    href="./css/style.css?v=20260723-03"
+    href="./css/style.css?v=archive-modal-toast-04"
 >
 
 <link
     rel="stylesheet"
-    href="./css/theme.css?v=20260723-03"
+    href="./css/theme.css?v=project-ui-01"
 >
 
 </head>
@@ -62,296 +65,221 @@
 </div>
 
 <div class="container">
+<!-- =====================================
+     SIDEBAR HIỆN ĐẠI
+     ===================================== -->
 
-    <!-- ========================= -->
-    <!-- SIDEBAR -->
-    <!-- ========================= -->
+<aside
+    id="appSidebar"
+    class="sidebar sidebar-modern"
+>
 
-    <aside class="sidebar">
+    <!-- THƯƠNG HIỆU -->
 
-        <!-- LOGO -->
+    <div class="sidebar-modern-brand">
 
-        <div class="sidebar-brand">
+        <span class="sidebar-modern-kicker">
+            HỆ THỐNG NỘI BỘ
+        </span>
 
-            <div class="sidebar-brand-icon">
-                📂
-            </div>
+        <h1>
+            Quản lý Hồ sơ
+        </h1>
 
-            <div class="sidebar-brand-text">
+        <p>
+            Quản lý dữ liệu tập trung
+        </p>
 
-                <h2>
-                    Quản lý Hồ sơ
-                </h2>
-
-                <small>
-                    Hệ thống nội bộ
-                </small>
-
-            </div>
-
-        </div>
+    </div>
 
 
-        <!-- MENU CUỘN RIÊNG -->
+    <!-- ĐIỀU HƯỚNG -->
 
-        <nav class="sidebar-navigation">
-
-            <ul class="menu">
-
-                <!-- DỰ ÁN -->
-
-                <li
-                    onclick="
-                        selectMenu(this);
-                        loadPage('project');
-                    "
-                >
-                    <span class="menu-icon">
-                        🏗
-                    </span>
-
-                    <span>
-                        Dự án
-                    </span>
-                </li>
-
-
-                <!-- NHÀ CUNG CẤP -->
-
-                <li
-                    onclick="
-                        selectMenu(this);
-                        loadPage('supplier');
-                    "
-                >
-                    <span class="menu-icon">
-                        🏢
-                    </span>
-
-                    <span>
-                        Nhà cung cấp
-                    </span>
-                </li>
-
-
-                <!-- QUẢN LÝ THƯ -->
-
-                <li
-                    onclick="
-                        selectMenu(this);
-                        loadPage('letter');
-                    "
-                >
-                    <span class="menu-icon">
-                        📨
-                    </span>
-
-                    <span>
-                        Quản lý thư
-                    </span>
-                </li>
-
-
-                <!-- ========================= -->
-                <!-- MENU HỒ SƠ -->
-                <!-- ========================= -->
-
-                <li class="menu-group">
-
-                    <div
-                        class="menu-header"
-                        onclick="
-                            toggleMenu(
-                                'hosoMenu',
-                                this
-                            );
-                        "
-                    >
-
-                        <span class="menu-header-left">
-
-                            <span class="menu-icon">
-                                📂
-                            </span>
-
-                            <span>
-                                Hồ sơ
-                            </span>
-
-                        </span>
-
-                        <span class="arrow">
-                            ▶
-                        </span>
-
-                    </div>
-
-
-                    <ul
-                        id="hosoMenu"
-                        class="submenu"
-                    >
-
-                        <li
-                            onclick="
-                                selectMenu(this);
-                                loadPage('dossier');
-                            "
-                        >
-                            Danh sách hồ sơ
-                        </li>
-
-
-                        <li
-                            onclick="
-                                selectMenu(this);
-                                loadPage('dossier_missing');
-                            "
-                        >
-                            Hồ sơ cần bổ sung
-                        </li>
-
-
-                        <li
-                            onclick="
-                                selectMenu(this);
-                                loadPage('dossier_delivery');
-                            "
-                        >
-                            Đã bàn giao
-                        </li>
-
-
-                        <li
-                            onclick="
-                                selectMenu(this);
-                                loadPage('dossier_paid');
-                            "
-                        >
-                            Đã thanh toán
-                        </li>
-
-
-                        <li
-                            onclick="
-                                selectMenu(this);
-                                loadPage('dossier_archive');
-                            "
-                        >
-                            Lưu hồ sơ
-                        </li>
-
-                    </ul>
-
-                </li>
-
-
-                <!-- SAO LƯU DỮ LIỆU -->
-
-                <li
-                    onclick="
-                        selectMenu(this);
-                        loadPage('backup');
-                    "
-                >
-                    <span class="menu-icon">
-                        💾
-                    </span>
-
-                    <span>
-                        Sao lưu dữ liệu
-                    </span>
-                </li>
-
-            </ul>
-
-        </nav>
-
-        <!-- =================================
-     CHỌN CHỦ ĐỀ GIAO DIỆN
-     ================================= -->
-
-<div class="app-theme-box">
-
-    <label for="appThemeSelect">
-        Giao diện
-    </label>
-
-    <select
-        id="appThemeSelect"
-        onchange="changeAppTheme(this.value)"
+    <nav
+        class="sidebar-modern-nav"
+        aria-label="Điều hướng chính"
     >
-        <option value="theme-sage">
-            Sage Garden 🌿
-        </option>
 
-        <option value="theme-ocean">
-            Ocean Blue
-        </option>
-
-        <option value="theme-emerald">
-            Emerald Green
-        </option>
-
-        <option value="theme-violet">
-            Violet
-        </option>
-
-        <option value="theme-dark">
-            Dark Mode
-        </option>
-
-    </select>
-
-</div>
+        <button
+            type="button"
+            class="sidebar-modern-link"
+            data-page="project"
+        >
+            <span>
+                Dự án
+            </span>
+        </button>
 
 
-        <!-- ========================= -->
-        <!-- THÔNG TIN NGƯỜI DÙNG -->
-        <!-- ========================= -->
+        <button
+            type="button"
+            class="sidebar-modern-link"
+            data-page="supplier"
+        >
+            <span>
+                Nhà cung cấp
+            </span>
+        </button>
 
-        <div class="system-user-panel">
 
-            <div class="system-user-info">
+        <button
+            type="button"
+            class="sidebar-modern-link"
+            data-page="letter"
+        >
+            <span>
+                Quản lý thư
+            </span>
+        </button>
 
-                <div class="system-user-icon">
-                    👤
-                </div>
 
-                <div class="system-user-text">
+        <!-- NHÓM HỒ SƠ -->
 
-                    <small>
-                        Đang đăng nhập
-                    </small>
-
-                    <strong id="currentSystemUsername">
-                        Người dùng
-                    </strong>
-
-                </div>
-
-            </div>
-
+        <div
+            id="dossierSidebarGroup"
+            class="sidebar-modern-group"
+        >
 
             <button
                 type="button"
-                class="system-logout-button"
-                onclick="logoutSystem()"
+                id="dossierSidebarToggle"
+                class="sidebar-modern-group-toggle"
+                aria-expanded="false"
+                aria-controls="hosoMenu"
             >
-                <span>
-                    🚪
-                </span>
 
                 <span>
-                    Đăng xuất
+                    Hồ sơ
                 </span>
+
+                <span
+                    class="sidebar-modern-chevron"
+                    aria-hidden="true"
+                ></span>
+
             </button>
+
+
+            <div
+                id="hosoMenu"
+                class="sidebar-modern-submenu"
+            >
+
+                <button
+                    type="button"
+                    class="sidebar-modern-sublink"
+                    data-page="dossier"
+                >
+                    Danh sách hồ sơ
+                </button>
+
+
+                <button
+                    type="button"
+                    class="sidebar-modern-sublink"
+                    data-page="dossier_missing"
+                >
+                    Hồ sơ cần bổ sung
+                </button>
+
+
+                <button
+                    type="button"
+                    class="sidebar-modern-sublink"
+                    data-page="dossier_delivery"
+                >
+                    Đã bàn giao
+                </button>
+
+
+                <button
+                    type="button"
+                    class="sidebar-modern-sublink"
+                    data-page="dossier_paid"
+                >
+                    Đã thanh toán
+                </button>
+
+
+                <button
+                    type="button"
+                    class="sidebar-modern-sublink"
+                    data-page="dossier_archive"
+                >
+                    Lưu hồ sơ
+                </button>
+
+            </div>
 
         </div>
 
-    </aside>
+
+        <button
+            type="button"
+            class="sidebar-modern-link"
+            data-page="backup"
+        >
+            <span>
+                Sao lưu dữ liệu
+            </span>
+        </button>
+
+    </nav>
 
 
+    <!-- ĐẨY CÁC KHỐI DƯỚI XUỐNG CUỐI -->
+
+    <div class="sidebar-modern-spacer"></div>
+
+
+    <!-- GIAO DIỆN -->
+
+    <section class="sidebar-modern-theme">
+
+        <label for="themeSelector">
+            Giao diện
+        </label>
+
+        <select
+            id="themeSelector"
+            data-sidebar-theme
+        >
+            <option value="sage">
+                Sage Garden
+            </option>
+        </select>
+
+    </section>
+
+
+    <!-- TÀI KHOẢN -->
+
+    <section class="sidebar-modern-account">
+
+        <div class="sidebar-modern-account-info">
+
+            <span>
+                Đang đăng nhập
+            </span>
+
+            <strong id="currentSystemUsername">
+                Người dùng
+            </strong>
+
+        </div>
+
+
+        <button
+            type="button"
+            id="sidebarLogoutButton"
+            class="sidebar-modern-logout"
+        >
+            Đăng xuất
+        </button>
+
+    </section>
+
+</aside>
     <!-- ========================= -->
     <!-- NỘI DUNG CHÍNH -->
     <!-- ========================= -->
@@ -401,15 +329,27 @@
 <!-- 4. CÁC MODULE -->
 <!-- ========================= -->
 
-<script src="./js/supplier.js"></script>
+<script
+    src="./js/supplier.js?v=supplier-search-data-01"
+></script>
 
-<script src="./js/project.js"></script>
+<script
+    src="./js/project.js?v=project-delete-fix-02"
+></script>
 
 <script src="./js/dossier.js?v=delete-fix-02"></script>
 
-<script src="./js/dossier_archive.js"></script>
+<script
+    src="./js/dossier-import.js?v=import-by-name-01"
+></script>
 
-<script src="./js/letter.js"></script>
+<script
+    src="./js/dossier_archive.js?v=archive-modal-toast-04"
+></script>
+
+<script
+    src="./js/letter.js?v=letter-modern-01"
+></script>
 
 <script src="./js/backup.js"></script>
 
@@ -418,8 +358,9 @@
 <!-- 5. APP -->
 <!-- ========================= -->
 
-<script src="./js/app.js"></script>
-
+<script
+    src="./js/app.js?v=app-clean-final-01"
+></script>
 
 <!-- ========================= -->
 <!-- 6. KIỂM TRA ĐĂNG NHẬP -->
