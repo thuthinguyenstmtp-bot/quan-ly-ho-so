@@ -1,857 +1,1967 @@
-// =====================================
-// APP.JS
-// Quản lý chuyển trang
-// =====================================
+;(() => {
+
+    "use strict";
 
 
-// Trang mặc định sau khi đăng nhập
-const DEFAULT_PAGE =
-    "dossier";
+    // =====================================================
+    // CẤU HÌNH CHUNG
+    // =====================================================
+
+    const DEFAULT_PAGE =
+        "dossier";
 
 
-// Dùng để tránh lỗi khi người dùng
-// chuyển trang liên tục
-let currentPageRequestId =
-    0;
+    const APP_PAGE_NAMES =
+        new Set([
+
+            "project",
+
+            "supplier",
+
+            "letter",
+
+            "dossier",
+
+            "dossier_missing",
+
+            "dossier_delivery",
+
+            "dossier_paid",
+
+            "dossier_archive",
+
+            "backup"
+
+        ]);
 
 
-// =====================================
-// GỌI HÀM MODULE AN TOÀN
-// =====================================
+    const DOSSIER_SIDEBAR_PAGES =
+        new Set([
 
-async function callPageFunction(
-    functionName,
-    ...args
-){
+            "dossier",
 
-    const pageFunction =
-        window[functionName];
+            "dossier_missing",
+
+            "dossier_delivery",
+
+            "dossier_paid",
+
+            "dossier_archive"
+
+        ]);
 
 
-    if(
-        typeof pageFunction !==
-        "function"
-    ){
+    let currentPageRequestId =
+        0;
 
-        return null;
+
+    let currentAppPage =
+        null;
+
+
+    // =====================================================
+    // CHUẨN HÓA TÊN TRANG
+    // =====================================================
+
+    function normalizeAppPageName(
+        page
+    ) {
+
+        const normalizedPage =
+            String(
+                page || ""
+            )
+                .trim()
+
+                .replace(
+                    /^#/,
+                    ""
+                )
+
+                .replace(
+                    /^pages\//,
+                    ""
+                )
+
+                .replace(
+                    /\.html$/i,
+                    ""
+                );
+
+
+        return APP_PAGE_NAMES.has(
+            normalizedPage
+        )
+
+            ? normalizedPage
+
+            : DEFAULT_PAGE;
 
     }
 
 
-    return await pageFunction(
+    // =====================================================
+    // CHỐNG CHÈN HTML TRONG THÔNG BÁO
+    // =====================================================
+
+    function escapeAppHtml(
+        value
+    ) {
+
+        return String(
+            value ?? ""
+        )
+            .replaceAll(
+                "&",
+                "&amp;"
+            )
+
+            .replaceAll(
+                "<",
+                "&lt;"
+            )
+
+            .replaceAll(
+                ">",
+                "&gt;"
+            )
+
+            .replaceAll(
+                '"',
+                "&quot;"
+            )
+
+            .replaceAll(
+                "'",
+                "&#039;"
+            );
+
+    }
+
+
+    // =====================================================
+    // GỌI HÀM CỦA TRANG CON
+    // =====================================================
+
+    async function callPageFunction(
+        functionName,
         ...args
-    );
+    ) {
 
-}
-
-
-// =====================================
-// LOAD TRANG
-// =====================================
-
-async function loadPage(
-    page = DEFAULT_PAGE
-){
-
-    const content =
-        document.getElementById(
-            "content"
-        );
+        const pageFunction =
+            window[functionName];
 
 
-    if(!content){
+        if (
+            typeof pageFunction !==
+            "function"
+        ) {
 
-        console.error(
-            "Không tìm thấy id content."
-        );
-
-        return;
-
-    }
+            const message =
+                `Không tìm thấy window.${functionName}().`;
 
 
-    const requestId =
-        ++currentPageRequestId;
-
-
-    content.innerHTML = `
-
-        <div
-            style="
-                text-align:center;
-                padding:40px;
-                color:#6b7280;
-            "
-        >
-            Đang tải trang...
-        </div>
-
-    `;
-
-
-    try{
-
-        const response =
-            await fetch(
-
-                `./pages/${page}.html`
-
+            console.error(
+                message
             );
 
 
-        if(!response.ok){
-
             throw new Error(
-
-                `Không tìm thấy trang ${page}.`
-
+                message
             );
 
         }
 
 
-        const html =
-            await response.text();
+        return await pageFunction(
+            ...args
+        );
+
+    }
+
+
+    async function callOptionalPageFunction(
+        functionName,
+        ...args
+    ) {
+
+        const pageFunction =
+            window[functionName];
+
+
+        if (
+            typeof pageFunction !==
+            "function"
+        ) {
+
+            console.warn(
+                `Bỏ qua ${functionName}() vì hàm chưa tồn tại.`
+            );
+
+
+            return null;
+
+        }
+
+
+        return await pageFunction(
+            ...args
+        );
+
+    }
+
+
+    // =====================================================
+    // GHI NHỚ TRANG ĐANG MỞ
+    // =====================================================
+
+    function rememberCurrentAppPage(
+        page
+    ) {
+
+        const normalizedPage =
+            normalizeAppPageName(
+                page
+            );
+
+
+        const expectedHash =
+            `#${normalizedPage}`;
+
+
+        if (
+            window.location.hash ===
+            expectedHash
+        ) {
+
+            return;
+
+        }
+
+
+        window.history.replaceState(
+
+            {
+                page:
+                    normalizedPage
+            },
+
+            "",
+
+            `${window.location.pathname}${window.location.search}${expectedHash}`
+
+        );
+
+    }
+
+
+    // =====================================================
+    // MỞ / ĐÓNG NHÓM HỒ SƠ TRÊN SIDEBAR
+    // =====================================================
+
+    function setSidebarDossierOpen(
+        isOpen
+    ) {
+
+        const group =
+            document.getElementById(
+                "dossierSidebarGroup"
+            );
+
+
+        const toggle =
+            document.getElementById(
+                "dossierSidebarToggle"
+            );
+
+
+        const submenu =
+            document.getElementById(
+                "hosoMenu"
+            );
+
+
+        if (!submenu) {
+
+            return;
+
+        }
+
+
+        const openState =
+            Boolean(isOpen);
 
 
         /*
-        Nếu người dùng đã chuyển sang trang khác
-        trong lúc trang hiện tại đang tải,
-        không hiển thị kết quả cũ.
+        Xóa style inline do sidebar cũ để lại.
         */
 
-        if(
-            requestId !==
-            currentPageRequestId
-        ){
+        submenu.style.removeProperty(
+            "display"
+        );
 
-            return;
+
+        submenu.style.removeProperty(
+            "height"
+        );
+
+
+        submenu.style.removeProperty(
+            "max-height"
+        );
+
+
+        if (group) {
+
+            group.classList.toggle(
+                "is-open",
+                openState
+            );
 
         }
 
 
-        content.innerHTML =
-            html;
+        submenu.classList.toggle(
+            "is-open",
+            openState
+        );
 
 
-        await initializePage(
+        submenu.setAttribute(
+
+            "aria-hidden",
+
+            openState
+
+                ? "false"
+
+                : "true"
+
+        );
+
+
+        if (toggle) {
+
+            toggle.setAttribute(
+
+                "aria-expanded",
+
+                openState
+
+                    ? "true"
+
+                    : "false"
+
+            );
+
+        }
+
+
+        const arrow =
+            toggle?.querySelector(
+                ".arrow"
+            )
+            ||
+            submenu.previousElementSibling
+                ?.querySelector(
+                    ".arrow"
+                );
+
+
+        if (arrow) {
+
+            arrow.textContent =
+                openState
+
+                    ? "⌄"
+
+                    : "›";
+
+        }
+
+    }
+
+
+    // =====================================================
+    // ĐỒNG BỘ MENU ACTIVE
+    // =====================================================
+
+    function syncAppMenuWithPage(
+        page
+    ) {
+
+        const normalizedPage =
+            normalizeAppPageName(
+                page
+            );
+
+
+        /*
+        Xóa active của menu cũ.
+        */
+
+        document
+            .querySelectorAll(
+                ".menu li"
+            )
+            .forEach(item => {
+
+                item.classList.remove(
+                    "active"
+                );
+
+            });
+
+
+        /*
+        Xóa active của sidebar mới.
+        */
+
+        document
+            .querySelectorAll(
+                "#appSidebar [data-page]"
+            )
+            .forEach(item => {
+
+                item.classList.remove(
+                    "is-active"
+                );
+
+
+                item.removeAttribute(
+                    "aria-current"
+                );
+
+            });
+
+
+        /*
+        Active menu sidebar mới.
+        */
+
+        const modernActiveItem =
+            document.querySelector(
+
+                `#appSidebar [data-page="${normalizedPage}"]`
+
+            );
+
+
+        if (modernActiveItem) {
+
+            modernActiveItem.classList.add(
+                "is-active"
+            );
+
+
+            modernActiveItem.setAttribute(
+                "aria-current",
+                "page"
+            );
+
+        }
+
+
+        /*
+        Hỗ trợ menu cũ dùng onclick.
+        */
+
+        const escapedPage =
+            normalizedPage.replace(
+
+                /[.*+?^${}()|[\]\\]/g,
+
+                "\\$&"
+
+            );
+
+
+        const pagePattern =
+            new RegExp(
+
+                `loadPage\\s*\\(\\s*['"]${escapedPage}['"]\\s*\\)`
+
+            );
+
+
+        document
+            .querySelectorAll(
+                ".menu li"
+            )
+            .forEach(item => {
+
+                const onclickContent =
+                    item.getAttribute(
+                        "onclick"
+                    )
+                    ||
+                    "";
+
+
+                if (
+                    pagePattern.test(
+                        onclickContent
+                    )
+                ) {
+
+                    item.classList.add(
+                        "active"
+                    );
+
+                }
+
+            });
+
+
+        setSidebarDossierOpen(
+
+            DOSSIER_SIDEBAR_PAGES.has(
+                normalizedPage
+            )
+
+        );
+
+    }
+
+
+    // =====================================================
+    // KHỞI TẠO DỮ LIỆU TỪNG TRANG
+    // =====================================================
+
+    async function initializePage(
+        page
+    ) {
+
+        switch (page) {
+
+            // ---------------------------------------------
+            // DỰ ÁN
+            // ---------------------------------------------
+
+            case "project":
+
+                await callPageFunction(
+                    "loadProject"
+                );
+
+
+                await callOptionalPageFunction(
+                    "renderProject"
+                );
+
+                break;
+
+
+            // ---------------------------------------------
+            // NHÀ CUNG CẤP
+            // ---------------------------------------------
+
+            case "supplier":
+
+                await callPageFunction(
+                    "loadSupplier"
+                );
+
+
+                await callOptionalPageFunction(
+                    "renderSupplier"
+                );
+
+                break;
+
+
+            // ---------------------------------------------
+            // QUẢN LÝ THƯ
+            // ---------------------------------------------
+
+            case "letter":
+
+                await callPageFunction(
+                    "initializeLetterPage"
+                );
+
+                break;
+
+
+            // ---------------------------------------------
+            // DANH SÁCH HỒ SƠ
+            // ---------------------------------------------
+
+            case "dossier":
+
+                await callPageFunction(
+                    "loadDossier"
+                );
+
+
+                await callOptionalPageFunction(
+                    "filterDossier"
+                );
+
+                break;
+
+
+            // ---------------------------------------------
+            // HỒ SƠ CẦN BỔ SUNG
+            // ---------------------------------------------
+
+            case "dossier_missing":
+
+                await callPageFunction(
+                    "loadDossier"
+                );
+
+
+                await callOptionalPageFunction(
+                    "loadMissingDossierFilters"
+                );
+
+
+                await callOptionalPageFunction(
+                    "filterMissingDossier"
+                );
+
+                break;
+
+
+            // ---------------------------------------------
+            // HỒ SƠ ĐÃ BÀN GIAO
+            // ---------------------------------------------
+
+            case "dossier_delivery":
+
+                await callPageFunction(
+                    "loadDossier"
+                );
+
+
+                await callOptionalPageFunction(
+                    "loadDeliveryDossierFilters"
+                );
+
+
+                await callOptionalPageFunction(
+                    "filterDeliveryDossier"
+                );
+
+                break;
+
+
+            // ---------------------------------------------
+            // HỒ SƠ ĐÃ THANH TOÁN
+            // ---------------------------------------------
+
+            case "dossier_paid":
+
+                /*
+                Chỉ gọi đúng một lần.
+
+                Không gọi loadPaidDossier() trong loadPage()
+                rồi gọi lại ở đây.
+                */
+
+                if (
+                    typeof window.loadPaidDossier ===
+                    "function"
+                ) {
+
+                    await window.loadPaidDossier();
+
+                } else {
+
+                    /*
+                    Dự phòng cho dossier.js phiên bản cũ.
+                    */
+
+                    await callPageFunction(
+                        "loadDossier"
+                    );
+
+
+                    await callOptionalPageFunction(
+                        "loadPaidDossierFilters"
+                    );
+
+
+                    await callOptionalPageFunction(
+                        "filterPaidDossier"
+                    );
+
+                }
+
+                break;
+
+
+            // ---------------------------------------------
+            // LƯU HỒ SƠ
+            // ---------------------------------------------
+
+            case "dossier_archive":
+
+                await callPageFunction(
+                    "initializeArchivePage"
+                );
+
+                break;
+
+
+            // ---------------------------------------------
+            // SAO LƯU
+            // ---------------------------------------------
+
+            case "backup":
+
+                await callPageFunction(
+                    "initializeBackupPage"
+                );
+
+                break;
+
+
+            default:
+
+                console.warn(
+                    `Trang "${page}" chưa có hàm khởi tạo riêng.`
+                );
+
+                break;
+
+        }
+
+    }
+
+
+    // =====================================================
+    // LOAD TRANG SPA
+    // =====================================================
+
+    async function loadPage(
+        page = DEFAULT_PAGE
+    ) {
+
+        page =
+            normalizeAppPageName(
+                page
+            );
+
+
+        rememberCurrentAppPage(
             page
         );
 
-    }catch(error){
 
-        if(
-            requestId !==
-            currentPageRequestId
-        ){
+        const content =
+            document.getElementById(
+                "content"
+            );
+
+
+        if (!content) {
+
+            console.error(
+                "Không tìm thấy #content."
+            );
+
 
             return;
 
         }
 
 
-        console.error(
-            `Không tải được trang ${page}:`,
-            error
-        );
+        const requestId =
+            ++currentPageRequestId;
 
 
         content.innerHTML = `
 
             <div
+                class="app-page-loading"
                 style="
-                    padding:30px;
-                    color:#dc2626;
+                    padding:40px;
+                    text-align:center;
+                    color:#6b7280;
                 "
             >
-
-                <h2>
-                    Không tải được trang
-                </h2>
-
-                <p>
-                    ${escapeAppHtml(
-                        error.message ||
-                        "Đã xảy ra lỗi."
-                    )}
-                </p>
-
+                🌿 Đang tải trang...
             </div>
 
         `;
 
-    }
 
-}
+        try {
+
+            const response =
+                await fetch(
+
+                    `./pages/${page}.html`,
+
+                    {
+                        cache:
+                            "no-store"
+                    }
+
+                );
 
 
-// =====================================
-// KHỞI TẠO DỮ LIỆU TỪNG TRANG
-// =====================================
+            if (!response.ok) {
 
-async function initializePage(page){
+                throw new Error(
 
-    switch(page){
+                    `Không tìm thấy trang ${page}.html.`
 
-        // -----------------------------
-        // NHÀ CUNG CẤP
-        // -----------------------------
+                );
 
-        case "supplier":
+            }
 
-            await callPageFunction(
-                "loadSupplier"
+
+            const html =
+                await response.text();
+
+
+            if (
+                requestId !==
+                currentPageRequestId
+            ) {
+
+                return;
+
+            }
+
+
+            content.innerHTML =
+                html;
+
+
+            /*
+            Không gọi riêng loadPaidDossier() tại đây.
+
+            Mọi trang chỉ được khởi tạo
+            thông qua initializePage().
+            */
+
+            await initializePage(
+                page
             );
 
 
-            await callPageFunction(
-                "renderSupplier"
-            );
+            /*
+            Người dùng có thể chuyển trang trong lúc
+            dữ liệu đang tải.
+            */
 
-            break;
+            if (
+                requestId !==
+                currentPageRequestId
+            ) {
 
+                return;
 
-        // -----------------------------
-        // DỰ ÁN
-        // -----------------------------
-
-        case "project":
-
-            await callPageFunction(
-                "loadProject"
-            );
+            }
 
 
-            await callPageFunction(
-                "renderProject"
-            );
-
-            break;
+            currentAppPage =
+                page;
 
 
-        // -----------------------------
-        // DANH SÁCH HỒ SƠ
-        // -----------------------------
-
-        case "dossier":
-
-            await callPageFunction(
-                "loadDossier"
+            syncAppMenuWithPage(
+                page
             );
 
 
-            await callPageFunction(
-                "filterDossier"
+            console.log(
+                `✅ Đã tải trang: ${page}`
             );
 
-            break;
+        } catch (error) {
+
+            if (
+                requestId !==
+                currentPageRequestId
+            ) {
+
+                return;
+
+            }
 
 
-        // -----------------------------
-        // HỒ SƠ CẦN BỔ SUNG
-        // -----------------------------
-
-        case "dossier_missing":
-
-            await callPageFunction(
-                "loadDossier"
-            );
-
-
-            await callPageFunction(
-                "loadMissingDossierFilters"
-            );
-
-
-            await callPageFunction(
-                "filterMissingDossier"
-            );
-
-            break;
-
-
-        // -----------------------------
-        // HỒ SƠ ĐÃ BÀN GIAO
-        // -----------------------------
-
-        case "dossier_delivery":
-
-            await callPageFunction(
-                "loadDossier"
+            console.error(
+                `Không tải được trang ${page}:`,
+                error
             );
 
 
-            await callPageFunction(
-                "loadDeliveryDossierFilters"
+            content.innerHTML = `
+
+                <div
+                    class="app-page-error"
+                    style="
+                        margin:24px;
+                        padding:28px;
+                        border:1px solid rgba(190,84,89,.22);
+                        border-radius:14px;
+                        color:#a83f45;
+                        background:#fff7f7;
+                    "
+                >
+
+                    <h2>
+                        Không tải được trang
+                    </h2>
+
+                    <p>
+                        ${escapeAppHtml(
+                            error?.message
+                            ||
+                            "Đã xảy ra lỗi."
+                        )}
+                    </p>
+
+                    <button
+                        type="button"
+                        onclick="
+                            window.loadPage(
+                                '${escapeAppHtml(page)}'
+                            )
+                        "
+                    >
+                        Thử tải lại
+                    </button>
+
+                </div>
+
+            `;
+
+
+            showAppToast(
+
+                error?.message
+                ||
+                "Không tải được trang.",
+
+                "error"
+
             );
 
-
-            await callPageFunction(
-                "filterDeliveryDossier"
-            );
-
-            break;
-
-
-        // -----------------------------
-        // HỒ SƠ ĐÃ THANH TOÁN
-        // -----------------------------
-
-        case "dossier_paid":
-
-            await callPageFunction(
-                "loadDossier"
-            );
-
-
-            await callPageFunction(
-                "loadPaidDossierFilters"
-            );
-
-
-            await callPageFunction(
-                "filterPaidDossier"
-            );
-
-            break;
-
-
-        // -----------------------------
-        // HỒ SƠ LƯU
-        // -----------------------------
-
-        case "dossier_archive":
-
-            await callPageFunction(
-                "initializeArchivePage"
-            );
-
-            break;
-
-
-        // -----------------------------
-        // QUẢN LÝ THƯ
-        // -----------------------------
-
-        case "letter":
-
-            await callPageFunction(
-                "initializeLetterPage"
-            );
-
-            break;
-
-
-        // -----------------------------
-        // SAO LƯU
-        // -----------------------------
-
-        case "backup":
-
-            await callPageFunction(
-                "initializeBackupPage"
-            );
-
-            break;
-
-
-        default:
-
-            console.warn(
-                `Trang "${page}" chưa có hàm khởi tạo riêng.`
-            );
-
-            break;
-
-    }
-
-}
-
-
-// =====================================
-// CHỐNG KÝ TỰ HTML TRONG THÔNG BÁO
-// =====================================
-
-function escapeAppHtml(value){
-
-    return String(value ?? "")
-
-        .replaceAll("&", "&amp;")
-
-        .replaceAll("<", "&lt;")
-
-        .replaceAll(">", "&gt;")
-
-        .replaceAll(
-            '"',
-            "&quot;"
-        )
-
-        .replaceAll(
-            "'",
-            "&#039;"
-        );
-
-}
-
-
-// =====================================
-// MENU HỒ SƠ
-// =====================================
-
-function toggleMenu(
-    menuId,
-    element
-){
-
-    const menu =
-        document.getElementById(
-            menuId
-        );
-
-
-    if(!menu){
-
-        return;
+        }
 
     }
 
 
-    const arrow =
+    // =====================================================
+    // MENU HỒ SƠ CŨ
+    // =====================================================
+
+    function toggleMenu(
+        menuId,
         element
-        ? element.querySelector(
-            ".arrow"
-        )
-        : null;
+    ) {
+
+        const menu =
+            document.getElementById(
+                menuId
+            );
 
 
-    const isOpen =
+        if (!menu) {
 
-        window
-        .getComputedStyle(menu)
-        .display !== "none";
+            return;
+
+        }
 
 
-    if(isOpen){
+        if (
+            menuId === "hosoMenu"
+        ) {
 
-        menu.style.display =
+            const group =
+                document.getElementById(
+                    "dossierSidebarGroup"
+                );
+
+
+            const isOpen =
+                group
+
+                    ? group.classList.contains(
+                        "is-open"
+                    )
+
+                    : menu.classList.contains(
+                        "is-open"
+                    );
+
+
+            setSidebarDossierOpen(
+                !isOpen
+            );
+
+
+            return;
+
+        }
+
+
+        const arrow =
+            element?.querySelector(
+                ".arrow"
+            );
+
+
+        const isOpen =
+            window
+                .getComputedStyle(menu)
+                .display !==
             "none";
 
 
-        if(arrow){
-
-            arrow.textContent =
-                "▶";
-
-        }
-
-    }else{
-
         menu.style.display =
-            "block";
+            isOpen
+
+                ? "none"
+
+                : "block";
 
 
-        if(arrow){
+        if (arrow) {
 
             arrow.textContent =
-                "▼";
+                isOpen
+
+                    ? "›"
+
+                    : "⌄";
 
         }
 
     }
 
-}
 
+    function openDefaultDossierMenu() {
 
-// =====================================
-// MENU ACTIVE
-// =====================================
-
-function selectMenu(element){
-
-    document
-    .querySelectorAll(
-        ".menu li"
-    )
-    .forEach(item => {
-
-        item.classList.remove(
-            "active"
-        );
-
-    });
-
-
-    if(element){
-
-        element.classList.add(
-            "active"
-        );
-
-    }
-
-}
-
-
-// =====================================
-// MỞ MENU HỒ SƠ MẶC ĐỊNH
-// =====================================
-
-function openDefaultDossierMenu(){
-
-    const dossierMenu =
-        document.getElementById(
-            "hosoMenu"
+        setSidebarDossierOpen(
+            true
         );
 
 
-    if(!dossierMenu){
+        const firstDossierMenuItem =
+            document.querySelector(
+                "#hosoMenu [data-page], #hosoMenu li"
+            );
 
-        return;
+
+        if (firstDossierMenuItem) {
+
+            firstDossierMenuItem.classList.add(
+                "active"
+            );
+
+        }
 
     }
 
 
-    dossierMenu.style.display =
-        "block";
+    // =====================================================
+    // MENU ACTIVE CŨ
+    // =====================================================
+
+    function selectMenu(
+        element
+    ) {
+
+        document
+            .querySelectorAll(
+                ".menu li"
+            )
+            .forEach(item => {
+
+                item.classList.remove(
+                    "active"
+                );
+
+            });
 
 
-    const menuHeader =
-        dossierMenu
-        .previousElementSibling;
+        if (element) {
+
+            element.classList.add(
+                "active"
+            );
+
+        }
+
+    }
 
 
-    const arrow =
-        menuHeader
-        ? menuHeader.querySelector(
-            ".arrow"
-        )
-        : null;
+    // =====================================================
+    // TOAST THÔNG BÁO
+    // =====================================================
+
+    function showAppToast(
+        message,
+        type = "success"
+    ) {
+
+        let container =
+            document.querySelector(
+                ".app-toast-container"
+            );
 
 
-    if(arrow){
+        if (!container) {
 
-        arrow.textContent =
-            "▼";
+            container =
+                document.createElement(
+                    "div"
+                );
+
+
+            container.className =
+                "app-toast-container";
+
+
+            document.body.appendChild(
+                container
+            );
+
+        }
+
+
+        const allowedTypes =
+            new Set([
+
+                "success",
+
+                "error",
+
+                "info",
+
+                "warning"
+
+            ]);
+
+
+        const safeType =
+            allowedTypes.has(type)
+
+                ? type
+
+                : "info";
+
+
+        const iconMap = {
+
+            success:
+                "✓",
+
+            error:
+                "⚠",
+
+            warning:
+                "!",
+
+            info:
+                "🌿"
+
+        };
+
+
+        const toast =
+            document.createElement(
+                "div"
+            );
+
+
+        toast.className =
+            `app-toast app-toast-${safeType}`;
+
+
+        const iconElement =
+            document.createElement(
+                "span"
+            );
+
+
+        iconElement.className =
+            "app-toast-icon";
+
+
+        iconElement.textContent =
+            iconMap[safeType];
+
+
+        const messageElement =
+            document.createElement(
+                "span"
+            );
+
+
+        messageElement.className =
+            "app-toast-message";
+
+
+        messageElement.textContent =
+            String(
+                message ?? ""
+            );
+
+
+        toast.append(
+
+            iconElement,
+
+            messageElement
+
+        );
+
+
+        container.appendChild(
+            toast
+        );
+
+
+        window.setTimeout(() => {
+
+            toast.classList.add(
+                "is-leaving"
+            );
+
+
+            window.setTimeout(() => {
+
+                toast.remove();
+
+
+                if (
+                    container.childElementCount ===
+                    0
+                ) {
+
+                    container.remove();
+
+                }
+
+            }, 230);
+
+        }, 2800);
 
     }
 
 
-    const firstDossierMenuItem =
-        dossierMenu.querySelector(
-            "li"
+    // =====================================================
+    // CHỦ ĐỀ GIAO DIỆN
+    // =====================================================
+
+    const APP_THEME_STORAGE_KEY =
+        "selectedAppTheme";
+
+
+    const APP_THEME_CLASSES =
+        [
+
+            "theme-ocean",
+
+            "theme-sage",
+
+            "theme-emerald",
+
+            "theme-violet",
+
+            "theme-dark"
+
+        ];
+
+
+    function changeAppTheme(
+        themeName
+    ) {
+
+        const validTheme =
+            APP_THEME_CLASSES.includes(
+                themeName
+            )
+
+                ? themeName
+
+                : "theme-sage";
+
+
+        APP_THEME_CLASSES.forEach(theme => {
+
+            document.body.classList.remove(
+                theme
+            );
+
+        });
+
+
+        document.body.classList.add(
+            validTheme
         );
 
 
-    if(firstDossierMenuItem){
+        localStorage.setItem(
 
-        selectMenu(
-            firstDossierMenuItem
+            APP_THEME_STORAGE_KEY,
+
+            validTheme
+
+        );
+
+
+        const themeSelect =
+            document.getElementById(
+                "appThemeSelect"
+            )
+            ||
+            document.querySelector(
+                "[data-sidebar-theme]"
+            );
+
+
+        if (themeSelect) {
+
+            themeSelect.value =
+                validTheme;
+
+        }
+
+    }
+
+
+    function loadSavedAppTheme() {
+
+        const savedTheme =
+            localStorage.getItem(
+                APP_THEME_STORAGE_KEY
+            )
+            ||
+            "theme-sage";
+
+
+        changeAppTheme(
+            savedTheme
         );
 
     }
 
-}
+
+    // =====================================================
+    // SIDEBAR HIỆN ĐẠI
+    // =====================================================
+
+    function getSidebarCurrentPage() {
+
+        return normalizeAppPageName(
+
+            window.location.hash
+
+            ||
+
+            DEFAULT_PAGE
+
+        );
+
+    }
 
 
-// =====================================
-// KHỞI ĐỘNG HỆ THỐNG
-// =====================================
+    async function navigateFromModernSidebar(
+        page
+    ) {
 
-document.addEventListener(
+        const normalizedPage =
+            normalizeAppPageName(
+                page
+            );
 
-    "DOMContentLoaded",
 
-    async function(){
+        syncAppMenuWithPage(
+            normalizedPage
+        );
+
+
+        await loadPage(
+            normalizedPage
+        );
+
+    }
+
+
+    function handleSidebarThemeChange(
+        value
+    ) {
+
+        const selectedTheme =
+            String(
+                value || ""
+            ).trim();
+
+
+        if (!selectedTheme) {
+
+            return;
+
+        }
+
 
         /*
-        Chỉ tải dữ liệu khi đã có phiên đăng nhập.
-
-        auth.js sẽ chuyển sang login.html
-        nếu người dùng chưa đăng nhập.
+        Hàm theme đúng của hệ thống là
+        changeAppTheme().
         */
 
-        if(
+        changeAppTheme(
+            selectedTheme
+        );
+
+    }
+
+
+    async function handleModernSidebarLogout() {
+
+        const logoutButton =
+            document.getElementById(
+                "sidebarLogoutButton"
+            );
+
+
+        if (logoutButton) {
+
+            logoutButton.disabled =
+                true;
+
+
+            logoutButton.textContent =
+                "Đang đăng xuất...";
+
+        }
+
+
+        try {
+
+            if (
+                typeof window.logoutSystem ===
+                "function"
+            ) {
+
+                await window.logoutSystem();
+
+
+                return;
+
+            }
+
+
+            if (
+                typeof window.logout ===
+                "function"
+            ) {
+
+                await window.logout();
+
+
+                return;
+
+            }
+
+
+            if (
+                typeof Parse !==
+                "undefined"
+
+                &&
+
+                Parse.User.current()
+            ) {
+
+                await Parse.User.logOut();
+
+            }
+
+
+            window.location.href =
+                "./login.html";
+
+        } catch (error) {
+
+            console.error(
+                "Không thể đăng xuất:",
+                error
+            );
+
+
+            showAppToast(
+
+                "Không thể đăng xuất. Vui lòng thử lại.",
+
+                "error"
+
+            );
+
+        } finally {
+
+            if (
+                logoutButton
+
+                &&
+
+                document.body.contains(
+                    logoutButton
+                )
+            ) {
+
+                logoutButton.disabled =
+                    false;
+
+
+                logoutButton.textContent =
+                    "Đăng xuất";
+
+            }
+
+        }
+
+    }
+
+
+    function updateModernSidebarUsername() {
+
+        const usernameElement =
+            document.getElementById(
+                "currentSystemUsername"
+            );
+
+
+        if (
+            !usernameElement
+
+            ||
+
+            typeof Parse ===
+            "undefined"
+        ) {
+
+            return;
+
+        }
+
+
+        const currentUser =
+            Parse.User.current();
+
+
+        if (!currentUser) {
+
+            return;
+
+        }
+
+
+        const username =
+            currentUser.getUsername?.()
+
+            ||
+
+            currentUser.get?.(
+                "username"
+            )
+
+            ||
+
+            currentUser.get?.(
+                "name"
+            )
+
+            ||
+
+            "Người dùng";
+
+
+        usernameElement.textContent =
+            String(username);
+
+    }
+
+
+    function initializeModernSidebar() {
+
+        const sidebar =
+            document.getElementById(
+                "appSidebar"
+            );
+
+
+        if (!sidebar) {
+
+            return;
+
+        }
+
+
+        if (
+            sidebar.dataset.modernSidebarReady ===
+            "true"
+        ) {
+
+            syncAppMenuWithPage(
+                getSidebarCurrentPage()
+            );
+
+
+            updateModernSidebarUsername();
+
+
+            return;
+
+        }
+
+
+        sidebar.dataset.modernSidebarReady =
+            "true";
+
+
+        /*
+        Điều hướng trang.
+        */
+
+        sidebar.addEventListener(
+
+            "click",
+
+            function(event) {
+
+                const pageButton =
+                    event.target.closest(
+                        "[data-page]"
+                    );
+
+
+                if (
+                    !pageButton
+
+                    ||
+
+                    !sidebar.contains(
+                        pageButton
+                    )
+                ) {
+
+                    return;
+
+                }
+
+
+                event.preventDefault();
+
+
+                navigateFromModernSidebar(
+                    pageButton.dataset.page
+                );
+
+            }
+
+        );
+
+
+        /*
+        Mở / đóng nhóm Hồ sơ.
+        */
+
+        const dossierToggle =
+            document.getElementById(
+                "dossierSidebarToggle"
+            );
+
+
+        if (dossierToggle) {
+
+            dossierToggle.addEventListener(
+
+                "click",
+
+                function(event) {
+
+                    event.preventDefault();
+
+
+                    event.stopPropagation();
+
+
+                    const group =
+                        document.getElementById(
+                            "dossierSidebarGroup"
+                        );
+
+
+                    const isOpen =
+                        group
+
+                            ? group.classList.contains(
+                                "is-open"
+                            )
+
+                            : document
+                                .getElementById(
+                                    "hosoMenu"
+                                )
+                                ?.classList.contains(
+                                    "is-open"
+                                );
+
+
+                    setSidebarDossierOpen(
+                        !isOpen
+                    );
+
+                }
+
+            );
+
+        }
+
+
+        /*
+        Thay đổi giao diện.
+        */
+
+        const themeSelector =
+            sidebar.querySelector(
+                "[data-sidebar-theme]"
+            )
+            ||
+            document.getElementById(
+                "appThemeSelect"
+            );
+
+
+        themeSelector?.addEventListener(
+
+            "change",
+
+            function() {
+
+                handleSidebarThemeChange(
+                    themeSelector.value
+                );
+
+            }
+
+        );
+
+
+        /*
+        Đăng xuất.
+        */
+
+        const logoutButton =
+            document.getElementById(
+                "sidebarLogoutButton"
+            );
+
+
+        logoutButton?.addEventListener(
+
+            "click",
+
+            handleModernSidebarLogout
+
+        );
+
+
+        updateModernSidebarUsername();
+
+
+        syncAppMenuWithPage(
+            getSidebarCurrentPage()
+        );
+
+    }
+
+
+    // =====================================================
+    // KHỞI ĐỘNG HỆ THỐNG
+    // =====================================================
+
+    async function initializeApplication() {
+
+        loadSavedAppTheme();
+
+
+        initializeModernSidebar();
+
+
+        /*
+        auth.js sẽ chuyển sang login.html
+        khi người dùng chưa đăng nhập.
+        */
+
+        if (
             typeof Parse !==
             "undefined"
 
             &&
 
             !Parse.User.current()
-        ){
+        ) {
 
             return;
 
         }
 
 
-        openDefaultDossierMenu();
+        const pageFromUrl =
+            normalizeAppPageName(
 
+                window.location.hash
 
-        await loadPage(
-            DEFAULT_PAGE
-        );
+                ||
 
-    }
+                DEFAULT_PAGE
 
-);
-
-
-// =====================================
-// ĐƯA HÀM RA WINDOW
-// =====================================
-
-window.loadPage =
-    loadPage;
-
-window.initializePage =
-    initializePage;
-
-window.toggleMenu =
-    toggleMenu;
-
-window.selectMenu =
-    selectMenu;
-
-// =====================================
-// CHỦ ĐỀ GIAO DIỆN
-// =====================================
-
-const APP_THEME_STORAGE_KEY =
-    "selectedAppTheme";
-
-
-const APP_THEME_CLASSES = [
-
-    "theme-ocean",
-    "theme-sage",
-    "theme-emerald",
-    "theme-violet",
-    "theme-dark"
-
-];
-
-
-// =====================================
-// ÁP DỤNG CHỦ ĐỀ
-// =====================================
-
-function changeAppTheme(themeName){
-
-    const validTheme =
-
-        APP_THEME_CLASSES.includes(
-            themeName
-        )
-
-        ? themeName
-
-        : "theme-ocean";
-
-
-    /*
-    Xóa tất cả class chủ đề cũ
-    */
-
-    APP_THEME_CLASSES.forEach(theme => {
-
-        document.body.classList.remove(
-            theme
-        );
-
-    });
-
-
-    /*
-    Thêm chủ đề mới
-    */
-
-    document.body.classList.add(
-        validTheme
-    );
-
-
-    /*
-    Lưu chủ đề vào trình duyệt
-    */
-
-    localStorage.setItem(
-
-        APP_THEME_STORAGE_KEY,
-
-        validTheme
-
-    );
-
-
-    /*
-    Đồng bộ lại ô select
-    */
-
-    const themeSelect =
-        document.getElementById(
-            "appThemeSelect"
-        );
-
-
-    if(themeSelect){
-
-        themeSelect.value =
-            validTheme;
-
-    }
-
-}
-
-
-// =====================================
-// ĐỌC CHỦ ĐỀ ĐÃ LƯU
-// =====================================
-
-function loadSavedAppTheme(){
-
-    const savedTheme =
-        localStorage.getItem(
-            APP_THEME_STORAGE_KEY
-        )
-
-        ||
-
-        "theme-ocean";
-
-
-    changeAppTheme(
-        savedTheme
-    );
-
-}
-
-
-// =====================================
-// CHẠY KHI TẢI TRANG
-// =====================================
-
-document.addEventListener(
-
-    "DOMContentLoaded",
-
-    function(){
-
-        loadSavedAppTheme();
-
-    }
-
-);
-
-
-// =====================================
-// ĐƯA HÀM RA WINDOW
-// HTML đang gọi bằng onchange
-// =====================================
-
-window.changeAppTheme =
-    changeAppTheme;
-
-// =====================================
-// TOAST THÔNG BÁO
-// =====================================
-
-function showAppToast(
-    message,
-    type = "success"
-){
-
-    let container =
-        document.querySelector(
-            ".app-toast-container"
-        );
-
-
-    if(!container){
-
-        container =
-            document.createElement(
-                "div"
             );
 
 
-        container.className =
-            "app-toast-container";
+        rememberCurrentAppPage(
+            pageFromUrl
+        );
 
 
-        document.body.appendChild(
-            container
+        await loadPage(
+            pageFromUrl
         );
 
     }
 
 
-    const toast =
-        document.createElement(
-            "div"
+    if (
+        document.readyState ===
+        "loading"
+    ) {
+
+        document.addEventListener(
+
+            "DOMContentLoaded",
+
+            initializeApplication,
+
+            {
+                once:
+                    true
+            }
+
         );
 
+    } else {
 
-    toast.className =
-
-        `app-toast app-toast-${type}`;
-
-
-    let icon =
-        "✓";
-
-
-    if(type === "error"){
-
-        icon =
-            "⚠";
+        initializeApplication();
 
     }
 
 
-    if(type === "info"){
+    // =====================================================
+    // XỬ LÝ NÚT BACK / FORWARD
+    // =====================================================
 
-        icon =
-            "🌿";
+    window.addEventListener(
 
-    }
+        "popstate",
+
+        async function() {
+
+            const pageFromUrl =
+                normalizeAppPageName(
+
+                    window.location.hash
+
+                    ||
+
+                    DEFAULT_PAGE
+
+                );
 
 
-    toast.innerHTML = `
+            if (
+                pageFromUrl ===
+                currentAppPage
+            ) {
 
-        <span class="app-toast-icon">
-            ${icon}
-        </span>
-
-        <span>
-            ${String(message)}
-        </span>
-
-    `;
+                syncAppMenuWithPage(
+                    pageFromUrl
+                );
 
 
-    container.appendChild(
-        toast
+                return;
+
+            }
+
+
+            await loadPage(
+                pageFromUrl
+            );
+
+        }
+
     );
 
 
-    setTimeout(() => {
+    window.addEventListener(
 
-        toast.classList.add(
-            "is-leaving"
-        );
+        "hashchange",
 
+        function() {
 
-        setTimeout(() => {
+            syncAppMenuWithPage(
+                getSidebarCurrentPage()
+            );
 
-            toast.remove();
+        }
 
-        }, 230);
-
-    }, 2800);
-
-}
+    );
 
 
-window.showAppToast =
-    showAppToast;
+    // =====================================================
+    // ĐƯA HÀM RA WINDOW
+    // =====================================================
+
+    window.loadPage =
+        loadPage;
+
+
+    window.initializePage =
+        initializePage;
+
+
+    window.toggleMenu =
+        toggleMenu;
+
+
+    window.selectMenu =
+        selectMenu;
+
+
+    window.openDefaultDossierMenu =
+        openDefaultDossierMenu;
+
+
+    window.syncAppMenuWithPage =
+        syncAppMenuWithPage;
+
+
+    window.syncModernSidebar =
+        syncAppMenuWithPage;
+
+
+    window.initializeModernSidebar =
+        initializeModernSidebar;
+
+
+    window.setSidebarDossierOpen =
+        setSidebarDossierOpen;
+
+
+    window.changeAppTheme =
+        changeAppTheme;
+
+
+    window.showAppToast =
+        showAppToast;
+
+})();
