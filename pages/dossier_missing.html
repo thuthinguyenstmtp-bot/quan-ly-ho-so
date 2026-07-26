@@ -1,143 +1,494 @@
 <div class="missing-page">
 
-    <h1>📌 Hồ sơ cần bổ sung</h1>
+    <!-- =====================================
+         HEADER
+         ===================================== -->
+
+    <header class="missing-page-header">
+
+        <link rel="icon" type="image/png" href="./favicon.png">
+
+        <div class="missing-page-heading">
+
+            <span class="missing-page-eyebrow">
+                QUẢN LÝ HỒ SƠ
+            </span>
+
+            <h1>
+                Hồ sơ cần bổ sung
+            </h1>
+
+            <p>
+                Theo dõi và hoàn thiện những hồ sơ còn thiếu thông tin
+            </p>
+
+        </div>
+
+    </header>
 
 
-    <!-- BỘ LỌC -->
+    <!-- =====================================
+         BANNER CHỮA LÀNH
+         ===================================== -->
 
-    <div class="missing-toolbar">
+    <section class="missing-healing-banner">
 
-        <input
-            type="text"
-            id="missingSearch"
-            class="missing-search"
-            placeholder="Tìm mã HS, dự án, nội dung, NCC..."
-            oninput="filterMissingDossier()"
+        <div
+            class="missing-healing-icon"
+            aria-hidden="true"
         >
+            🌿
+        </div>
 
 
-        <select
-            id="missingProjectFilter"
-            onchange="filterMissingDossier()"
-        >
-            <option value="">
-                Tất cả dự án
-            </option>
-        </select>
+        <div class="missing-healing-copy">
+
+            <strong>
+                Hoàn thiện từng mảnh ghép nhỏ
+            </strong>
+
+            <p>
+                Mỗi thông tin được bổ sung sẽ giúp hồ sơ
+                tiến gần hơn đến trạng thái hoàn chỉnh.
+            </p>
+
+        </div>
 
 
-        <select
-            id="missingSupplierFilter"
-            onchange="filterMissingDossier()"
-        >
-            <option value="">
-                Tất cả nhà cung cấp
-            </option>
-        </select>
+        <span
+            class="missing-healing-dot"
+            aria-hidden="true"
+        ></span>
+
+    </section>
 
 
-        <select
-            id="missingDeliveryFilter"
-            onchange="filterMissingDossier()"
-        >
-            <option value="">
-                Tất cả bàn giao
-            </option>
+    <!-- =====================================
+         BỘ LỌC
+         ===================================== -->
 
-            <option value="done">
-                Đã bàn giao
-            </option>
+    <section class="missing-filter-card">
 
-            <option value="not">
-                Chưa bàn giao
-            </option>
-        </select>
+        <div class="missing-filter-grid">
 
+            <!-- TỪ KHÓA -->
 
-        <select
-            id="missingPaymentFilter"
-            onchange="filterMissingDossier()"
-        >
-            <option value="">
-                Tất cả thanh toán
-            </option>
+            <div class="missing-filter-field missing-search-field">
 
-            <option value="Chưa thanh toán">
-                Chưa thanh toán
-            </option>
+                <label for="missingSearch">
+                    Từ khóa
+                </label>
 
-            <option value="Đã xuất ĐNTT">
-                Đã xuất ĐNTT
-            </option>
+                <input
+                    type="search"
+                    id="missingSearch"
+                    placeholder="Tìm mã HS, dự án, nội dung, nhà cung cấp..."
+                    autocomplete="off"
+                    oninput="filterMissingDossier()"
+                >
 
-            <option value="Đang xử lý">
-                Đang xử lý
-            </option>
-
-            <option value="Đã thanh toán">
-                Đã thanh toán
-            </option>
-        </select>
+            </div>
 
 
-        <button
-            type="button"
-            class="missing-reset-button"
-            onclick="resetMissingDossierFilters()"
-        >
-            Xóa lọc
-        </button>
+            <!-- DỰ ÁN -->
 
-    </div>
+            <div class="missing-filter-field">
+
+                <label>
+                    Dự án
+                </label>
 
 
-    <!-- SỐ KẾT QUẢ -->
+                <div
+                    id="missingProjectMultiFilter"
+                    class="missing-multi-filter"
+                >
 
-    <div class="missing-result-row">
+                    <button
+                        type="button"
+                        id="missingProjectFilterButton"
+                        class="missing-multi-button"
+                        aria-expanded="false"
+                        onclick="toggleMissingMultiFilter('project', event)"
+                    >
 
-        <span id="missingResultCount">
-            0 hồ sơ
-        </span>
+                        <span id="missingProjectFilterLabel">
+                            Tất cả dự án
+                        </span>
 
-    </div>
+                        <span
+                            class="missing-multi-chevron"
+                            aria-hidden="true"
+                        ></span>
 
-
-    <!-- BẢNG -->
-
-    <div class="missing-table-scroll">
-
-        <table class="data-table missing-table">
-
-            <thead>
-
-                <tr>
-
-                    <th>Mã HS</th>
-
-                    <th>Dự án</th>
-
-                    <th>Nội dung</th>
-
-                    <th>Nhà cung cấp</th>
-
-                    <th>Giá trị</th>
-
-                    <th>Bổ sung hồ sơ</th>
-
-                    <th>Bàn giao</th>
-
-                    <th>Thanh toán</th>
-
-                </tr>
-
-            </thead>
+                    </button>
 
 
-            <tbody id="missingTable">
-            </tbody>
+                    <div
+                        id="missingProjectFilterPanel"
+                        class="missing-multi-panel"
+                        hidden
+                        onclick="event.stopPropagation()"
+                    >
 
-        </table>
+                        <div class="missing-multi-search">
 
-    </div>
+                            <input
+                                type="search"
+                                id="missingProjectFilterSearch"
+                                placeholder="Tìm tên dự án..."
+                                autocomplete="off"
+                                oninput="searchMissingMultiOptions('project')"
+                            >
+
+                        </div>
+
+
+                        <div
+                            id="missingProjectFilterOptions"
+                            class="missing-multi-options"
+                        ></div>
+
+
+                        <div class="missing-multi-footer">
+
+                            <button
+                                type="button"
+                                class="missing-multi-clear"
+                                onclick="clearMissingMultiFilter('project')"
+                            >
+                                Bỏ chọn
+                            </button>
+
+
+                            <button
+                                type="button"
+                                class="missing-multi-done"
+                                onclick="closeMissingMultiFilter('project')"
+                            >
+                                Hoàn tất
+                            </button>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <select
+                    id="missingProjectFilter"
+                    multiple
+                    hidden
+                    aria-hidden="true"
+                ></select>
+
+            </div>
+
+
+            <!-- NHÀ CUNG CẤP -->
+
+            <div class="missing-filter-field">
+
+                <label>
+                    Nhà cung cấp
+                </label>
+
+
+                <div
+                    id="missingSupplierMultiFilter"
+                    class="missing-multi-filter"
+                >
+
+                    <button
+                        type="button"
+                        id="missingSupplierFilterButton"
+                        class="missing-multi-button"
+                        aria-expanded="false"
+                        onclick="toggleMissingMultiFilter('supplier', event)"
+                    >
+
+                        <span id="missingSupplierFilterLabel">
+                            Tất cả nhà cung cấp
+                        </span>
+
+                        <span
+                            class="missing-multi-chevron"
+                            aria-hidden="true"
+                        ></span>
+
+                    </button>
+
+
+                    <div
+                        id="missingSupplierFilterPanel"
+                        class="missing-multi-panel"
+                        hidden
+                        onclick="event.stopPropagation()"
+                    >
+
+                        <div class="missing-multi-search">
+
+                            <input
+                                type="search"
+                                id="missingSupplierFilterSearch"
+                                placeholder="Tìm nhà cung cấp..."
+                                autocomplete="off"
+                                oninput="searchMissingMultiOptions('supplier')"
+                            >
+
+                        </div>
+
+
+                        <div
+                            id="missingSupplierFilterOptions"
+                            class="missing-multi-options"
+                        ></div>
+
+
+                        <div class="missing-multi-footer">
+
+                            <button
+                                type="button"
+                                class="missing-multi-clear"
+                                onclick="clearMissingMultiFilter('supplier')"
+                            >
+                                Bỏ chọn
+                            </button>
+
+
+                            <button
+                                type="button"
+                                class="missing-multi-done"
+                                onclick="closeMissingMultiFilter('supplier')"
+                            >
+                                Hoàn tất
+                            </button>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <select
+                    id="missingSupplierFilter"
+                    multiple
+                    hidden
+                    aria-hidden="true"
+                ></select>
+
+            </div>
+
+
+            <!-- BÀN GIAO -->
+
+            <div class="missing-filter-field">
+
+                <label for="missingDeliveryFilter">
+                    Bàn giao
+                </label>
+
+                <select
+                    id="missingDeliveryFilter"
+                    onchange="filterMissingDossier()"
+                >
+
+                    <option value="">
+                        Tất cả bàn giao
+                    </option>
+
+                    <option value="done">
+                        Đã bàn giao
+                    </option>
+
+                    <option value="not">
+                        Chưa bàn giao
+                    </option>
+
+                </select>
+
+            </div>
+
+
+            <!-- THANH TOÁN -->
+
+            <div class="missing-filter-field">
+
+                <label for="missingPaymentFilter">
+                    Thanh toán
+                </label>
+
+                <select
+                    id="missingPaymentFilter"
+                    onchange="filterMissingDossier()"
+                >
+
+                    <option value="">
+                        Tất cả thanh toán
+                    </option>
+
+                    <option value="Chưa thanh toán">
+                        Chưa thanh toán
+                    </option>
+
+                    <option value="Đã thanh toán">
+                        Đã thanh toán
+                    </option>
+
+                </select>
+
+            </div>
+
+
+            <!-- SẮP XẾP -->
+
+            <div class="missing-filter-field">
+
+                <label for="missingSort">
+                    Sắp xếp
+                </label>
+
+                <select
+                    id="missingSort"
+                    onchange="filterMissingDossier()"
+                >
+
+                    <option value="project-az">
+                        Dự án: A → Z
+                    </option>
+
+                    <option value="project-za">
+                        Dự án: Z → A
+                    </option>
+
+                    <option value="newest">
+                        Hồ sơ mới nhất
+                    </option>
+
+                    <option value="oldest">
+                        Hồ sơ cũ nhất
+                    </option>
+
+                </select>
+
+            </div>
+
+
+            <!-- ĐẶT LẠI -->
+
+            <div class="missing-filter-action">
+
+                <button
+                    type="button"
+                    class="missing-reset-button"
+                    onclick="resetMissingDossierFilters()"
+                >
+                    Đặt lại
+                </button>
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <!-- =====================================
+         DANH SÁCH HỒ SƠ
+         ===================================== -->
+
+    <section class="missing-table-card">
+
+        <div class="missing-table-meta">
+
+            <span
+                id="missingResultCount"
+                class="missing-result-count"
+            >
+                0 hồ sơ
+            </span>
+
+        </div>
+
+
+        <div class="missing-table-scroll">
+
+            <table class="missing-table">
+
+                <colgroup>
+                    <col style="width: 10%;">
+                    <col style="width: 16%;">
+                    <col style="width: 19%;">
+                    <col style="width: 17%;">
+                    <col style="width: 10%;">
+                    <col style="width: 14%;">
+                    <col style="width: 7%;">
+                    <col style="width: 7%;">
+                </colgroup>
+
+
+                <thead>
+
+                    <tr>
+
+                        <th>
+                            Mã HS
+                        </th>
+
+                        <th>
+                            Dự án
+                        </th>
+
+                        <th>
+                            Nội dung
+                        </th>
+
+                        <th>
+                            Nhà cung cấp
+                        </th>
+
+                        <th>
+                            Giá trị
+                        </th>
+
+                        <th>
+                            Bổ sung hồ sơ
+                        </th>
+
+                        <th>
+                            Bàn giao
+                        </th>
+
+                        <th>
+                            Thanh toán
+                        </th>
+
+                    </tr>
+
+                </thead>
+
+
+                <tbody id="missingTable">
+
+                    <tr>
+
+                        <td
+                            colspan="8"
+                            class="missing-loading-cell"
+                        >
+                            Đang tải hồ sơ cần bổ sung...
+                        </td>
+
+                    </tr>
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </section>
 
 </div>
