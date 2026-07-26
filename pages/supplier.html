@@ -1,74 +1,749 @@
-<h1>Thông tin Nhà cung cấp</h1>
-<div class="toolbar">
+<div class="supplier-page">
+
+    <!-- =================================
+         HEADER TRANG
+         ================================= -->
+
+    <div class="supplier-page-header">
+
+        <div class="supplier-page-heading">
+
+            <span class="supplier-page-eyebrow">
+                QUẢN LÝ DANH MỤC
+            </span>
+
+            <h1>
+                Thông tin Nhà cung cấp
+            </h1>
+
+            <p>
+                Quản lý thông tin liên hệ và địa chỉ của các nhà cung cấp
+            </p>
+
+        </div>
 
 
-<input
+        <div class="supplier-page-actions">
 
-type="text"
+            <button
+                type="button"
+                class="supplier-refresh-button"
+                onclick="loadSupplier()"
+                title="Tải lại dữ liệu mới nhất"
+            >
+                <span>↻</span>
 
-id="searchSupplier"
+                Làm mới
+            </button>
 
-placeholder="Tìm tên nhà cung cấp...">
+
+            <button
+                type="button"
+                class="supplier-add-button"
+                onclick="openSupplierForm()"
+            >
+                <span>＋</span>
+
+                Thêm nhà cung cấp
+            </button>
+
+        </div>
+
+    </div>
 
 
-<button onclick="openSupplierForm()">
-+ Thêm NCC
+    <!-- =================================
+         BANNER
+         ================================= -->
 
-</button>
+    <div class="supplier-healing-banner">
 
+        <div class="supplier-healing-icon">
+            🌿
+        </div>
+
+
+        <div class="supplier-healing-content">
+
+            <strong>
+                Thông tin đầy đủ, phối hợp thuận tiện hơn
+            </strong>
+
+            <span>
+                Cập nhật chính xác địa chỉ và người nhận để hồ sơ, thư từ được liên kết đúng.
+            </span>
+
+        </div>
+
+    </div>
+
+
+    <!-- =================================
+         CARD THỐNG KÊ
+         ================================= -->
+
+    <div class="supplier-summary">
+
+        <div
+            class="
+                supplier-summary-card
+                supplier-summary-total
+            "
+        >
+
+            <div class="supplier-summary-icon">
+                🏢
+            </div>
+
+
+            <div class="supplier-summary-content">
+
+                <span>
+                    Tổng nhà cung cấp
+                </span>
+
+                <strong id="totalSupplierCount">
+                    0
+                </strong>
+
+            </div>
+
+        </div>
+
+
+        <div
+            class="
+                supplier-summary-card
+                supplier-summary-address
+            "
+        >
+
+            <div class="supplier-summary-icon">
+                📍
+            </div>
+
+
+            <div class="supplier-summary-content">
+
+                <span>
+                    Có địa chỉ
+                </span>
+
+                <strong id="supplierWithAddressCount">
+                    0
+                </strong>
+
+            </div>
+
+        </div>
+
+
+        <div
+            class="
+                supplier-summary-card
+                supplier-summary-phone
+            "
+        >
+
+            <div class="supplier-summary-icon">
+                ☎️
+            </div>
+
+
+            <div class="supplier-summary-content">
+
+                <span>
+                    Có số điện thoại
+                </span>
+
+                <strong id="supplierWithPhoneCount">
+                    0
+                </strong>
+
+            </div>
+
+        </div>
+
+        <div
+    class="
+        supplier-summary-card
+        supplier-summary-incomplete
+    "
+>
+
+    <div class="supplier-summary-icon">
+        ⚠️
+    </div>
+
+    <div class="supplier-summary-content">
+
+        <span>
+            Thiếu thông tin
+        </span>
+
+        <strong id="supplierIncompleteCount">
+            0
+        </strong>
+
+    </div>
 
 </div>
 
-<div id="supplierForm" class="form-popup">
 
-    <h2>Thêm Nhà cung cấp</h2>
 
-    <label>Tên NCC</label>
-    <input id="supplierName">
+    </div>
 
-    <label>Địa chỉ</label>
-    <input id="supplierAddress">
+<!-- =================================
+     TÌM KIẾM VÀ BỘ LỌC
+     ================================= -->
 
-    <label>Người nhận thư</label>
-    <input id="supplierReceiver">
+<div class="supplier-toolbar">
 
-    <label>Số điện thoại</label>
-    <input id="supplierPhone">
+    <div class="supplier-search-box">
 
-    <br>
+        <span class="supplier-search-icon">
+            🔎
+        </span>
 
-    <button onclick="saveSupplier()">
-        Lưu
-    </button>
+        <input
+            type="text"
+            id="searchSupplier"
+            placeholder="Tìm theo tên, địa chỉ, người nhận hoặc số điện thoại..."
+            autocomplete="off"
+        >
 
-    <button onclick="closeSupplierForm()">
-        Hủy
-    </button>
+    </div>
+
+
+    <select
+        id="supplierStatusFilter"
+        class="supplier-status-filter"
+        aria-label="Lọc Nhà cung cấp theo trạng thái"
+    >
+
+        <option value="all">
+            Tất cả Nhà cung cấp
+        </option>
+
+        <option value="complete">
+            Đầy đủ thông tin
+        </option>
+
+        <option value="incomplete">
+            Thiếu thông tin
+        </option>
+
+        <option value="missing-name">
+            Thiếu tên
+        </option>
+
+        <option value="missing-address">
+            Thiếu địa chỉ
+        </option>
+
+        <option value="missing-receiver">
+            Thiếu người nhận
+        </option>
+
+        <option value="missing-phone">
+            Thiếu số điện thoại
+        </option>
+
+    </select>
+
+
+    <div class="supplier-toolbar-note">
+
+        <span class="supplier-sync-dot"></span>
+
+        Dữ liệu được đồng bộ từ Back4App
+
+    </div>
 
 </div>
 
-<table>
 
-<thead>
+    <!-- =================================
+         BẢNG NHÀ CUNG CẤP
+         ================================= -->
 
-<tr>
+    <div class="supplier-table-card">
 
-<th>Tên NCC</th>
+        <div class="supplier-table-title">
 
-<th>Địa chỉ</th>
+            <div>
 
-<th>Người nhận</th>
+                <strong>
+                    Danh sách nhà cung cấp
+                </strong>
 
-<th>SĐT</th>
+                <span>
+                    Các nhà cung cấp đang được sử dụng trong hệ thống hồ sơ
+                </span>
 
-<th>Thao tác</th>
+            </div>
 
-</tr>
+        </div>
+
+
+        <div class="supplier-table-scroll">
+
+            <table class="supplier-table">
+
+                <thead>
+
+    <tr>
+
+        <th class="supplier-col-name">
+
+            <button
+                type="button"
+                class="supplier-sort-button"
+                onclick="sortSuppliersBy('ten')"
+            >
+
+                Tên nhà cung cấp
+
+                <span id="supplierSortTen">
+                    ↑
+                </span>
+
+            </button>
+
+        </th>
+
+
+        <th class="supplier-col-address">
+
+            <button
+                type="button"
+                class="supplier-sort-button"
+                onclick="sortSuppliersBy('diachi')"
+            >
+
+                Địa chỉ
+
+                <span id="supplierSortAddress">
+                    ↕
+                </span>
+
+            </button>
+
+        </th>
+
+
+        <th class="supplier-col-receiver">
+
+            <button
+                type="button"
+                class="supplier-sort-button"
+                onclick="sortSuppliersBy('nguoinhan')"
+            >
+
+                Người nhận thư
+
+                <span id="supplierSortReceiver">
+                    ↕
+                </span>
+
+            </button>
+
+        </th>
+
+
+        <th class="supplier-col-phone">
+
+            <button
+                type="button"
+                class="supplier-sort-button"
+                onclick="sortSuppliersBy('sdt')"
+            >
+
+                Số điện thoại
+
+                <span id="supplierSortPhone">
+                    ↕
+                </span>
+
+            </button>
+
+        </th>
+
+
+        <th class="supplier-col-action">
+            Thao tác
+        </th>
+
+    </tr>
 
 </thead>
 
-<tbody id="supplierTable">
 
-</tbody>
+                <tbody id="supplierTable">
 
-</table>
+                    <tr>
+
+                        <td
+                            colspan="5"
+                            class="supplier-loading-cell"
+                        >
+                            Đang tải dữ liệu nhà cung cấp...
+                        </td>
+
+                    </tr>
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+        <!-- =================================
+     PHÂN TRANG
+     ================================= -->
+
+<div class="supplier-pagination">
+
+    <div
+        id="supplierPaginationInfo"
+        class="supplier-pagination-info"
+    >
+        Hiển thị 0–0 trên 0 Nhà cung cấp
+    </div>
+
+
+    <div class="supplier-pagination-controls">
+
+        <label
+            class="supplier-page-size-label"
+            for="supplierPageSize"
+        >
+            Số dòng
+        </label>
+
+
+        <select
+            id="supplierPageSize"
+            class="supplier-page-size-select"
+        >
+
+            <option value="10">
+                10
+            </option>
+
+            <option
+                value="20"
+                selected
+            >
+                20
+            </option>
+
+            <option value="50">
+                50
+            </option>
+
+            <option value="100">
+                100
+            </option>
+
+        </select>
+
+
+        <button
+            type="button"
+            id="supplierPrevPage"
+            class="supplier-page-button"
+            onclick="changeSupplierPage(-1)"
+        >
+            ‹ Trước
+        </button>
+
+
+        <div
+            id="supplierPageNumbers"
+            class="supplier-page-numbers"
+        ></div>
+
+
+        <button
+            type="button"
+            id="supplierNextPage"
+            class="supplier-page-button"
+            onclick="changeSupplierPage(1)"
+        >
+            Sau ›
+        </button>
+
+    </div>
+
+</div>
+
+    </div>
+
+
+    <!-- =================================
+         POPUP THÊM / CHỈNH SỬA
+         ================================= -->
+
+    <div
+        id="supplierForm"
+        class="supplier-modal-overlay"
+        aria-hidden="true"
+        onclick="
+            if(event.target === this){
+                closeSupplierForm();
+            }
+        "
+    >
+
+        <div class="supplier-form-popup">
+
+            <!-- HEADER FORM -->
+
+            <div class="supplier-form-header">
+
+                <div>
+
+                    <span class="supplier-form-eyebrow">
+                        THÔNG TIN NHÀ CUNG CẤP
+                    </span>
+
+                    <h2 id="supplierFormTitle">
+                        Thêm nhà cung cấp
+                    </h2>
+
+                </div>
+
+
+                <button
+                    type="button"
+                    class="supplier-form-close"
+                    onclick="closeSupplierForm()"
+                    aria-label="Đóng form"
+                    title="Đóng"
+                >
+                    ×
+                </button>
+
+            </div>
+
+
+            <!-- BODY FORM -->
+
+            <div class="supplier-form-body">
+
+                <div class="supplier-form-intro">
+
+                    <span>
+                        🌱
+                    </span>
+
+                    <p>
+                        Nhập thông tin chính xác để thuận tiện khi tạo hồ sơ và gửi thư.
+                    </p>
+
+                </div>
+
+
+                <div class="supplier-form-grid">
+
+                    <div
+                        class="
+                            supplier-form-group
+                            supplier-form-full
+                        "
+                    >
+
+                        <label for="supplierName">
+
+                            Tên nhà cung cấp
+
+                            <span class="supplier-required">
+                                *
+                            </span>
+
+                        </label>
+
+                        <input
+                            type="text"
+                            id="supplierName"
+                            placeholder="Ví dụ: Công ty TNHH ABC"
+                            maxlength="250"
+                            autocomplete="off"
+                        >
+
+                        <small>
+                            Tên này sẽ được hiển thị trong danh sách hồ sơ.
+                        </small>
+
+                    </div>
+
+
+                    <div
+                        class="
+                            supplier-form-group
+                            supplier-form-full
+                        "
+                    >
+
+                        <label for="supplierAddress">
+                            Địa chỉ
+                        </label>
+
+                        <input
+                            type="text"
+                            id="supplierAddress"
+                            placeholder="Ví dụ: Quận 7, TP. Hồ Chí Minh"
+                            maxlength="400"
+                            autocomplete="off"
+                        >
+
+                    </div>
+
+
+                    <div class="supplier-form-group">
+
+                        <label for="supplierReceiver">
+                            Người nhận thư
+                        </label>
+
+                        <input
+                            type="text"
+                            id="supplierReceiver"
+                            placeholder="Nhập tên người nhận"
+                            maxlength="200"
+                            autocomplete="off"
+                        >
+
+                    </div>
+
+
+                    <div class="supplier-form-group">
+
+                        <label for="supplierPhone">
+                            Số điện thoại
+                        </label>
+
+                        <input
+                            type="tel"
+                            id="supplierPhone"
+                            placeholder="Ví dụ: 0901 234 567"
+                            maxlength="30"
+                            autocomplete="off"
+                        >
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- FOOTER FORM -->
+
+            <div class="supplier-form-actions">
+
+                <button
+                    type="button"
+                    class="supplier-cancel-button"
+                    onclick="closeSupplierForm()"
+                >
+                    Hủy
+                </button>
+
+
+                <button
+                    type="button"
+                    id="supplierSaveButton"
+                    class="supplier-save-button"
+                    onclick="saveSupplier()"
+                >
+                    Lưu nhà cung cấp
+                </button>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- =================================
+         POPUP XÁC NHẬN XÓA
+         ================================= -->
+
+    <div
+        id="supplierDeleteConfirm"
+        class="supplier-confirm-overlay"
+        aria-hidden="true"
+        onclick="
+            if(event.target === this){
+                closeSupplierDeleteConfirm(false);
+            }
+        "
+    >
+
+        <div
+            class="supplier-confirm-box"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="supplierDeleteConfirmTitle"
+        >
+
+            <div class="supplier-confirm-icon">
+                🗑️
+            </div>
+
+
+            <h3 id="supplierDeleteConfirmTitle">
+                Xóa nhà cung cấp?
+            </h3>
+
+
+            <p id="supplierDeleteConfirmMessage">
+                Bạn có chắc chắn muốn xóa nhà cung cấp này?
+            </p>
+
+
+            <div class="supplier-confirm-warning">
+
+                <span>
+                    ⚠
+                </span>
+
+                Thao tác này không thể hoàn tác.
+
+            </div>
+
+
+            <div class="supplier-confirm-actions">
+
+                <button
+                    type="button"
+                    class="supplier-confirm-cancel"
+                    onclick="
+                        closeSupplierDeleteConfirm(false)
+                    "
+                >
+                    Hủy
+                </button>
+
+
+                <button
+                    type="button"
+                    id="supplierDeleteConfirmButton"
+                    class="supplier-confirm-delete"
+                    onclick="
+                        closeSupplierDeleteConfirm(true)
+                    "
+                >
+                    Xóa nhà cung cấp
+                </button>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
