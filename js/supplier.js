@@ -1,17 +1,29 @@
 // =====================================
 // SUPPLIER.JS
 // Quản lý Nhà cung cấp bằng Back4App
+// Đồng bộ với giao diện Trang Dự án
 // =====================================
 
 const SUPPLIER_CLASS_NAME =
     "Supplier";
 
-const SUPPLIER_MIGRATION_KEY =
-    "supplierBack4AppMigrationV1";
+const SUPPLIER_DOSSIER_CLASS_NAME =
+    "Dossier";
+
+const SUPPLIER_LETTER_CLASS_NAME =
+    "Letter";
+
+const SUPPLIER_ARCHIVE_CLASS_NAME =
+    "ArchiveDossier";
+
+const SUPPLIER_STORAGE_KEY =
+    "suppliers";
 
 
 let suppliers =
-    getStorageArray("suppliers");
+    getSupplierStorageArray(
+        SUPPLIER_STORAGE_KEY
+    );
 
 let editingSupplierId =
     null;
@@ -22,9 +34,34 @@ let supplierDataLoaded =
 let supplierLoadingPromise =
     null;
 
-let supplierMigrationPromise =
+let supplierDeleteConfirmResolver =
     null;
 
+let supplierDeleteInProgress =
+    false;
+
+    // =====================================
+// TRẠNG THÁI TÌM KIẾM / PHÂN TRANG
+// =====================================
+
+let supplierCurrentPage =
+    1;
+
+
+let supplierPageSize =
+    20;
+
+
+let supplierStatusFilter =
+    "all";
+
+
+let supplierSortField =
+    "ten";
+
+
+let supplierSortDirection =
+    "asc";
 
 // =====================================
 // HÀM HỖ TRỢ
@@ -42,10 +79,13 @@ function getSupplierInputValue(id){
     const element =
         getSupplierElement(id);
 
+
     return element
+
         ? String(
             element.value || ""
         ).trim()
+
         : "";
 
 }
@@ -58,6 +98,7 @@ function setSupplierInputValue(
 
     const element =
         getSupplierElement(id);
+
 
     if(element){
 
@@ -72,6 +113,11 @@ function setSupplierInputValue(
 function normalizeSupplierText(value){
 
     return String(value || "")
+
+        .replace(
+            /[đĐ]/g,
+            "d"
+        )
 
         .normalize("NFD")
 
@@ -110,12 +156,13 @@ function escapeSupplierHtml(value){
 }
 
 
-function getStorageArray(key){
+function getSupplierStorageArray(key){
 
     try{
 
         const rawData =
             localStorage.getItem(key);
+
 
         if(!rawData){
 
@@ -128,8 +175,12 @@ function getStorageArray(key){
             JSON.parse(rawData);
 
 
-        return Array.isArray(parsedData)
+        return Array.isArray(
+            parsedData
+        )
+
             ? parsedData
+
             : [];
 
     }catch(error){
@@ -139,7 +190,37 @@ function getStorageArray(key){
             error
         );
 
+
         return [];
+
+    }
+
+}
+
+
+function saveSuppliersToStorage(){
+
+    try{
+
+        localStorage.setItem(
+
+            SUPPLIER_STORAGE_KEY,
+
+            JSON.stringify(
+                suppliers
+            )
+
+        );
+
+    }catch(error){
+
+        console.error(
+
+            "Không cập nhật được cache Nhà cung cấp:",
+
+            error
+
+        );
 
     }
 
@@ -153,8 +234,11 @@ function getCurrentSupplierKeyword(){
             "searchSupplier"
         );
 
+
     return searchInput
+
         ? searchInput.value
+
         : "";
 
 }
@@ -162,7 +246,10 @@ function getCurrentSupplierKeyword(){
 
 function ensureSupplierBack4AppReady(){
 
-    if(typeof Parse === "undefined"){
+    if(
+        typeof Parse ===
+        "undefined"
+    ){
 
         throw new Error(
             "Parse SDK chưa được tải."
@@ -183,10 +270,56 @@ function ensureSupplierBack4AppReady(){
     }
 
 
-    if(!Parse.User.current()){
+    if(
+        !Parse.User.current()
+    ){
 
         throw new Error(
-            "Phiên đăng nhập không còn hiệu lực. Vui lòng đăng nhập lại."
+            "Phiên đăng nhập không còn hiệu lực."
+        );
+
+    }
+
+}
+
+
+function showSupplierMessage(
+    message,
+    type = "success"
+){
+
+    if(
+        typeof window.showAppToast ===
+        "function"
+    ){
+
+        window.showAppToast(
+            message,
+            type
+        );
+
+
+        return;
+
+    }
+
+
+    if(type === "error"){
+
+        console.error(
+            message
+        );
+
+    }else if(type === "info"){
+
+        console.info(
+            message
+        );
+
+    }else{
+
+        console.log(
+            message
         );
 
     }
@@ -204,17 +337,12 @@ function setSupplierTableMessage(
             "supplierTable"
         );
 
+
     if(!table){
 
         return;
 
     }
-
-
-    const textColor =
-        isError
-        ? "#dc2626"
-        : "#6b7280";
 
 
     table.innerHTML = `
@@ -223,13 +351,20 @@ function setSupplierTableMessage(
 
             <td
                 colspan="5"
+                class="supplier-loading-cell"
                 style="
                     text-align:center;
-                    padding:25px;
-                    color:${textColor};
+                    padding:28px;
+                    color:${
+                        isError
+                            ? "#dc2626"
+                            : "#6b7280"
+                    };
                 "
             >
-                ${escapeSupplierHtml(message)}
+                ${escapeSupplierHtml(
+                    message
+                )}
             </td>
 
         </tr>
@@ -249,6 +384,7 @@ function setSupplierSaveBusy(
             "supplierSaveButton"
         );
 
+
     if(!button){
 
         return;
@@ -261,6 +397,7 @@ function setSupplierSaveBusy(
 
 
     button.textContent =
+
         isBusy
 
         ? "Đang lưu..."
@@ -268,35 +405,1136 @@ function setSupplierSaveBusy(
         : (
             isEditing
 
-            ? "Cập nhật Nhà cung cấp"
+            ? "Cập nhật nhà cung cấp"
 
-            : "Lưu Nhà cung cấp"
+            : "Lưu nhà cung cấp"
         );
 
 }
 
 
+function getSupplierValidIds(
+    supplier
+){
+
+    return [
+
+        supplier?.id,
+
+        supplier?.legacyId,
+
+        supplier?.back4appId
+
+    ]
+
+    .filter(Boolean)
+
+    .map(value =>
+        String(value)
+    );
+
+}
+
+
+function findLocalSupplierByAnyId(id){
+
+    const targetId =
+        String(id || "");
+
+
+    return suppliers.find(supplier =>
+
+        getSupplierValidIds(
+            supplier
+        )
+
+        .includes(
+            targetId
+        )
+
+    ) || null;
+
+}
+
 // =====================================
-// CACHE TẠM CHO CÁC MODULE CHƯA MIGRATE
+// KIỂM TRA DỮ LIỆU NHÀ CUNG CẤP
 // =====================================
 
-function saveSuppliersToStorage(){
+function hasSupplierValue(value){
 
-    try{
+    return Boolean(
 
-        localStorage.setItem(
+        String(
+            value || ""
+        ).trim()
 
-            "suppliers",
+    );
 
-            JSON.stringify(suppliers)
+}
+
+
+function isSupplierComplete(
+    supplier
+){
+
+    return (
+
+        hasSupplierValue(
+            supplier?.ten
+        )
+
+        &&
+
+        hasSupplierValue(
+            supplier?.diachi
+        )
+
+        &&
+
+        hasSupplierValue(
+            supplier?.nguoinhan
+        )
+
+        &&
+
+        hasSupplierValue(
+            supplier?.sdt
+        )
+
+    );
+
+}
+
+
+function supplierMatchesStatus(
+    supplier,
+    status
+){
+
+    switch(status){
+
+        case "complete":
+
+            return isSupplierComplete(
+                supplier
+            );
+
+
+        case "incomplete":
+
+            return !isSupplierComplete(
+                supplier
+            );
+
+
+        case "missing-name":
+
+            return !hasSupplierValue(
+                supplier?.ten
+            );
+
+
+        case "missing-address":
+
+            return !hasSupplierValue(
+                supplier?.diachi
+            );
+
+
+        case "missing-receiver":
+
+            return !hasSupplierValue(
+                supplier?.nguoinhan
+            );
+
+
+        case "missing-phone":
+
+            return !hasSupplierValue(
+                supplier?.sdt
+            );
+
+
+        case "all":
+
+        default:
+
+            return true;
+
+    }
+
+}
+
+// =====================================
+// ĐỊNH DẠNG SỐ ĐIỆN THOẠI
+// =====================================
+
+function getSupplierPhoneDigits(value){
+
+    return String(value || "")
+
+        .replace(
+            /\D/g,
+            ""
+        );
+
+}
+
+
+function formatSupplierPhone(value){
+
+    let digits =
+        getSupplierPhoneDigits(
+            value
+        );
+
+
+    /*
+    Một số dữ liệu cũ bị thiếu số 0 đầu.
+    Chỉ bổ sung khi có đúng 9 chữ số.
+    */
+
+    if(
+        digits.length ===
+        9
+    ){
+
+        digits =
+            `0${digits}`;
+
+    }
+
+
+    if(
+        digits.length ===
+        10
+    ){
+
+        return `
+
+            ${digits.slice(0, 4)}
+
+            ${digits.slice(4, 7)}
+
+            ${digits.slice(7, 10)}
+
+        `
+
+        .replace(
+            /\s+/g,
+            " "
+        )
+
+        .trim();
+
+    }
+
+
+    return String(
+        value || ""
+    ).trim();
+
+}
+// =====================================
+// LỌC VÀ SẮP XẾP DANH SÁCH
+// =====================================
+
+function getFilteredSortedSuppliers(
+    keyword = ""
+){
+
+    const normalizedKeyword =
+        normalizeSupplierText(
+            keyword
+        );
+
+
+    const filteredSuppliers =
+        suppliers.filter(item => {
+
+            const searchText = `
+
+                ${item.ten || ""}
+
+                ${item.diachi || ""}
+
+                ${item.nguoinhan || ""}
+
+                ${item.sdt || ""}
+
+            `;
+
+
+            const matchesKeyword =
+                normalizeSupplierText(
+                    searchText
+                )
+
+                .includes(
+                    normalizedKeyword
+                );
+
+
+            const matchesStatus =
+                supplierMatchesStatus(
+
+                    item,
+
+                    supplierStatusFilter
+
+                );
+
+
+            return (
+
+                matchesKeyword
+
+                &&
+
+                matchesStatus
+
+            );
+
+        });
+
+
+    const sortedSuppliers =
+        [...filteredSuppliers];
+
+
+    sortedSuppliers.sort(
+        function(a, b){
+
+            const valueA =
+                String(
+
+                    a?.[
+                        supplierSortField
+                    ]
+
+                    ||
+
+                    ""
+
+                );
+
+
+            const valueB =
+                String(
+
+                    b?.[
+                        supplierSortField
+                    ]
+
+                    ||
+
+                    ""
+
+                );
+
+
+            const comparison =
+                valueA.localeCompare(
+
+                    valueB,
+
+                    "vi",
+
+                    {
+
+                        sensitivity:
+                            "base",
+
+                        numeric:
+                            true
+
+                    }
+
+                );
+
+
+            return (
+
+                supplierSortDirection ===
+                "asc"
+
+                ? comparison
+
+                : -comparison
+
+            );
+
+        }
+    );
+
+
+    return sortedSuppliers;
+
+}
+// =====================================
+// ICON SẮP XẾP
+// =====================================
+
+function updateSupplierSortIcons(){
+
+    const iconMap = {
+
+        ten:
+            "supplierSortTen",
+
+        diachi:
+            "supplierSortAddress",
+
+        nguoinhan:
+            "supplierSortReceiver",
+
+        sdt:
+            "supplierSortPhone"
+
+    };
+
+
+    Object.values(
+        iconMap
+    )
+
+    .forEach(elementId => {
+
+        const icon =
+            getSupplierElement(
+                elementId
+            );
+
+
+        if(icon){
+
+            icon.textContent =
+                "↕";
+
+        }
+
+    });
+
+
+    const activeIcon =
+        getSupplierElement(
+
+            iconMap[
+                supplierSortField
+            ]
 
         );
 
-    }catch(error){
 
-        console.error(
-            "Không cập nhật được cache Nhà cung cấp:",
-            error
+    if(activeIcon){
+
+        activeIcon.textContent =
+
+            supplierSortDirection ===
+            "asc"
+
+            ? "↑"
+
+            : "↓";
+
+    }
+
+}
+
+
+function sortSuppliersBy(field){
+
+    const allowedFields =
+        new Set([
+
+            "ten",
+
+            "diachi",
+
+            "nguoinhan",
+
+            "sdt"
+
+        ]);
+
+
+    if(
+        !allowedFields.has(
+            field
+        )
+    ){
+
+        return;
+
+    }
+
+
+    if(
+        supplierSortField ===
+        field
+    ){
+
+        supplierSortDirection =
+
+            supplierSortDirection ===
+            "asc"
+
+            ? "desc"
+
+            : "asc";
+
+    }else{
+
+        supplierSortField =
+            field;
+
+
+        supplierSortDirection =
+            "asc";
+
+    }
+
+
+    supplierCurrentPage =
+        1;
+
+
+    renderSupplier(
+        getCurrentSupplierKeyword()
+    );
+
+}
+// =====================================
+// PHÂN TRANG
+// =====================================
+
+function getSupplierTotalPages(
+    totalItems
+){
+
+    return Math.max(
+
+        1,
+
+        Math.ceil(
+
+            totalItems
+
+            /
+
+            supplierPageSize
+
+        )
+
+    );
+
+}
+
+
+function goToSupplierPage(page){
+
+    const filteredSuppliers =
+        getFilteredSortedSuppliers(
+            getCurrentSupplierKeyword()
+        );
+
+
+    const totalPages =
+        getSupplierTotalPages(
+            filteredSuppliers.length
+        );
+
+
+    const normalizedPage =
+        Math.min(
+
+            Math.max(
+                1,
+                Number(page) || 1
+            ),
+
+            totalPages
+
+        );
+
+
+    supplierCurrentPage =
+        normalizedPage;
+
+
+    renderSupplier(
+        getCurrentSupplierKeyword()
+    );
+
+}
+
+
+function changeSupplierPage(
+    difference
+){
+
+    goToSupplierPage(
+
+        supplierCurrentPage
+
+        +
+
+        Number(difference || 0)
+
+    );
+
+}
+
+
+function changeSupplierPageSize(value){
+
+    const parsedValue =
+        Number(value);
+
+
+    const allowedSizes =
+        new Set([
+
+            10,
+
+            20,
+
+            50,
+
+            100
+
+        ]);
+
+
+    supplierPageSize =
+
+        allowedSizes.has(
+            parsedValue
+        )
+
+        ? parsedValue
+
+        : 20;
+
+
+    supplierCurrentPage =
+        1;
+
+
+    renderSupplier(
+        getCurrentSupplierKeyword()
+    );
+
+}
+
+
+function changeSupplierStatusFilter(
+    value
+){
+
+    const allowedFilters =
+        new Set([
+
+            "all",
+
+            "complete",
+
+            "incomplete",
+
+            "missing-name",
+
+            "missing-address",
+
+            "missing-receiver",
+
+            "missing-phone"
+
+        ]);
+
+
+    supplierStatusFilter =
+
+        allowedFilters.has(
+            value
+        )
+
+        ? value
+
+        : "all";
+
+
+    supplierCurrentPage =
+        1;
+
+
+    renderSupplier(
+        getCurrentSupplierKeyword()
+    );
+
+}
+function getSupplierPageButtonList(
+    totalPages,
+    currentPage
+){
+
+    if(totalPages <= 7){
+
+        return Array.from(
+
+            {
+                length:
+                    totalPages
+            },
+
+            (
+                value,
+                index
+            ) =>
+
+                index + 1
+
+        );
+
+    }
+
+
+    const pages =
+        [1];
+
+
+    const startPage =
+        Math.max(
+            2,
+            currentPage - 1
+        );
+
+
+    const endPage =
+        Math.min(
+
+            totalPages - 1,
+
+            currentPage + 1
+
+        );
+
+
+    if(startPage > 2){
+
+        pages.push(
+            "..."
+        );
+
+    }
+
+
+    for(
+        let page = startPage;
+        page <= endPage;
+        page += 1
+    ){
+
+        pages.push(
+            page
+        );
+
+    }
+
+
+    if(
+        endPage <
+        totalPages - 1
+    ){
+
+        pages.push(
+            "..."
+        );
+
+    }
+
+
+    pages.push(
+        totalPages
+    );
+
+
+    return pages;
+
+}
+
+
+function renderSupplierPagination(
+    totalItems
+){
+
+    const info =
+        getSupplierElement(
+            "supplierPaginationInfo"
+        );
+
+
+    const prevButton =
+        getSupplierElement(
+            "supplierPrevPage"
+        );
+
+
+    const nextButton =
+        getSupplierElement(
+            "supplierNextPage"
+        );
+
+
+    const pageNumbers =
+        getSupplierElement(
+            "supplierPageNumbers"
+        );
+
+
+    const pageSizeSelect =
+        getSupplierElement(
+            "supplierPageSize"
+        );
+
+
+    const totalPages =
+        getSupplierTotalPages(
+            totalItems
+        );
+
+
+    supplierCurrentPage =
+        Math.min(
+
+            Math.max(
+                1,
+                supplierCurrentPage
+            ),
+
+            totalPages
+
+        );
+
+
+    const startItem =
+
+        totalItems === 0
+
+        ? 0
+
+        : (
+            (
+                supplierCurrentPage - 1
+            )
+
+            *
+
+            supplierPageSize
+
+            +
+
+            1
+        );
+
+
+    const endItem =
+        Math.min(
+
+            supplierCurrentPage
+
+            *
+
+            supplierPageSize,
+
+            totalItems
+
+        );
+
+
+    if(info){
+
+        info.textContent =
+
+            `Hiển thị ${startItem}–${endItem} trên ${totalItems} Nhà cung cấp`;
+
+    }
+
+
+    if(prevButton){
+
+        prevButton.disabled =
+
+            supplierCurrentPage <=
+            1;
+
+    }
+
+
+    if(nextButton){
+
+        nextButton.disabled =
+
+            supplierCurrentPage >=
+            totalPages;
+
+    }
+
+
+    if(pageSizeSelect){
+
+        pageSizeSelect.value =
+            String(
+                supplierPageSize
+            );
+
+    }
+
+
+    if(!pageNumbers){
+
+        return;
+
+    }
+
+
+    const pageList =
+        getSupplierPageButtonList(
+
+            totalPages,
+
+            supplierCurrentPage
+
+        );
+
+
+    pageNumbers.innerHTML =
+        pageList
+
+        .map(page => {
+
+            if(page === "..."){
+
+                return `
+
+                    <span
+                        class="
+                            supplier-page-ellipsis
+                        "
+                    >
+                        …
+                    </span>
+
+                `;
+
+            }
+
+
+            const isActive =
+
+                Number(page)
+
+                ===
+
+                supplierCurrentPage;
+
+
+            return `
+
+                <button
+                    type="button"
+                    class="
+                        supplier-page-number
+
+                        ${
+                            isActive
+
+                            ? "is-active"
+
+                            : ""
+                        }
+                    "
+                    onclick="
+                        goToSupplierPage(
+                            ${Number(page)}
+                        )
+                    "
+                >
+                    ${Number(page)}
+                </button>
+
+            `;
+
+        })
+
+        .join("");
+
+}
+// =====================================
+// POPUP XÁC NHẬN XÓA
+// =====================================
+
+function openSupplierDeleteConfirm(
+    supplierName
+){
+
+    return new Promise(resolve => {
+
+        const overlay =
+            getSupplierElement(
+                "supplierDeleteConfirm"
+            );
+
+
+        const message =
+            getSupplierElement(
+                "supplierDeleteConfirmMessage"
+            );
+
+
+        const confirmButton =
+            getSupplierElement(
+                "supplierDeleteConfirmButton"
+            );
+
+
+        /*
+        Dự phòng nếu chưa có popup mới.
+        */
+
+        if(!overlay){
+
+            const confirmed =
+                window.confirm(
+
+                    `Bạn có chắc chắn muốn xóa Nhà cung cấp "${supplierName}"?`
+
+                    +
+
+                    "\n\nThao tác này không thể hoàn tác."
+
+                );
+
+
+            resolve(
+                confirmed
+            );
+
+
+            return;
+
+        }
+
+
+        if(
+            typeof supplierDeleteConfirmResolver ===
+            "function"
+        ){
+
+            supplierDeleteConfirmResolver(
+                false
+            );
+
+        }
+
+
+        supplierDeleteConfirmResolver =
+            resolve;
+
+
+        if(message){
+
+            message.textContent =
+
+                `Bạn có chắc chắn muốn xóa Nhà cung cấp "${supplierName}"?`;
+
+        }
+
+
+        if(confirmButton){
+
+            confirmButton.disabled =
+                false;
+
+            confirmButton.textContent =
+                "Xóa nhà cung cấp";
+
+        }
+
+
+        overlay.classList.add(
+            "is-open"
+        );
+
+
+        overlay.setAttribute(
+            "aria-hidden",
+            "false"
+        );
+
+
+        document.body.classList.add(
+            "supplier-confirm-open"
+        );
+
+
+        requestAnimationFrame(() => {
+
+            confirmButton?.focus();
+
+        });
+
+    });
+
+}
+
+
+function closeSupplierDeleteConfirm(
+    confirmed = false
+){
+
+    const overlay =
+        getSupplierElement(
+            "supplierDeleteConfirm"
+        );
+
+
+    if(overlay){
+
+        overlay.classList.remove(
+            "is-open"
+        );
+
+
+        overlay.setAttribute(
+            "aria-hidden",
+            "true"
+        );
+
+    }
+
+
+    document.body.classList.remove(
+        "supplier-confirm-open"
+    );
+
+
+    const resolver =
+        supplierDeleteConfirmResolver;
+
+
+    supplierDeleteConfirmResolver =
+        null;
+
+
+    if(
+        typeof resolver ===
+        "function"
+    ){
+
+        resolver(
+            Boolean(
+                confirmed
+            )
         );
 
     }
@@ -305,88 +1543,240 @@ function saveSuppliersToStorage(){
 
 
 // =====================================
-// CHUYỂN PARSE OBJECT THÀNH OBJECT THƯỜNG
+// PARSE OBJECT → OBJECT THƯỜNG
 // =====================================
 
 function supplierParseObjectToPlain(
-    parseObject
+    parseObject,
+    fallbackSupplier = null
 ){
+    const supplierName =
+    [
+
+        parseObject?.get(
+            "ten"
+        ),
+
+        parseObject?.get(
+            "name"
+        ),
+
+        parseObject?.get(
+            "supplierName"
+        ),
+
+        parseObject?.get(
+            "tenNCC"
+        ),
+
+        parseObject?.get(
+            "tennhacungcap"
+        ),
+
+        fallbackSupplier?.ten
+
+    ]
+
+    .find(value =>
+
+        String(
+            value ?? ""
+        ).trim()
+
+    )
+
+    ||
+
+    "";
+    
+    const back4appId =
+        String(
+
+            parseObject?.id
+
+            ||
+
+            fallbackSupplier?.back4appId
+
+            ||
+
+            ""
+
+        ).trim();
+
+
+    const fallbackLegacyId =
+
+        fallbackSupplier?.id
+
+        &&
+
+        String(
+            fallbackSupplier.id
+        )
+
+        !==
+
+        back4appId
+
+        ? String(
+            fallbackSupplier.id
+        )
+
+        : "";
+
 
     const legacyId =
         String(
-            parseObject.get(
+
+            parseObject?.get(
                 "legacyId"
-            ) || ""
+            )
+
+            ||
+
+            fallbackSupplier?.legacyId
+
+            ||
+
+            fallbackLegacyId
+
+            ||
+
+            ""
+
         ).trim();
 
 
     return {
 
-        /*
-        ID dùng cho các module cũ.
-
-        NCC cũ:
-        id = legacyId
-
-        NCC tạo mới:
-        id = objectId
-        */
-
         id:
-            legacyId ||
-            parseObject.id,
+
+            legacyId
+
+            ||
+
+            back4appId
+
+            ||
+
+            fallbackSupplier?.id
+
+            ||
+
+            "",
 
 
-        // ID thật trên Back4App
+        legacyId:
+            legacyId,
+
+
         back4appId:
-            parseObject.id,
+            back4appId,
 
 
         ten:
             String(
-                parseObject.get("ten") ||
+
+                parseObject?.get(
+                    "ten"
+                )
+
+                ??
+
+                fallbackSupplier?.ten
+
+                ??
+
                 ""
+
             ),
 
 
         diachi:
             String(
-                parseObject.get("diachi") ||
+
+                parseObject?.get(
+                    "diachi"
+                )
+
+                ??
+
+                fallbackSupplier?.diachi
+
+                ??
+
                 ""
+
             ),
 
 
         nguoinhan:
             String(
-                parseObject.get(
+
+                parseObject?.get(
                     "nguoinhan"
-                ) || ""
+                )
+
+                ??
+
+                fallbackSupplier?.nguoinhan
+
+                ??
+
+                ""
+
             ),
 
 
         sdt:
             String(
-                parseObject.get("sdt") ||
+
+                parseObject?.get(
+                    "sdt"
+                )
+
+                ??
+
+                fallbackSupplier?.sdt
+
+                ??
+
                 ""
+
             ),
 
 
         createdAt:
-            parseObject.createdAt
+
+            parseObject?.createdAt
 
             ? parseObject.createdAt
                 .toISOString()
 
-            : "",
+            : (
+                fallbackSupplier?.createdAt
+
+                ||
+
+                ""
+            ),
 
 
         updatedAt:
-            parseObject.updatedAt
+
+            parseObject?.updatedAt
 
             ? parseObject.updatedAt
                 .toISOString()
 
-            : ""
+            : (
+                fallbackSupplier?.updatedAt
+
+                ||
+
+                ""
+            )
 
     };
 
@@ -394,20 +1784,33 @@ function supplierParseObjectToPlain(
 
 
 // =====================================
-// TÌM NCC ĐÃ MIGRATE
+// TÌM OBJECT NCC THẬT TRÊN BACK4APP
 // =====================================
 
-async function findExistingSupplierForMigration(
-    item
+async function findSupplierObjectOnBack4App(
+    supplier
 ){
+
+    ensureSupplierBack4AppReady();
+
+
+    if(!supplier){
+
+        return null;
+
+    }
+
+
+    /*
+    1. Tìm bằng objectId.
+    */
 
     const back4appId =
         String(
-            item.back4appId || ""
+            supplier.back4appId || ""
         ).trim();
 
 
-    // Kiểm tra bằng objectId trước
     if(back4appId){
 
         try{
@@ -424,20 +1827,62 @@ async function findExistingSupplierForMigration(
 
         }catch(error){
 
-            // Không tìm thấy thì kiểm tra tiếp
+            if(error?.code !== 101){
+
+                throw error;
+
+            }
+
+
+            console.warn(
+
+                "Không tìm thấy Supplier bằng back4appId:",
+
+                back4appId
+
+            );
 
         }
 
     }
 
 
+    /*
+    2. Tìm bằng legacyId.
+    */
+
     const legacyId =
         String(
-            item.id || ""
+
+            supplier.legacyId
+
+            ||
+
+            (
+                supplier.id
+
+                &&
+
+                String(
+                    supplier.id
+                )
+
+                !==
+
+                back4appId
+
+                ? supplier.id
+
+                : ""
+            )
+
+            ||
+
+            ""
+
         ).trim();
 
 
-    // Kiểm tra bằng ID cũ
     if(legacyId){
 
         const queryByLegacyId =
@@ -465,10 +1910,13 @@ async function findExistingSupplierForMigration(
     }
 
 
-    // Kiểm tra bằng tên chuẩn hóa
+    /*
+    3. Tìm bằng tên chuẩn hóa.
+    */
+
     const normalizedName =
         normalizeSupplierText(
-            item.ten
+            supplier.ten || ""
         );
 
 
@@ -486,7 +1934,52 @@ async function findExistingSupplierForMigration(
         );
 
 
-        return await queryByName.first();
+        const foundByName =
+            await queryByName.first();
+
+
+        if(foundByName){
+
+            return foundByName;
+
+        }
+
+    }
+
+
+    /*
+    4. Dữ liệu cũ chưa có tenNormalized.
+    */
+
+    const rawName =
+        String(
+            supplier.ten || ""
+        ).trim();
+
+
+    if(rawName){
+
+        const queryByRawName =
+            new Parse.Query(
+                SUPPLIER_CLASS_NAME
+            );
+
+
+        queryByRawName.equalTo(
+            "ten",
+            rawName
+        );
+
+
+        const foundByRawName =
+            await queryByRawName.first();
+
+
+        if(foundByRawName){
+
+            return foundByRawName;
+
+        }
 
     }
 
@@ -497,262 +1990,27 @@ async function findExistingSupplierForMigration(
 
 
 // =====================================
-// MIGRATE NCC CŨ LÊN BACK4APP
+// MIGRATION
 // =====================================
 
-async function migrateSuppliersToBack4App(
-    force = false
-){
+async function migrateSuppliersToBack4App(){
 
-    if(supplierMigrationPromise){
+    /*
+    Dữ liệu đã migrate hoàn tất.
 
-        return supplierMigrationPromise;
+    Không tự chạy migration lại để tránh
+    Nhà cung cấp đã xóa bị tạo lại từ cache cũ.
+    */
 
-    }
+    return {
 
+        migrated: 0,
 
-    supplierMigrationPromise =
-        (async function(){
+        skipped: suppliers.length,
 
-            ensureSupplierBack4AppReady();
+        alreadyCompleted: true
 
-
-            // Đã migrate rồi thì không chạy lại
-            if(
-                !force
-                &&
-                localStorage.getItem(
-                    SUPPLIER_MIGRATION_KEY
-                )
-            ){
-
-                return {
-
-                    migrated: 0,
-
-                    skipped: 0,
-
-                    alreadyCompleted: true
-
-                };
-
-            }
-
-
-            const oldSuppliers =
-                getStorageArray(
-                    "suppliers"
-                );
-
-
-            const currentUser =
-                Parse.User.current();
-
-
-            let migrated = 0;
-
-            let skipped = 0;
-
-
-            for(
-                const item
-                of oldSuppliers
-            ){
-
-                const name =
-                    String(
-                        item.ten || ""
-                    ).trim();
-
-
-                if(!name){
-
-                    skipped += 1;
-
-                    continue;
-
-                }
-
-
-                const legacyId =
-                    String(
-                        item.id || ""
-                    ).trim();
-
-
-                const existingSupplier =
-                    await findExistingSupplierForMigration(
-                        item
-                    );
-
-
-                if(existingSupplier){
-
-                    /*
-                    NCC đã tồn tại trên Back4App
-                    nhưng chưa có legacyId.
-                    */
-
-                    if(
-                        legacyId
-                        &&
-                        !existingSupplier.get(
-                            "legacyId"
-                        )
-                    ){
-
-                        existingSupplier.set(
-                            "legacyId",
-                            legacyId
-                        );
-
-
-                        await existingSupplier.save();
-
-                    }
-
-
-                    skipped += 1;
-
-                    continue;
-
-                }
-
-
-                const supplierObject =
-                    new Parse.Object(
-                        SUPPLIER_CLASS_NAME
-                    );
-
-
-                supplierObject.set(
-                    "ten",
-                    name
-                );
-
-
-                supplierObject.set(
-                    "tenNormalized",
-                    normalizeSupplierText(
-                        name
-                    )
-                );
-
-
-                supplierObject.set(
-                    "diachi",
-                    String(
-                        item.diachi || ""
-                    )
-                );
-
-
-                supplierObject.set(
-                    "nguoinhan",
-                    String(
-                        item.nguoinhan || ""
-                    )
-                );
-
-
-                supplierObject.set(
-                    "sdt",
-                    String(
-                        item.sdt || ""
-                    )
-                );
-
-
-                if(legacyId){
-
-                    supplierObject.set(
-                        "legacyId",
-                        legacyId
-                    );
-
-                }
-
-
-                if(currentUser){
-
-                    supplierObject.set(
-                        "createdBy",
-                        currentUser
-                    );
-
-
-                    supplierObject.set(
-                        "updatedBy",
-                        currentUser
-                    );
-
-                }
-
-
-                await supplierObject.save();
-
-
-                migrated += 1;
-
-            }
-
-
-            localStorage.setItem(
-
-                SUPPLIER_MIGRATION_KEY,
-
-                JSON.stringify({
-
-                    completedAt:
-                        new Date()
-                        .toISOString(),
-
-                    migrated:
-                        migrated,
-
-                    skipped:
-                        skipped
-
-                })
-
-            );
-
-
-            console.log(
-
-                "✅ Migrate Nhà cung cấp hoàn tất:",
-
-                {
-                    migrated,
-                    skipped
-                }
-
-            );
-
-
-            return {
-
-                migrated,
-
-                skipped,
-
-                alreadyCompleted: false
-
-            };
-
-        })();
-
-
-    try{
-
-        return await supplierMigrationPromise;
-
-    }finally{
-
-        supplierMigrationPromise =
-            null;
-
-    }
+    };
 
 }
 
@@ -770,7 +2028,9 @@ async function fetchSuppliersFromBack4App(
 
     if(
         supplierDataLoaded
+
         &&
+
         !forceReload
     ){
 
@@ -795,10 +2055,14 @@ async function fetchSuppliersFromBack4App(
                 );
 
 
-            query.ascending("ten");
+            query.ascending(
+                "ten"
+            );
 
 
-            query.limit(1000);
+            query.limit(
+                1000
+            );
 
 
             const results =
@@ -806,19 +2070,18 @@ async function fetchSuppliersFromBack4App(
 
 
             suppliers =
-                results.map(
-                    supplierParseObjectToPlain
+                results.map(item =>
+
+                    supplierParseObjectToPlain(
+                        item
+                    )
+
                 );
 
 
             supplierDataLoaded =
                 true;
 
-
-            /*
-            localStorage chỉ còn là cache.
-            Back4App mới là nguồn dữ liệu chính.
-            */
 
             saveSuppliersToStorage();
 
@@ -855,9 +2118,6 @@ async function loadSupplier(){
 
     try{
 
-        await migrateSuppliersToBack4App();
-
-
         await fetchSuppliersFromBack4App(
             true
         );
@@ -871,7 +2131,9 @@ async function loadSupplier(){
         renderSupplierSelectOptions();
 
 
-        return suppliers;
+        return [
+            ...suppliers
+        ];
 
     }catch(error){
 
@@ -883,7 +2145,10 @@ async function loadSupplier(){
 
         setSupplierTableMessage(
 
-            error.message ||
+            error?.message
+
+            ||
+
             "Không tải được Nhà cung cấp.",
 
             true
@@ -899,7 +2164,7 @@ async function loadSupplier(){
 
 
 // =====================================
-// MỞ FORM TẠO MỚI
+// MỞ / ĐÓNG FORM
 // =====================================
 
 function openSupplierForm(){
@@ -943,7 +2208,7 @@ function openSupplierForm(){
     if(title){
 
         title.textContent =
-            "Thêm Nhà cung cấp";
+            "Thêm nhà cung cấp";
 
     }
 
@@ -954,20 +2219,42 @@ function openSupplierForm(){
             false;
 
         button.textContent =
-            "Lưu Nhà cung cấp";
+            "Lưu nhà cung cấp";
 
     }
 
 
-    form.style.display =
-        "block";
+    form.style.removeProperty(
+        "display"
+    );
+
+
+    form.classList.add(
+        "is-open"
+    );
+
+
+    form.setAttribute(
+        "aria-hidden",
+        "false"
+    );
+
+
+    document.body.classList.add(
+        "supplier-modal-open"
+    );
+
+
+    requestAnimationFrame(() => {
+
+        getSupplierElement(
+            "supplierName"
+        )?.focus();
+
+    });
 
 }
 
-
-// =====================================
-// ĐÓNG FORM
-// =====================================
 
 function closeSupplierForm(){
 
@@ -979,10 +2266,27 @@ function closeSupplierForm(){
 
     if(form){
 
-        form.style.display =
-            "none";
+        form.classList.remove(
+            "is-open"
+        );
+
+
+        form.style.removeProperty(
+            "display"
+        );
+
+
+        form.setAttribute(
+            "aria-hidden",
+            "true"
+        );
 
     }
+
+
+    document.body.classList.remove(
+        "supplier-modal-open"
+    );
 
 
     editingSupplierId =
@@ -993,10 +2297,6 @@ function closeSupplierForm(){
 
 }
 
-
-// =====================================
-// RESET FORM
-// =====================================
 
 function resetSupplierForm(){
 
@@ -1030,9 +2330,9 @@ function resetSupplierForm(){
 // KIỂM TRA TRÙNG TÊN TRÊN SERVER
 // =====================================
 
-async function supplierNameExistsOnServer(
+async function findDuplicatedSupplierByName(
     normalizedName,
-    excludedObjectId = ""
+    ignoredObjectId = ""
 ){
 
     const query =
@@ -1047,23 +2347,26 @@ async function supplierNameExistsOnServer(
     );
 
 
-    if(excludedObjectId){
-
-        query.notEqualTo(
-            "objectId",
-            excludedObjectId
-        );
-
-    }
-
-
-    const duplicatedSupplier =
-        await query.first();
-
-
-    return Boolean(
-        duplicatedSupplier
+    query.limit(
+        20
     );
+
+
+    const results =
+        await query.find();
+
+
+    return results.find(item =>
+
+        String(item.id)
+
+        !==
+
+        String(
+            ignoredObjectId || ""
+        )
+
+    ) || null;
 
 }
 
@@ -1100,8 +2403,9 @@ async function saveSupplier(){
 
     if(!name){
 
-        alert(
-            "Vui lòng nhập tên Nhà cung cấp."
+        showSupplierMessage(
+            "Vui lòng nhập tên Nhà cung cấp.",
+            "error"
         );
 
 
@@ -1130,27 +2434,21 @@ async function saveSupplier(){
         ensureSupplierBack4AppReady();
 
 
-        /*
-        Luôn tải dữ liệu mới nhất trước khi lưu,
-        tránh dùng danh sách cũ của máy hiện tại.
-        */
+        if(!supplierDataLoaded){
 
-        await migrateSuppliersToBack4App();
+            await fetchSuppliersFromBack4App(
+                true
+            );
 
-
-        await fetchSuppliersFromBack4App(
-            true
-        );
+        }
 
 
         const editingSupplier =
+
             isEditing
 
-            ? suppliers.find(item =>
-
-                String(item.id) ===
-                String(editingSupplierId)
-
+            ? findLocalSupplierByAnyId(
+                editingSupplierId
             )
 
             : null;
@@ -1158,93 +2456,25 @@ async function saveSupplier(){
 
         if(
             isEditing
+
             &&
+
             !editingSupplier
         ){
 
             throw new Error(
+
                 "Không tìm thấy Nhà cung cấp cần chỉnh sửa."
+
             );
 
         }
 
 
         const normalizedName =
-            normalizeSupplierText(name);
-
-
-        const duplicatedLocally =
-            suppliers.some(item => {
-
-                const sameName =
-
-                    normalizeSupplierText(
-                        item.ten
-                    )
-
-                    ===
-
-                    normalizedName;
-
-
-                const differentSupplier =
-
-                    !isEditing
-
-                    ||
-
-                    String(item.id) !==
-                    String(editingSupplierId);
-
-
-                return (
-                    sameName
-                    &&
-                    differentSupplier
-                );
-
-            });
-
-
-        if(duplicatedLocally){
-
-            alert(
-                "Tên Nhà cung cấp này đã tồn tại."
+            normalizeSupplierText(
+                name
             );
-
-            return;
-
-        }
-
-
-        const back4appId =
-            editingSupplier
-            ? String(
-                editingSupplier.back4appId ||
-                ""
-            )
-            : "";
-
-
-        const duplicatedOnServer =
-            await supplierNameExistsOnServer(
-
-                normalizedName,
-
-                back4appId
-
-            );
-
-
-        if(duplicatedOnServer){
-
-            alert(
-                "Tên Nhà cung cấp này đã tồn tại trên hệ thống."
-            );
-
-            return;
-
-        }
 
 
         let supplierObject;
@@ -1252,25 +2482,31 @@ async function saveSupplier(){
 
         if(isEditing){
 
-            if(!back4appId){
+            supplierObject =
+                await findSupplierObjectOnBack4App(
+                    editingSupplier
+                );
+
+
+            if(!supplierObject){
+
+                await fetchSuppliersFromBack4App(
+                    true
+                );
+
+
+                renderSupplier(
+                    getCurrentSupplierKeyword()
+                );
+
 
                 throw new Error(
-                    "Nhà cung cấp chưa có objectId trên Back4App."
+
+                    "Nhà cung cấp không còn tồn tại trên Back4App hoặc tài khoản không có quyền cập nhật."
+
                 );
 
             }
-
-
-            const query =
-                new Parse.Query(
-                    SUPPLIER_CLASS_NAME
-                );
-
-
-            supplierObject =
-                await query.get(
-                    back4appId
-                );
 
         }else{
 
@@ -1278,6 +2514,32 @@ async function saveSupplier(){
                 new Parse.Object(
                     SUPPLIER_CLASS_NAME
                 );
+
+        }
+
+
+        const duplicatedSupplier =
+            await findDuplicatedSupplierByName(
+
+                normalizedName,
+
+                supplierObject?.id || ""
+
+            );
+
+
+        if(duplicatedSupplier){
+
+            showSupplierMessage(
+
+                "Tên Nhà cung cấp này đã tồn tại.",
+
+                "error"
+
+            );
+
+
+            return;
 
         }
 
@@ -1312,13 +2574,31 @@ async function saveSupplier(){
         );
 
 
+        if(
+            isEditing
+
+            &&
+
+            editingSupplier?.legacyId
+        ){
+
+            supplierObject.set(
+                "legacyId",
+                editingSupplier.legacyId
+            );
+
+        }
+
+
         const currentUser =
             Parse.User.current();
 
 
         if(
             !isEditing
+
             &&
+
             currentUser
         ){
 
@@ -1340,12 +2620,74 @@ async function saveSupplier(){
         }
 
 
-        await supplierObject.save();
+        const savedObject =
+            await supplierObject.save();
 
 
-        await fetchSuppliersFromBack4App(
-            true
+        const savedSupplier =
+            supplierParseObjectToPlain(
+
+                savedObject,
+
+                editingSupplier
+
+            );
+
+
+        if(isEditing){
+
+            const supplierIndex =
+                suppliers.findIndex(item =>
+
+                    getSupplierValidIds(
+                        item
+                    )
+
+                    .includes(
+                        String(
+                            editingSupplierId
+                        )
+                    )
+
+                );
+
+
+            if(supplierIndex !== -1){
+
+                suppliers[supplierIndex] =
+                    savedSupplier;
+
+            }
+
+        }else{
+
+            suppliers.push(
+                savedSupplier
+            );
+
+        }
+
+
+        suppliers.sort(
+
+            (a, b) =>
+
+                String(a.ten || "")
+
+                .localeCompare(
+
+                    String(
+                        b.ten || ""
+                    ),
+
+                    "vi"
+
+                )
+
         );
+
+
+        saveSuppliersToStorage();
 
 
         renderSupplier(
@@ -1359,36 +2701,63 @@ async function saveSupplier(){
         closeSupplierForm();
 
 
-        alert(
+        showSupplierMessage(
 
             isEditing
 
             ? "Đã cập nhật Nhà cung cấp."
 
-            : "Đã thêm Nhà cung cấp."
+            : "Đã thêm Nhà cung cấp.",
+
+            "success"
 
         );
 
     }catch(error){
 
         console.error(
+
             "Không lưu được Nhà cung cấp:",
-            error
+
+            {
+
+                code:
+                    error?.code,
+
+                message:
+                    error?.message,
+
+                error:
+                    error
+
+            }
+
         );
 
 
-        alert(
+        if(error?.code === 119){
 
-            "Không lưu được Nhà cung cấp.\n\n"
+            showSupplierMessage(
 
-            +
+                "Back4App chưa cấp quyền Create hoặc Update cho người dùng đã đăng nhập.",
 
-            (
-                error.message ||
-                error
-            )
+                "error"
 
-        );
+            );
+
+        }else{
+
+            showSupplierMessage(
+
+                `Không lưu được Nhà cung cấp: ${
+                    error?.message || error
+                }`,
+
+                "error"
+
+            );
+
+        }
 
     }finally{
 
@@ -1403,7 +2772,100 @@ async function saveSupplier(){
 
 
 // =====================================
-// HIỂN THỊ + TÌM KIẾM
+// THỐNG KÊ
+// =====================================
+
+function setSupplierSummaryValue(
+    elementId,
+    value
+){
+
+    const element =
+        getSupplierElement(
+            elementId
+        );
+
+
+    if(element){
+
+        element.textContent =
+            String(value);
+
+    }
+
+}
+
+function updateSupplierSummary(){
+
+    const supplierList =
+
+        Array.isArray(suppliers)
+
+        ? suppliers
+
+        : [];
+
+
+    const totalCount =
+        supplierList.length;
+
+
+    const withAddressCount =
+        supplierList.filter(item =>
+
+            hasSupplierValue(
+                item.diachi
+            )
+
+        ).length;
+
+
+    const withPhoneCount =
+        supplierList.filter(item =>
+
+            hasSupplierValue(
+                item.sdt
+            )
+
+        ).length;
+
+
+    const incompleteCount =
+        supplierList.filter(item =>
+
+            !isSupplierComplete(
+                item
+            )
+
+        ).length;
+
+
+    setSupplierSummaryValue(
+        "totalSupplierCount",
+        totalCount
+    );
+
+
+    setSupplierSummaryValue(
+        "supplierWithAddressCount",
+        withAddressCount
+    );
+
+
+    setSupplierSummaryValue(
+        "supplierWithPhoneCount",
+        withPhoneCount
+    );
+
+
+    setSupplierSummaryValue(
+        "supplierIncompleteCount",
+        incompleteCount
+    );
+
+}
+// =====================================
+// HIỂN THỊ + TÌM KIẾM + PHÂN TRANG
 // =====================================
 
 function renderSupplier(
@@ -1423,44 +2885,113 @@ function renderSupplier(
     }
 
 
-    const normalizedKeyword =
-        normalizeSupplierText(keyword);
+    updateSupplierSummary();
 
 
     const filteredSuppliers =
-        suppliers.filter(item => {
-
-            const searchText = `
-
-                ${item.ten || ""}
-
-                ${item.diachi || ""}
-
-                ${item.nguoinhan || ""}
-
-                ${item.sdt || ""}
-
-            `;
+        getFilteredSortedSuppliers(
+            keyword
+        );
 
 
-            return normalizeSupplierText(
-                searchText
-            )
-            .includes(
-                normalizedKeyword
-            );
+    const totalItems =
+        filteredSuppliers.length;
 
-        });
+
+    const totalPages =
+        getSupplierTotalPages(
+            totalItems
+        );
+
+
+    supplierCurrentPage =
+        Math.min(
+
+            Math.max(
+                1,
+                supplierCurrentPage
+            ),
+
+            totalPages
+
+        );
+
+
+    const startIndex =
+
+        (
+            supplierCurrentPage - 1
+        )
+
+        *
+
+        supplierPageSize;
+
+
+    const visibleSuppliers =
+        filteredSuppliers.slice(
+
+            startIndex,
+
+            startIndex
+
+            +
+
+            supplierPageSize
+
+        );
+
+
+    updateSupplierSortIcons();
+
+
+    renderSupplierPagination(
+        totalItems
+    );
 
 
     if(
-        filteredSuppliers.length ===
+        visibleSuppliers.length ===
         0
     ){
 
-        setSupplierTableMessage(
-            "Chưa có Nhà cung cấp phù hợp"
-        );
+        table.innerHTML = `
+
+            <tr>
+
+                <td
+                    colspan="5"
+                    class="supplier-loading-cell"
+                >
+
+                    <div
+                        style="
+                            font-size:22px;
+                            margin-bottom:6px;
+                        "
+                    >
+                        🌿
+                    </div>
+
+                    <strong>
+                        Chưa có Nhà cung cấp phù hợp
+                    </strong>
+
+                    <div
+                        style="
+                            margin-top:4px;
+                            font-size:12px;
+                        "
+                    >
+                        Thử thay đổi từ khóa hoặc bộ lọc dữ liệu.
+                    </div>
+
+                </td>
+
+            </tr>
+
+        `;
+
 
         return;
 
@@ -1468,70 +2999,243 @@ function renderSupplier(
 
 
     table.innerHTML =
-        filteredSuppliers
+        visibleSuppliers
 
-        .map(item => `
+        .map(item => {
 
-            <tr>
+            const supplierId =
+                escapeSupplierHtml(
+                    String(item.id)
+                );
 
-                <td>
-                    ${escapeSupplierHtml(
-                        item.ten || "—"
-                    )}
-                </td>
 
-                <td>
-                    ${escapeSupplierHtml(
-                        item.diachi || "—"
-                    )}
-                </td>
+            const rawSupplierName =
+                String(
+                    item.ten || ""
+                ).trim();
 
-                <td>
-                    ${escapeSupplierHtml(
-                        item.nguoinhan || "—"
-                    )}
-                </td>
 
-                <td>
-                    ${escapeSupplierHtml(
-                        item.sdt || "—"
-                    )}
-                </td>
+            const supplierNameHtml =
 
-                <td>
+                rawSupplierName
 
-                    <button
-                        type="button"
-                        onclick="
-                            editSupplier(
-                                '${item.id}'
-                            )
+                ? escapeSupplierHtml(
+                    rawSupplierName
+                )
+
+                : `
+
+                    <span
+                        class="
+                            supplier-name-missing
                         "
                     >
-                        Sửa
-                    </button>
+                        Chưa có tên
+                    </span>
 
-                    <button
-                        type="button"
-                        onclick="
-                            deleteSupplier(
-                                '${item.id}'
+                `;
+
+
+            const address =
+                String(
+                    item.diachi || ""
+                ).trim();
+
+
+            const receiver =
+                String(
+                    item.nguoinhan || ""
+                ).trim();
+
+
+            const phone =
+                String(
+                    item.sdt || ""
+                ).trim();
+
+
+            const escapedAddress =
+                escapeSupplierHtml(
+                    address
+                );
+
+
+            const escapedReceiver =
+                escapeSupplierHtml(
+                    receiver
+                );
+
+
+            const phoneDigits =
+                getSupplierPhoneDigits(
+                    phone
+                );
+
+
+            const formattedPhone =
+                escapeSupplierHtml(
+
+                    formatSupplierPhone(
+                        phone
+                    )
+
+                );
+
+
+            return `
+
+                <tr>
+
+                    <td
+                        class="supplier-name-cell"
+                        title="${
+                            escapeSupplierHtml(
+                                rawSupplierName
                             )
-                        "
+                        }"
                     >
-                        Xóa
-                    </button>
+                        ${supplierNameHtml}
+                    </td>
 
-                </td>
 
-            </tr>
+                    <td class="supplier-address-cell">
 
-        `)
+                        ${
+                            address
+
+                            ? `
+
+                                <span
+                                    class="
+                                        supplier-address-text
+                                    "
+                                    title="${escapedAddress}"
+                                >
+                                    📍 ${escapedAddress}
+                                </span>
+
+                            `
+
+                            : `
+
+                                <span
+                                    class="
+                                        supplier-data-missing
+                                    "
+                                >
+                                    Chưa cập nhật
+                                </span>
+
+                            `
+                        }
+
+                    </td>
+
+
+                    <td class="supplier-receiver-cell">
+
+                        ${
+                            receiver
+
+                            ? escapedReceiver
+
+                            : `
+
+                                <span
+                                    class="
+                                        supplier-data-missing
+                                    "
+                                >
+                                    Chưa cập nhật
+                                </span>
+
+                            `
+                        }
+
+                    </td>
+
+
+                    <td class="supplier-phone-cell">
+
+                        ${
+                            phone
+
+                            ? `
+
+                                <a
+                                    class="
+                                        supplier-phone-link
+                                    "
+                                    href="tel:${
+                                        escapeSupplierHtml(
+                                            phoneDigits
+                                        )
+                                    }"
+                                    title="Gọi ${formattedPhone}"
+                                >
+                                    ☎ ${formattedPhone}
+                                </a>
+
+                            `
+
+                            : `
+
+                                <span
+                                    class="
+                                        supplier-data-missing
+                                    "
+                                >
+                                    Chưa cập nhật
+                                </span>
+
+                            `
+                        }
+
+                    </td>
+
+
+                    <td class="supplier-action-cell">
+
+                        <button
+                            type="button"
+                            class="supplier-edit-button"
+                            onclick="
+                                editSupplier(
+                                    '${supplierId}'
+                                )
+                            "
+                            aria-label="Sửa Nhà cung cấp"
+                            title="Sửa Nhà cung cấp"
+                        >
+                            ✏️
+                        </button>
+
+
+                        <button
+                            type="button"
+                            class="supplier-delete-button"
+                            onclick="
+                                deleteSupplier(
+                                    '${supplierId}'
+                                )
+                            "
+                            aria-label="Xóa Nhà cung cấp"
+                            title="Xóa Nhà cung cấp"
+                        >
+                            🗑
+                        </button>
+
+                    </td>
+
+                </tr>
+
+            `;
+
+        })
 
         .join("");
 
 }
-
 
 // =====================================
 // CHỈNH SỬA NCC
@@ -1540,19 +3244,21 @@ function renderSupplier(
 function editSupplier(id){
 
     const supplier =
-        suppliers.find(item =>
-
-            String(item.id) ===
-            String(id)
-
+        findLocalSupplierByAnyId(
+            id
         );
 
 
     if(!supplier){
 
-        alert(
-            "Không tìm thấy Nhà cung cấp."
+        showSupplierMessage(
+
+            "Không tìm thấy Nhà cung cấp.",
+
+            "error"
+
         );
+
 
         return;
 
@@ -1593,6 +3299,17 @@ function editSupplier(id){
         );
 
 
+    if(!form){
+
+        console.error(
+            "Không tìm thấy id supplierForm"
+        );
+
+        return;
+
+    }
+
+
     const title =
         getSupplierElement(
             "supplierFormTitle"
@@ -1603,14 +3320,6 @@ function editSupplier(id){
         getSupplierElement(
             "supplierSaveButton"
         );
-
-
-    if(form){
-
-        form.style.display =
-            "block";
-
-    }
 
 
     if(title){
@@ -1627,135 +3336,151 @@ function editSupplier(id){
             false;
 
         button.textContent =
-            "Cập nhật Nhà cung cấp";
+            "Cập nhật nhà cung cấp";
 
     }
+
+
+    form.style.removeProperty(
+        "display"
+    );
+
+
+    form.classList.add(
+        "is-open"
+    );
+
+
+    form.setAttribute(
+        "aria-hidden",
+        "false"
+    );
+
+
+    document.body.classList.add(
+        "supplier-modal-open"
+    );
+
+
+    requestAnimationFrame(() => {
+
+        getSupplierElement(
+            "supplierName"
+        )?.focus();
+
+    });
 
 }
 
 
 // =====================================
-// KIỂM TRA LIÊN KẾT TẠM THỜI
+// KIỂM TRA LIÊN KẾT TRÊN BACK4APP
 // =====================================
-// Hồ sơ, Thư và Hồ sơ lưu vẫn ở localStorage.
-// Vì vậy phần này hiện chỉ kiểm tra dữ liệu
-// liên kết trên máy đang sử dụng.
 
-function getSupplierRelations(
+async function getSupplierRelationsFromBack4App(
     supplier
 ){
 
+    ensureSupplierBack4AppReady();
+
+
     const validSupplierIds =
-        new Set(
-
-            [
-                supplier.id,
-                supplier.back4appId
-            ]
-
-            .filter(Boolean)
-
-            .map(value =>
-                String(value)
-            )
-
+        getSupplierValidIds(
+            supplier
         );
 
 
-    function matchesSupplierId(value){
+    if(
+        validSupplierIds.length ===
+        0
+    ){
 
-        return validSupplierIds.has(
-            String(value || "")
-        );
+        return {
+
+            dossierCount: 0,
+
+            letterCount: 0,
+
+            archiveCount: 0,
+
+            totalCount: 0
+
+        };
 
     }
 
 
-    const dossierData =
-        getStorageArray(
-            "dossiers"
+    function createRelationQuery(
+        className
+    ){
+
+        const query =
+            new Parse.Query(
+                className
+            );
+
+
+        query.containedIn(
+
+            "supplierId",
+
+            validSupplierIds
+
         );
 
 
-    const letterData =
-        getStorageArray(
-            "letters"
+        query.limit(
+            1
         );
 
 
-    const archiveData =
-        getStorageArray(
-            "archiveDossiers"
-        );
+        return query;
+
+    }
+
+
+    /*
+    Chạy song song để nhanh hơn.
+    Chỉ cần biết có ít nhất một liên kết.
+    */
+
+    const [
+
+        dossierObject,
+
+        letterObject,
+
+        archiveObject
+
+    ] = await Promise.all([
+
+        createRelationQuery(
+            SUPPLIER_DOSSIER_CLASS_NAME
+        ).first(),
+
+
+        createRelationQuery(
+            SUPPLIER_LETTER_CLASS_NAME
+        ).first(),
+
+
+        createRelationQuery(
+            SUPPLIER_ARCHIVE_CLASS_NAME
+        ).first()
+
+    ]);
 
 
     const dossierCount =
-        dossierData.filter(item =>
-
-            matchesSupplierId(
-                item.supplierId
-            )
-
-        ).length;
+        dossierObject ? 1 : 0;
 
 
     const letterCount =
-        letterData.filter(item =>
-
-            matchesSupplierId(
-                item.supplierId
-            )
-
-        ).length;
+        letterObject ? 1 : 0;
 
 
     const archiveCount =
-        archiveData.filter(item => {
-
-            let effectiveSupplierId =
-                String(
-                    item.supplierId || ""
-                );
-
-
-            if(
-                !effectiveSupplierId
-                &&
-                item.linkedDossierId
-            ){
-
-                const linkedDossier =
-                    dossierData.find(
-                        dossier =>
-
-                            String(dossier.id)
-
-                            ===
-
-                            String(
-                                item.linkedDossierId
-                            )
-                    );
-
-
-                effectiveSupplierId =
-                    linkedDossier
-
-                    ? String(
-                        linkedDossier.supplierId ||
-                        ""
-                    )
-
-                    : "";
-
-            }
-
-
-            return matchesSupplierId(
-                effectiveSupplierId
-            );
-
-        }).length;
+        archiveObject ? 1 : 0;
 
 
     return {
@@ -1766,14 +3491,124 @@ function getSupplierRelations(
 
         archiveCount,
 
+
         totalCount:
+
             dossierCount
+
             +
+
             letterCount
+
             +
+
             archiveCount
 
     };
+
+}
+
+
+// =====================================
+// XÓA OBJECT NHANH
+// =====================================
+
+async function destroySupplierObjectFast(
+    supplier
+){
+
+    ensureSupplierBack4AppReady();
+
+
+    const cachedObjectId =
+        String(
+
+            supplier?.back4appId
+
+            ||
+
+            ""
+
+        ).trim();
+
+
+    /*
+    Luồng bình thường:
+    xóa trực tiếp bằng objectId đã tải từ server.
+    */
+
+    if(cachedObjectId){
+
+        const supplierPointer =
+            Parse.Object.createWithoutData(
+
+                SUPPLIER_CLASS_NAME,
+
+                cachedObjectId
+
+            );
+
+
+        try{
+
+            await supplierPointer.destroy();
+
+
+            return cachedObjectId;
+
+        }catch(error){
+
+            if(error?.code !== 101){
+
+                throw error;
+
+            }
+
+
+            console.warn(
+
+                "ObjectId cache không xóa được, đang tìm Supplier thật:",
+
+                cachedObjectId
+
+            );
+
+        }
+
+    }
+
+
+    /*
+    Chỉ chạy khi ID cache bị lỗi.
+    */
+
+    const actualObject =
+        await findSupplierObjectOnBack4App(
+            supplier
+        );
+
+
+    if(!actualObject){
+
+        throw new Error(
+
+            "Không tìm thấy Nhà cung cấp trên Back4App."
+
+        );
+
+    }
+
+
+    const actualObjectId =
+        String(
+            actualObject.id
+        );
+
+
+    await actualObject.destroy();
+
+
+    return actualObjectId;
 
 }
 
@@ -1784,74 +3619,52 @@ function getSupplierRelations(
 
 async function deleteSupplier(id){
 
+    if(supplierDeleteInProgress){
+
+        showSupplierMessage(
+
+            "Một Nhà cung cấp đang được xử lý.",
+
+            "info"
+
+        );
+
+
+        return;
+
+    }
+
+
     const supplier =
-        suppliers.find(item =>
-
-            String(item.id) ===
-            String(id)
-
+        findLocalSupplierByAnyId(
+            id
         );
 
 
     if(!supplier){
 
-        alert(
-            "Không tìm thấy Nhà cung cấp."
+        showSupplierMessage(
+
+            "Không tìm thấy Nhà cung cấp.",
+
+            "error"
+
         );
+
 
         return;
 
     }
 
 
-    const relations =
-        getSupplierRelations(
-            supplier
-        );
-
-
-    if(relations.totalCount > 0){
-
-        alert(
-
-            `Không thể xóa Nhà cung cấp "${supplier.ten}".\n\n`
-
-            +
-
-            `Nhà cung cấp này đang được sử dụng trong:\n`
-
-            +
-
-            `- ${relations.dossierCount} hồ sơ chính\n`
-
-            +
-
-            `- ${relations.letterCount} thư\n`
-
-            +
-
-            `- ${relations.archiveCount} hồ sơ lưu\n\n`
-
-            +
-
-            `Tổng cộng: ${relations.totalCount} dữ liệu liên kết.`
-
-        );
-
-        return;
-
-    }
-
+    /*
+    Xác nhận trước để khi bấm Hủy
+    không gửi request lên Back4App.
+    */
 
     const confirmed =
-        confirm(
-
-            `Bạn có chắc chắn muốn xóa Nhà cung cấp "${supplier.ten}"?\n\n`
-
-            +
-
-            "Thao tác này không thể hoàn tác."
-
+        await openSupplierDeleteConfirm(
+            supplier.ten
         );
 
 
@@ -1862,56 +3675,131 @@ async function deleteSupplier(id){
     }
 
 
+    supplierDeleteInProgress =
+        true;
+
+
+    console.time(
+        "Thời gian xóa Nhà cung cấp"
+    );
+
+
     try{
 
         ensureSupplierBack4AppReady();
 
 
-        const back4appId =
-            String(
-                supplier.back4appId || ""
+        const relations =
+            await getSupplierRelationsFromBack4App(
+                supplier
             );
 
 
-        if(!back4appId){
+        if(relations.totalCount > 0){
 
-            throw new Error(
-                "Nhà cung cấp chưa có objectId trên Back4App."
+            const relationNames =
+                [];
+
+
+            if(relations.dossierCount){
+
+                relationNames.push(
+                    "hồ sơ chính"
+                );
+
+            }
+
+
+            if(relations.letterCount){
+
+                relationNames.push(
+                    "thư"
+                );
+
+            }
+
+
+            if(relations.archiveCount){
+
+                relationNames.push(
+                    "hồ sơ lưu"
+                );
+
+            }
+
+
+            showSupplierMessage(
+
+                `Không thể xóa "${supplier.ten}" vì Nhà cung cấp đang được sử dụng trong ${relationNames.join(", ")}.`,
+
+                "error"
+
             );
+
+
+            return;
 
         }
 
 
-        const query =
-            new Parse.Query(
-                SUPPLIER_CLASS_NAME
+        const deletedObjectId =
+            await destroySupplierObjectFast(
+                supplier
             );
 
 
-        const supplierObject =
-            await query.get(
-                back4appId
+        const deletedIds =
+            new Set(
+
+                [
+
+                    ...getSupplierValidIds(
+                        supplier
+                    ),
+
+                    deletedObjectId
+
+                ]
+
+                .filter(Boolean)
+
+                .map(value =>
+                    String(value)
+                )
+
             );
 
 
-        await supplierObject.destroy();
+        /*
+        Xóa ngay khỏi mảng local,
+        không tải lại toàn bộ class Supplier.
+        */
+
+        suppliers =
+            suppliers.filter(item => {
+
+                const itemIds =
+                    getSupplierValidIds(
+                        item
+                    );
 
 
-        await fetchSuppliersFromBack4App(
-            true
-        );
+                const isDeletedSupplier =
+                    itemIds.some(itemId =>
+
+                        deletedIds.has(
+                            String(itemId)
+                        )
+
+                    );
 
 
-        if(
-            editingSupplierId !== null
-            &&
-            String(editingSupplierId) ===
-            String(id)
-        ){
+                return !isDeletedSupplier;
 
-            closeSupplierForm();
+            });
 
-        }
+
+        saveSuppliersToStorage();
 
 
         renderSupplier(
@@ -1922,29 +3810,95 @@ async function deleteSupplier(id){
         renderSupplierSelectOptions();
 
 
-        alert(
-            `Đã xóa Nhà cung cấp "${supplier.ten}".`
+        if(
+            editingSupplierId !== null
+
+            &&
+
+            deletedIds.has(
+                String(
+                    editingSupplierId
+                )
+            )
+        ){
+
+            closeSupplierForm();
+
+        }
+
+
+        showSupplierMessage(
+
+            `Đã xóa Nhà cung cấp "${supplier.ten}".`,
+
+            "success"
+
         );
 
     }catch(error){
 
         console.error(
+
             "Không xóa được Nhà cung cấp:",
-            error
+
+            {
+
+                code:
+                    error?.code,
+
+                message:
+                    error?.message,
+
+                error:
+                    error
+
+            }
+
         );
 
 
-        alert(
+        if(error?.code === 101){
 
-            "Không xóa được Nhà cung cấp.\n\n"
+            showSupplierMessage(
 
-            +
+                `Không xóa được "${supplier.ten}". Object không tồn tại hoặc ACL không cấp quyền xóa cho tài khoản hiện tại.`,
 
-            (
-                error.message ||
-                error
-            )
+                "error"
 
+            );
+
+        }else if(error?.code === 119){
+
+            showSupplierMessage(
+
+                `Không xóa được "${supplier.ten}". Back4App chưa bật quyền Delete cho Authenticated.`,
+
+                "error"
+
+            );
+
+        }else{
+
+            showSupplierMessage(
+
+                `Không xóa được Nhà cung cấp: ${
+                    error?.message || error
+                }`,
+
+                "error"
+
+            );
+
+        }
+
+    }finally{
+
+        supplierDeleteInProgress =
+            false;
+
+
+        console.timeEnd(
+            "Thời gian xóa Nhà cung cấp"
         );
 
     }
@@ -1990,9 +3944,15 @@ function renderSupplierSelectOptions(){
             (a, b) =>
 
                 String(a.ten || "")
+
                 .localeCompare(
-                    String(b.ten || ""),
+
+                    String(
+                        b.ten || ""
+                    ),
+
                     "vi"
+
                 )
 
         );
@@ -2011,7 +3971,11 @@ function renderSupplierSelectOptions(){
 
 
         option.textContent =
-            item.ten ||
+
+            item.ten
+
+            ||
+
             "Không có tên";
 
 
@@ -2025,15 +3989,21 @@ function renderSupplierSelectOptions(){
     const valueStillExists =
         suppliers.some(item =>
 
-            String(item.id) ===
+            String(item.id)
+
+            ===
+
             String(currentValue)
 
         );
 
 
     select.value =
+
         valueStillExists
+
         ? currentValue
+
         : "";
 
 }
@@ -2043,20 +4013,30 @@ async function loadSupplierSelect(){
 
     try{
 
-        await migrateSuppliersToBack4App();
-
-
-        await fetchSuppliersFromBack4App();
+        await fetchSuppliersFromBack4App(
+            true
+        );
 
 
         renderSupplierSelectOptions();
 
+
+        return [
+            ...suppliers
+        ];
+
     }catch(error){
 
         console.error(
+
             "Không tải được dropdown Nhà cung cấp:",
+
             error
+
         );
+
+
+        return [];
 
     }
 
@@ -2064,8 +4044,84 @@ async function loadSupplierSelect(){
 
 
 // =====================================
-// TÌM KIẾM NCC
+// LÀM MỚI DỮ LIỆU
 // =====================================
+
+async function refreshSupplierData(){
+
+    try{
+
+        await fetchSuppliersFromBack4App(
+            true
+        );
+
+
+        if(
+            getSupplierElement(
+                "supplierTable"
+            )
+        ){
+
+            renderSupplier(
+                getCurrentSupplierKeyword()
+            );
+
+        }
+
+
+        renderSupplierSelectOptions();
+
+
+        showSupplierMessage(
+
+            `Đã đồng bộ ${suppliers.length} Nhà cung cấp từ Back4App.`,
+
+            "info"
+
+        );
+
+
+        return [
+            ...suppliers
+        ];
+
+    }catch(error){
+
+        console.error(
+
+            "Không thể làm mới dữ liệu Nhà cung cấp:",
+
+            error
+
+        );
+
+
+        if(
+            getSupplierElement(
+                "supplierTable"
+            )
+        ){
+
+            setSupplierTableMessage(
+
+                error?.message
+
+                ||
+
+                "Không thể tải dữ liệu Nhà cung cấp.",
+
+                true
+
+            );
+
+        }
+
+
+        return [];
+
+    }
+
+}
 
 document.addEventListener(
 
@@ -2075,10 +4131,16 @@ document.addEventListener(
 
         if(
             event.target
+
             &&
+
             event.target.id ===
             "searchSupplier"
         ){
+
+            supplierCurrentPage =
+                1;
+
 
             renderSupplier(
                 event.target.value
@@ -2091,49 +4153,151 @@ document.addEventListener(
 );
 
 
+document.addEventListener(
+
+    "change",
+
+    function(event){
+
+        if(!event.target){
+
+            return;
+
+        }
+
+
+        if(
+            event.target.id ===
+            "supplierStatusFilter"
+        ){
+
+            changeSupplierStatusFilter(
+                event.target.value
+            );
+
+
+            return;
+
+        }
+
+
+        if(
+            event.target.id ===
+            "supplierPageSize"
+        ){
+
+            changeSupplierPageSize(
+                event.target.value
+            );
+
+        }
+
+    }
+
+);
+
 // =====================================
-// TẢI NCC NỀN KHI MỞ HỆ THỐNG
+// PHÍM ESCAPE
 // =====================================
 
 document.addEventListener(
 
-    "DOMContentLoaded",
+    "keydown",
+
+    function(event){
+
+        if(
+            event.key !==
+            "Escape"
+        ){
+
+            return;
+
+        }
+
+
+        const deleteConfirm =
+            getSupplierElement(
+                "supplierDeleteConfirm"
+            );
+
+
+        if(
+            deleteConfirm
+
+            &&
+
+            deleteConfirm.classList.contains(
+                "is-open"
+            )
+        ){
+
+            closeSupplierDeleteConfirm(
+                false
+            );
+
+
+            return;
+
+        }
+
+
+        const form =
+            getSupplierElement(
+                "supplierForm"
+            );
+
+
+        if(
+            form
+
+            &&
+
+            form.classList.contains(
+                "is-open"
+            )
+        ){
+
+            closeSupplierForm();
+
+        }
+
+    }
+
+);
+
+
+// =====================================
+// ĐỒNG BỘ KHI QUAY LẠI TAB
+// =====================================
+
+window.addEventListener(
+
+    "focus",
 
     async function(){
 
+        if(
+            !getSupplierElement(
+                "supplierTable"
+            )
+        ){
+
+            return;
+
+        }
+
+
         try{
-
-            if(
-                typeof Parse ===
-                "undefined"
-                ||
-                !Parse.User.current()
-            ){
-
-                return;
-
-            }
-
-
-            await migrateSuppliersToBack4App();
-
 
             await fetchSuppliersFromBack4App(
                 true
             );
 
 
-            if(
-                getSupplierElement(
-                    "supplierTable"
-                )
-            ){
-
-                renderSupplier(
-                    getCurrentSupplierKeyword()
-                );
-
-            }
+            renderSupplier(
+                getCurrentSupplierKeyword()
+            );
 
 
             renderSupplierSelectOptions();
@@ -2141,8 +4305,11 @@ document.addEventListener(
         }catch(error){
 
             console.error(
-                "Không thể đồng bộ Nhà cung cấp khi khởi động:",
+
+                "Không thể đồng bộ Nhà cung cấp khi quay lại tab:",
+
                 error
+
             );
 
         }
@@ -2155,6 +4322,32 @@ document.addEventListener(
 // =====================================
 // ĐƯA HÀM RA WINDOW
 // =====================================
+window.sortSuppliersBy =
+    sortSuppliersBy;
+
+
+window.goToSupplierPage =
+    goToSupplierPage;
+
+
+window.changeSupplierPage =
+    changeSupplierPage;
+
+
+window.changeSupplierPageSize =
+    changeSupplierPageSize;
+
+
+window.changeSupplierStatusFilter =
+    changeSupplierStatusFilter;
+
+window.openSupplierDeleteConfirm =
+    openSupplierDeleteConfirm;
+
+
+window.closeSupplierDeleteConfirm =
+    closeSupplierDeleteConfirm;
+
 
 window.openSupplierForm =
     openSupplierForm;
@@ -2180,6 +4373,10 @@ window.loadSupplier =
     loadSupplier;
 
 
+window.refreshSupplierData =
+    refreshSupplierData;
+
+
 window.loadSupplierSelect =
     loadSupplierSelect;
 
@@ -2192,9 +4389,19 @@ window.migrateSuppliersToBack4App =
     migrateSuppliersToBack4App;
 
 
+window.findSupplierObjectOnBack4App =
+    findSupplierObjectOnBack4App;
+
+
 window.getSuppliersData =
-    function(){
+function () {
 
-        return [...suppliers];
+    return Array.isArray(suppliers)
 
-    };
+        ? suppliers.map(item => ({
+            ...item
+        }))
+
+        : [];
+
+};
