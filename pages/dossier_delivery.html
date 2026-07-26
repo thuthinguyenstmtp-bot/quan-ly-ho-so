@@ -1,77 +1,166 @@
 <div class="delivery-page">
 
-    <h1>🚚 Hồ sơ đã bàn giao</h1>
+    <!-- =====================================
+         HEADER
+         ===================================== -->
+
+    <header class="delivery-page-header">
+
+        <link rel="icon" type="image/png" href="./favicon.png">
+
+        <div class="delivery-page-heading">
+
+            <span class="delivery-page-eyebrow">
+                QUẢN LÝ HỒ SƠ
+            </span>
+
+            <h1>
+                Hồ sơ đã bàn giao
+            </h1>
+
+            <p>
+                Theo dõi các hồ sơ đã hoàn tất bàn giao và tình trạng thanh toán
+            </p>
+
+        </div>
+
+    </header>
 
 
-    <!-- BỘ LỌC -->
+    <!-- =====================================
+         BANNER NHẸ NHÀNG
+         ===================================== -->
 
-    <div class="delivery-toolbar">
+    <section class="delivery-healing-banner">
 
-        <input
-            type="text"
-            id="deliverySearch"
-            placeholder="Tìm mã HS, dự án, nội dung, NCC..."
-            oninput="filterDeliveryDossier()"
+        <div
+            class="delivery-healing-icon"
+            aria-hidden="true"
         >
+            🌿
+        </div>
 
 
-        <select
-            id="deliveryProjectFilter"
-            onchange="filterDeliveryDossier()"
-        >
+        <div class="delivery-healing-copy">
 
-            <option value="">
-                Tất cả dự án
-            </option>
+            <strong>
+                Mỗi lần bàn giao là một bước hoàn tất
+            </strong>
 
-        </select>
+            <p>
+                Theo dõi ngày bàn giao và trạng thái thanh toán
+                để quy trình luôn rõ ràng.
+            </p>
 
-
-        <select
-            id="deliverySupplierFilter"
-            onchange="filterDeliveryDossier()"
-        >
-
-            <option value="">
-                Tất cả nhà cung cấp
-            </option>
-
-        </select>
+        </div>
 
 
-        <select
-            id="deliveryPaymentFilter"
-            onchange="filterDeliveryDossier()"
-        >
+        <span
+            class="delivery-healing-dot"
+            aria-hidden="true"
+        ></span>
 
-            <option value="">
-                Tất cả thanh toán
-            </option>
-
-            <option value="Chưa thanh toán">
-                Chưa thanh toán
-            </option>
-
-            <option value="Đã xuất ĐNTT">
-                Đã xuất ĐNTT
-            </option>
-
-            <option value="Đang xử lý">
-                Đang xử lý
-            </option>
-
-            <option value="Đã thanh toán">
-                Đã thanh toán
-            </option>
-
-        </select>
+    </section>
 
 
-        <!-- LỌC KHOẢNG NGÀY -->
+    <!-- =====================================
+         BỘ LỌC
+         ===================================== -->
 
-        <div class="delivery-date-range">
+    <section class="delivery-filter-card">
 
-            <div>
+        <div class="delivery-filter-grid">
+
+            <!-- TỪ KHÓA -->
+
+            <div class="delivery-filter-field delivery-search-field">
+
+                <label for="deliverySearch">
+                    Từ khóa
+                </label>
+
+                <input
+                    type="search"
+                    id="deliverySearch"
+                    placeholder="Tìm mã HS, dự án, nội dung, nhà cung cấp..."
+                    autocomplete="off"
+                    oninput="filterDeliveryDossier()"
+                >
+
+            </div>
+
+
+            <!-- DỰ ÁN -->
+
+            <div class="delivery-filter-field">
+
+                <label for="deliveryProjectFilter">
+                    Dự án
+                </label>
+
+                <select
+                    id="deliveryProjectFilter"
+                    onchange="filterDeliveryDossier()"
+                >
+                    <option value="">
+                        Tất cả dự án
+                    </option>
+                </select>
+
+            </div>
+
+
+            <!-- NHÀ CUNG CẤP -->
+
+            <div class="delivery-filter-field">
+
+                <label for="deliverySupplierFilter">
+                    Nhà cung cấp
+                </label>
+
+                <select
+                    id="deliverySupplierFilter"
+                    onchange="filterDeliveryDossier()"
+                >
+                    <option value="">
+                        Tất cả nhà cung cấp
+                    </option>
+                </select>
+
+            </div>
+
+
+            <!-- THANH TOÁN -->
+
+            <div class="delivery-filter-field">
+
+                <label for="deliveryPaymentFilter">
+                    Thanh toán
+                </label>
+
+                <select
+                    id="deliveryPaymentFilter"
+                    onchange="filterDeliveryDossier()"
+                >
+                    <option value="">
+                        Tất cả thanh toán
+                    </option>
+
+                    <option value="Chưa thanh toán">
+                        Chưa thanh toán
+                    </option>
+
+                    <option value="Đã thanh toán">
+                        Đã thanh toán
+                    </option>
+                </select>
+
+            </div>
+
+
+            <!-- TỪ NGÀY -->
+
+            <div class="delivery-filter-field">
 
                 <label for="deliveryDateFrom">
                     Từ ngày
@@ -86,10 +175,9 @@
             </div>
 
 
-            <span>đến</span>
+            <!-- ĐẾN NGÀY -->
 
-
-            <div>
+            <div class="delivery-filter-field">
 
                 <label for="deliveryDateTo">
                     Đến ngày
@@ -103,68 +191,130 @@
 
             </div>
 
+
+            <!-- SẮP XẾP -->
+
+            <div class="delivery-filter-field">
+
+                <label for="deliverySort">
+                    Sắp xếp
+                </label>
+
+                <select
+                    id="deliverySort"
+                    onchange="filterDeliveryDossier()"
+                >
+                    <option
+                        value="delivery-newest"
+                        selected
+                    >
+                        Mới bàn giao trước
+                    </option>
+
+                    <option value="delivery-oldest">
+                        Cũ bàn giao trước
+                    </option>
+
+                    <option value="project-az">
+                        Dự án: A → Z
+                    </option>
+
+                    <option value="project-za">
+                        Dự án: Z → A
+                    </option>
+                </select>
+
+            </div>
+
+
+            <!-- ĐẶT LẠI -->
+
+            <div class="delivery-filter-action">
+
+                <button
+                    type="button"
+                    class="delivery-reset-button"
+                    onclick="resetDeliveryDossierFilters()"
+                >
+                    Đặt lại
+                </button>
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <!-- =====================================
+         DANH SÁCH
+         ===================================== -->
+
+    <section class="delivery-table-card">
+
+        <div class="delivery-table-meta">
+
+            <span
+                id="deliveryResultCount"
+                class="delivery-result-count"
+            >
+                0 hồ sơ
+            </span>
+
         </div>
 
 
-        <button
-            type="button"
-            class="delivery-reset-button"
-            onclick="resetDeliveryDossierFilters()"
-        >
-            Xóa lọc
-        </button>
+        <div class="delivery-table-scroll">
 
-    </div>
+            <table class="delivery-table">
 
-
-    <!-- SỐ LƯỢNG HỒ SƠ -->
-
-    <div class="delivery-result-row">
-
-        <span id="deliveryResultCount">
-            0 hồ sơ
-        </span>
-
-    </div>
+                <colgroup>
+                    <col style="width: 10%;">
+                    <col style="width: 16%;">
+                    <col style="width: 19%;">
+                    <col style="width: 17%;">
+                    <col style="width: 10%;">
+                    <col style="width: 14%;">
+                    <col style="width: 8%;">
+                    <col style="width: 6%;">
+                </colgroup>
 
 
-    <!-- BẢNG -->
+                <thead>
 
-    <div class="delivery-table-scroll">
+                    <tr>
+                        <th>Mã HS</th>
+                        <th>Dự án</th>
+                        <th>Nội dung</th>
+                        <th>Nhà cung cấp</th>
+                        <th>Giá trị</th>
+                        <th>Bổ sung hồ sơ</th>
+                        <th>Ngày bàn giao</th>
+                        <th>Thanh toán</th>
+                    </tr>
 
-        <table class="data-table delivery-table">
-
-            <thead>
-
-                <tr>
-
-                    <th>Mã HS</th>
-
-                    <th>Dự án</th>
-
-                    <th>Nội dung</th>
-
-                    <th>Nhà cung cấp</th>
-
-                    <th>Giá trị</th>
-
-                    <th>Bổ sung hồ sơ</th>
-
-                    <th>Ngày bàn giao</th>
-
-                    <th>Thanh toán</th>
-
-                </tr>
-
-            </thead>
+                </thead>
 
 
-            <tbody id="deliveryTable">
+                <tbody id="deliveryTable">
 
-            </tbody>
+                    <tr>
 
-        </table>
+                        <td
+                            colspan="8"
+                            class="delivery-loading-cell"
+                        >
+                            Đang tải hồ sơ đã bàn giao...
+                        </td>
 
-    </div>
+                    </tr>
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </section>
 
 </div>
