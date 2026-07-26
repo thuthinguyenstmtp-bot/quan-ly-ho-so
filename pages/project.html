@@ -1,124 +1,542 @@
-<div class="project-page">
+<div class="project-page project-dossier-style">
 
-    <h1>Quản lý Dự án</h1>
+    <!-- =====================================
+         HEADER TRANG
+         ===================================== -->
+
+    <header class="project-dossier-header">
+
+        <div class="project-dossier-heading">
+
+            <h1>
+                Quản lý Dự án
+            </h1>
+
+            <p>
+                Theo dõi danh sách dự án và địa điểm thực hiện
+            </p>
+
+        </div>
 
 
-    <!-- THANH TÌM KIẾM -->
-    <div class="toolbar">
+        <div class="project-dossier-actions">
 
-        <input
-            type="text"
-            id="searchProject"
-            placeholder="Tìm theo tên hoặc địa điểm dự án..."
-            autocomplete="off"
+            <button
+                type="button"
+                class="project-dossier-refresh"
+                onclick="refreshProjectData()"
+            >
+                Làm mới
+            </button>
+
+
+            <button
+                type="button"
+                class="project-dossier-add"
+                onclick="openProjectForm()"
+            >
+                ＋ Thêm dự án
+            </button>
+
+        </div>
+
+    </header>
+
+
+    <!-- =====================================
+         BANNER NHẸ NHÀNG
+         ===================================== -->
+
+    <section class="project-dossier-welcome">
+
+        <div
+            class="project-dossier-welcome-icon"
+            aria-hidden="true"
         >
+            🌱
+        </div>
 
 
-        <button
-            type="button"
-            onclick="openProjectForm()"
-        >
-            + Thêm dự án
-        </button>
+        <div class="project-dossier-welcome-copy">
 
-    </div>
+            <strong>
+                Dự án rõ ràng, công việc nhẹ nhàng hơn
+            </strong>
+
+            <p>
+                Cập nhật tên và địa điểm dự án để hồ sơ
+                luôn được liên kết chính xác.
+            </p>
+
+        </div>
 
 
-    <!-- FORM THÊM / CHỈNH SỬA DỰ ÁN -->
-    <div
-        id="projectForm"
-        class="form-popup"
-        style="display: none;"
+        <span
+            class="project-dossier-welcome-dot"
+            aria-hidden="true"
+        ></span>
+
+    </section>
+
+
+    <!-- =====================================
+         THỐNG KÊ DỰ ÁN
+         ===================================== -->
+
+    <section
+        class="project-dossier-summary"
+        aria-label="Thống kê dự án"
     >
 
-        <h2 id="projectFormTitle">
-            Thêm dự án
-        </h2>
+        <!-- TỔNG DỰ ÁN -->
+
+        <article class="project-dossier-stat is-total">
+
+            <div
+                class="project-dossier-stat-icon"
+                aria-hidden="true"
+            >
+                📁
+            </div>
 
 
-        <div class="form-group">
+            <div class="project-dossier-stat-content">
 
-            <label for="projectName">
-                Tên dự án
-                <span style="color: red;">*</span>
-            </label>
+                <span>
+                    Tổng dự án
+                </span>
+
+                <strong id="totalProjectCount">
+                    0
+                </strong>
+
+            </div>
+
+        </article>
+
+
+        <!-- CÓ ĐỊA ĐIỂM -->
+
+        <article class="project-dossier-stat is-address">
+
+            <div
+                class="project-dossier-stat-icon"
+                aria-hidden="true"
+            >
+                📍
+            </div>
+
+
+            <div class="project-dossier-stat-content">
+
+                <span>
+                    Có địa điểm
+                </span>
+
+                <strong id="projectWithAddressCount">
+                    0
+                </strong>
+
+            </div>
+
+        </article>
+
+
+        <!-- CHƯA CÓ ĐỊA ĐIỂM -->
+
+        <article class="project-dossier-stat is-missing">
+
+            <div
+                class="project-dossier-stat-icon"
+                aria-hidden="true"
+            >
+                📝
+            </div>
+
+
+            <div class="project-dossier-stat-content">
+
+                <span>
+                    Chưa có địa điểm
+                </span>
+
+                <strong id="projectWithoutAddressCount">
+                    0
+                </strong>
+
+            </div>
+
+        </article>
+
+
+        <!-- ĐANG HIỂN THỊ -->
+
+        <article class="project-dossier-stat is-visible">
+
+            <div
+                class="project-dossier-stat-icon"
+                aria-hidden="true"
+            >
+                🔎
+            </div>
+
+
+            <div class="project-dossier-stat-content">
+
+                <span>
+                    Đang hiển thị
+                </span>
+
+                <strong id="visibleProjectCount">
+                    0
+                </strong>
+
+            </div>
+
+        </article>
+
+    </section>
+
+
+    <!-- =====================================
+         THANH TÌM KIẾM
+         ===================================== -->
+
+    <section class="project-dossier-toolbar">
+
+        <div class="project-dossier-search">
+
+            <span
+                class="project-dossier-search-icon"
+                aria-hidden="true"
+            >
+                🔎
+            </span>
+
 
             <input
-                type="text"
-                id="projectName"
-                placeholder="Nhập tên dự án"
-                maxlength="200"
+                type="search"
+                id="searchProject"
+                placeholder="Tìm theo tên hoặc địa điểm dự án..."
                 autocomplete="off"
+                aria-label="Tìm kiếm dự án"
             >
 
         </div>
 
 
-        <div class="form-group">
+        <div class="project-dossier-sync">
 
-            <label for="projectAddress">
-                Địa điểm
-            </label>
+            <span
+                class="project-dossier-sync-dot"
+                aria-hidden="true"
+            ></span>
 
-            <input
-                type="text"
-                id="projectAddress"
-                placeholder="Nhập địa điểm thực hiện dự án"
-                maxlength="300"
-                autocomplete="off"
-            >
+            <span>
+                Dữ liệu được đồng bộ từ Back4App
+            </span>
 
         </div>
 
-
-        <div class="form-actions">
-
-            <button
-                type="button"
-                id="projectSaveButton"
-                onclick="saveProject()"
-            >
-                Lưu dự án
-            </button>
+    </section>
 
 
-            <button
-                type="button"
-                onclick="closeProjectForm()"
-            >
-                Hủy
-            </button>
+    <!-- =====================================
+         BẢNG DANH SÁCH DỰ ÁN
+         ===================================== -->
+
+    <section class="project-dossier-table-card">
+
+        <div class="project-dossier-table-scroll">
+
+            <table class="project-dossier-table">
+
+                <colgroup>
+                    <col style="width: 43%;">
+                    <col style="width: 49%;">
+                    <col style="width: 8%;">
+                </colgroup>
+
+
+                <thead>
+
+                    <tr>
+
+                        <th>
+                            Tên dự án
+                        </th>
+
+                        <th>
+                            Địa điểm
+                        </th>
+
+                        <th class="project-dossier-action-column">
+                            Thao tác
+                        </th>
+
+                    </tr>
+
+                </thead>
+
+
+                <tbody id="projectTable">
+
+                    <tr>
+
+                        <td
+                            colspan="3"
+                            class="project-loading-cell"
+                        >
+                            Đang tải dữ liệu dự án...
+                        </td>
+
+                    </tr>
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </section>
+
+
+    <!-- =====================================
+         POPUP THÊM / CHỈNH SỬA DỰ ÁN
+         ===================================== -->
+
+    <div
+        id="projectForm"
+        class="project-modal-overlay"
+        role="dialog"
+        aria-modal="true"
+        aria-hidden="true"
+        aria-labelledby="projectFormTitle"
+        onclick="
+            if(event.target === this){
+                closeProjectForm();
+            }
+        "
+    >
+
+        <div class="project-form-popup">
+
+            <!-- HEADER POPUP -->
+
+            <div class="project-form-header">
+
+                <div>
+
+                    <span class="project-form-eyebrow">
+                        THÔNG TIN DỰ ÁN
+                    </span>
+
+                    <h2 id="projectFormTitle">
+                        Thêm dự án
+                    </h2>
+
+                    <p class="project-form-subtitle">
+                        Cập nhật thông tin để liên kết hồ sơ chính xác.
+                    </p>
+
+                </div>
+
+
+                <button
+                    type="button"
+                    class="project-form-close"
+                    onclick="closeProjectForm()"
+                    aria-label="Đóng form"
+                    title="Đóng"
+                >
+                    ×
+                </button>
+
+            </div>
+
+
+            <!-- BODY POPUP -->
+
+            <div class="project-form-body">
+
+                <div class="project-form-intro">
+
+                    <span aria-hidden="true">
+                        🌿
+                    </span>
+
+                    <p>
+                        Nhập thông tin ngắn gọn, rõ ràng và chính xác
+                        để thuận tiện khi tìm kiếm và tạo hồ sơ.
+                    </p>
+
+                </div>
+
+
+                <!-- TÊN DỰ ÁN -->
+
+                <div class="project-form-group">
+
+                    <label for="projectName">
+
+                        Tên dự án
+
+                        <span class="project-required">
+                            *
+                        </span>
+
+                    </label>
+
+
+                    <input
+                        type="text"
+                        id="projectName"
+                        placeholder="Ví dụ: Dự án Solar Pavonine"
+                        maxlength="200"
+                        autocomplete="off"
+                    >
+
+
+                    <small>
+                        Đây là tên được hiển thị trong danh sách hồ sơ.
+                    </small>
+
+                </div>
+
+
+                <!-- ĐỊA ĐIỂM -->
+
+                <div class="project-form-group">
+
+                    <label for="projectAddress">
+                        Địa điểm thực hiện
+                    </label>
+
+
+                    <input
+                        type="text"
+                        id="projectAddress"
+                        placeholder="Ví dụ: Quận 7, TP. Hồ Chí Minh"
+                        maxlength="300"
+                        autocomplete="off"
+                    >
+
+
+                    <small>
+                        Có thể để trống và bổ sung sau.
+                    </small>
+
+                </div>
+
+            </div>
+
+
+            <!-- FOOTER POPUP -->
+
+            <div class="project-form-actions">
+
+                <button
+                    type="button"
+                    class="project-cancel-button"
+                    onclick="closeProjectForm()"
+                >
+                    Hủy
+                </button>
+
+
+                <button
+                    type="button"
+                    id="projectSaveButton"
+                    class="project-save-button"
+                    onclick="saveProject()"
+                >
+                    Lưu dự án
+                </button>
+
+            </div>
 
         </div>
 
     </div>
 
 
-    <!-- BẢNG DANH SÁCH DỰ ÁN -->
-    <div class="table-scroll">
+    <!-- =====================================
+         POPUP XÁC NHẬN XÓA
+         ===================================== -->
 
-        <table class="data-table">
+    <div
+        id="projectDeleteConfirm"
+        class="project-confirm-overlay"
+        role="dialog"
+        aria-modal="true"
+        aria-hidden="true"
+        aria-labelledby="projectDeleteConfirmTitle"
+        onclick="
+            if(event.target === this){
+                closeProjectDeleteConfirm(false);
+            }
+        "
+    >
 
-            <thead>
+        <div class="project-confirm-box">
 
-                <tr>
-
-                    <th>Tên dự án</th>
-
-                    <th>Địa điểm</th>
-
-                    <th>Thao tác</th>
-
-                </tr>
-
-            </thead>
+            <div
+                class="project-confirm-icon"
+                aria-hidden="true"
+            >
+                ×
+            </div>
 
 
-            <tbody id="projectTable">
+            <span class="project-confirm-eyebrow">
+                XÁC NHẬN THAO TÁC
+            </span>
 
-            </tbody>
 
-        </table>
+            <h3 id="projectDeleteConfirmTitle">
+                Xóa dự án?
+            </h3>
+
+
+            <p id="projectDeleteConfirmMessage">
+                Bạn có chắc chắn muốn xóa dự án này?
+            </p>
+
+
+            <div class="project-confirm-warning">
+
+                <span aria-hidden="true">
+                    !
+                </span>
+
+                Thao tác này không thể hoàn tác.
+
+            </div>
+
+
+            <div class="project-confirm-actions">
+
+                <button
+                    type="button"
+                    class="project-confirm-cancel"
+                    onclick="closeProjectDeleteConfirm(false)"
+                >
+                    Hủy
+                </button>
+
+
+                <button
+                    type="button"
+                    id="projectDeleteConfirmButton"
+                    class="project-confirm-delete"
+                    onclick="closeProjectDeleteConfirm(true)"
+                >
+                    Xóa dự án
+                </button>
+
+            </div>
+
+        </div>
 
     </div>
 
