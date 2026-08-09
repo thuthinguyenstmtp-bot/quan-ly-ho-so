@@ -5382,7 +5382,362 @@ async function (id) {
 
     }
 
+// =====================================================
+// TẢI FILE MẪU HỒ SƠ LƯU
+// =====================================================
 
+window.downloadArchiveCsvTemplate =
+function () {
+
+    try {
+
+        console.log(
+            "Bắt đầu tạo file mẫu Hồ sơ lưu..."
+        );
+
+
+        // =================================================
+        // HEADER
+        // =================================================
+
+        const headers = [
+
+            "Loại hồ sơ",
+
+            "Số / Mã lưu",
+
+            "Mã HS liên kết",
+
+            "Tên tài liệu",
+
+            "Tên dự án",
+
+            "Tên nhà cung cấp",
+
+            "Ngày lưu",
+
+            "Vị trí lưu",
+
+            "Số lượng",
+
+            "Ghi chú"
+
+        ];
+
+
+        // =================================================
+        // DÒNG VÍ DỤ 1
+        // Có mã HS liên kết
+        // =================================================
+
+        const exampleRow1 = [
+
+            "Hợp đồng",
+
+            "LUU-HD-001",
+
+            "HS001",
+
+            "Hợp đồng cung cấp thiết bị",
+
+            "",
+
+            "",
+
+            "2026-08-08",
+
+            "Tủ A - Kệ 2 - Hộp 03",
+
+            "1",
+
+            "Bản gốc"
+
+        ];
+
+
+        // =================================================
+        // DÒNG VÍ DỤ 2
+        // Không dùng mã HS liên kết
+        // =================================================
+
+        const exampleRow2 = [
+
+            "Biên bản",
+
+            "LUU-BB-002",
+
+            "",
+
+            "Biên bản nghiệm thu",
+
+            "TÊN DỰ ÁN MẪU",
+
+            "CÔNG TY TNHH NHÀ CUNG CẤP MẪU",
+
+            "08/08/2026",
+
+            "Tủ B - Kệ 1",
+
+            "1",
+
+            "Ví dụ nhập theo tên Dự án và NCC"
+
+        ];
+
+
+        // =================================================
+        // HÀM XỬ LÝ NỘI DUNG CSV
+        // =================================================
+
+        function escapeCsvCell(
+            value
+        ) {
+
+            const text =
+                String(
+                    value ?? ""
+                );
+
+
+            /*
+            Nếu có:
+            ;
+            "
+            xuống dòng
+
+            thì bọc trong dấu ngoặc kép.
+            */
+
+            if (
+                /[;"\r\n]/.test(
+                    text
+                )
+            ) {
+
+                return (
+
+                    '"'
+
+                    +
+
+                    text.replaceAll(
+                        '"',
+                        '""'
+                    )
+
+                    +
+
+                    '"'
+
+                );
+
+            }
+
+
+            return text;
+
+        }
+
+
+        // =================================================
+        // TẠO NỘI DUNG FILE
+        // =================================================
+
+        const rows = [
+
+            headers,
+
+            exampleRow1,
+
+            exampleRow2
+
+        ];
+
+
+        const csvContent =
+
+            "\uFEFF"
+
+            +
+
+            rows
+                .map(
+                    row =>
+
+                        row
+                            .map(
+                                escapeCsvCell
+                            )
+                            .join(
+                                ";"
+                            )
+                )
+                .join(
+                    "\r\n"
+                );
+
+
+        // =================================================
+        // TẠO FILE BLOB
+        // =================================================
+
+        const blob =
+            new Blob(
+
+                [
+                    csvContent
+                ],
+
+                {
+                    type:
+                        "text/csv;charset=utf-8"
+                }
+
+            );
+
+
+        const url =
+            window.URL.createObjectURL(
+                blob
+            );
+
+
+        // =================================================
+        // TẠO LINK DOWNLOAD
+        // =================================================
+
+        const link =
+            document.createElement(
+                "a"
+            );
+
+
+        link.href =
+            url;
+
+
+        link.download =
+            "mau-import-ho-so-luu.csv";
+
+
+        link.style.display =
+            "none";
+
+
+        document.body.appendChild(
+            link
+        );
+
+
+        // =================================================
+        // TẢI FILE
+        // =================================================
+
+        link.click();
+
+
+        console.log(
+            "Đã kích hoạt tải file mẫu."
+        );
+
+
+        // =================================================
+        // DỌN DẸP
+        // =================================================
+
+        window.setTimeout(
+            function () {
+
+                link.remove();
+
+
+                window.URL.revokeObjectURL(
+                    url
+                );
+
+            },
+            1500
+        );
+
+
+        // =================================================
+        // THÔNG BÁO
+        // =================================================
+
+        if (
+            typeof showArchiveNotice ===
+            "function"
+        ) {
+
+            showArchiveNotice(
+
+                "Đã tạo file mẫu Hồ sơ lưu.",
+
+                "success"
+
+            );
+
+        }
+
+
+    } catch (error) {
+
+        console.error(
+
+            "Lỗi tạo file mẫu Hồ sơ lưu:",
+
+            error
+
+        );
+
+
+        if (
+            typeof showArchiveNotice ===
+            "function"
+        ) {
+
+            showArchiveNotice(
+
+                "Không thể tải file mẫu: "
+
+                +
+
+                (
+                    error?.message
+
+                    ||
+
+                    "Không rõ lỗi"
+                ),
+
+                "error"
+
+            );
+
+        } else {
+
+            window.alert(
+
+                "Không thể tải file mẫu: "
+
+                +
+
+                (
+                    error?.message
+
+                    ||
+
+                    "Không rõ lỗi"
+                )
+
+            );
+
+        }
+
+    }
+
+};
+    
     // =====================================================
     // ĐƯA HÀM RA WINDOW
     // =====================================================
