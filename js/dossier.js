@@ -7498,28 +7498,110 @@ async function loadDossierReferenceData() {
 
     function loadDeliveryDossierFilters() {
 
-        loadDossierFilterOptions(
+    // =====================================================
+    // 1. LOAD DỰ ÁN
+    // =====================================================
 
-            "deliveryProjectFilter",
+    loadDossierFilterOptions(
 
-            getDossierProjects(),
+        "deliveryProjectFilter",
 
-            "Tất cả dự án"
+        getDossierProjects(),
 
+        "Tất cả dự án"
+
+    );
+
+
+    // =====================================================
+    // 2. LOAD GỢI Ý NHÀ CUNG CẤP
+    // =====================================================
+
+    const supplierDatalist =
+        getDossierElement(
+            "deliverySupplierFilterList"
         );
 
 
-        loadDossierFilterOptions(
+    if (!supplierDatalist) {
 
-            "deliverySupplierFilter",
-
-            getDossierSuppliers(),
-
-            "Tất cả nhà cung cấp"
-
-        );
+        return;
 
     }
+
+
+    supplierDatalist.innerHTML =
+        "";
+
+
+    const supplierList =
+        [...getDossierSuppliers()]
+            .sort(
+                (a, b) => {
+
+                    return getDossierSupplierName(a)
+                        .localeCompare(
+
+                            getDossierSupplierName(b),
+
+                            "vi",
+
+                            {
+                                sensitivity:
+                                    "base",
+
+                                numeric:
+                                    true
+                            }
+
+                        );
+
+                }
+            );
+
+
+    supplierList.forEach(
+        supplier => {
+
+            const supplierName =
+                String(
+
+                    getDossierSupplierName(
+                        supplier
+                    )
+
+                    ||
+
+                    ""
+
+                ).trim();
+
+
+            if (!supplierName) {
+
+                return;
+
+            }
+
+
+            const option =
+                document.createElement(
+                    "option"
+                );
+
+
+            option.value =
+                supplierName;
+
+
+            supplierDatalist.appendChild(
+                option
+            );
+
+        }
+    );
+
+}
 
 
     function sortDeliveryDossierData(
@@ -7657,10 +7739,14 @@ async function loadDossierReferenceData() {
             );
 
 
-        const supplierId =
-            getDossierInputValue(
-                "deliverySupplierFilter"
-            );
+        const supplierKeyword =
+    normalizeDossierText(
+
+        getDossierInputValue(
+            "deliverySupplierFilter"
+        )
+
+    );
 
 
         const paymentFilter =
@@ -7782,21 +7868,35 @@ async function loadDossierReferenceData() {
                     );
 
 
-                const matchSupplier =
-                    !supplierId
+                const supplierName =
+    String(
 
-                    ||
+        getDossierSupplierName(
+            supplier
+        )
 
-                    (
-                        supplier
+        ||
 
-                        &&
+        ""
 
-                        entityMatchesId(
-                            supplier,
-                            supplierId
-                        )
-                    );
+    );
+
+
+const normalizedSupplierName =
+    normalizeDossierText(
+        supplierName
+    );
+
+
+const matchSupplier =
+
+    !supplierKeyword
+
+    ||
+
+    normalizedSupplierName.includes(
+        supplierKeyword
+    );
 
 
                 return (
@@ -8340,28 +8440,261 @@ function populatePaidFilter(
 // =====================================================
 // TẢI DỰ ÁN VÀ NCC CHO BỘ LỌC
 // =====================================================
+function loadPaidDossierFilters() {
 
-function loadPaidDossierFilters(){
+    // =====================================================
+    // 1. LOAD DỰ ÁN
+    // =====================================================
 
-    populatePaidFilter(
-
-        "paidProjectFilter",
-
-        getDossierProjects(),
-
-        "Tất cả dự án"
-
-    );
+    const projectFilter =
+        getDossierElement(
+            "paidProjectFilter"
+        );
 
 
-    populatePaidFilter(
+    if (projectFilter) {
 
-        "paidSupplierFilter",
+        const currentValue =
+            String(
+                projectFilter.value || ""
+            );
 
-        getDossierSuppliers(),
 
-        "Tất cả nhà cung cấp"
+        projectFilter.innerHTML = `
 
+            <option value="">
+                Tất cả dự án
+            </option>
+
+        `;
+
+
+        const projects =
+            [...getDossierProjects()]
+                .sort(
+                    (a, b) => {
+
+                        const nameA =
+                            String(
+
+                                a?.ten
+
+                                ||
+
+                                a?.name
+
+                                ||
+
+                                ""
+
+                            );
+
+
+                        const nameB =
+                            String(
+
+                                b?.ten
+
+                                ||
+
+                                b?.name
+
+                                ||
+
+                                ""
+
+                            );
+
+
+                        return nameA.localeCompare(
+
+                            nameB,
+
+                            "vi",
+
+                            {
+                                sensitivity:
+                                    "base",
+
+                                numeric:
+                                    true
+                            }
+
+                        );
+
+                    }
+                );
+
+
+        projects.forEach(
+            project => {
+
+                const projectId =
+                    getEntityStableId(
+                        project
+                    );
+
+
+                if (!projectId) {
+
+                    return;
+
+                }
+
+
+                const projectName =
+                    String(
+
+                        project?.ten
+
+                        ||
+
+                        project?.name
+
+                        ||
+
+                        "Dự án không có tên"
+
+                    );
+
+
+                const option =
+                    document.createElement(
+                        "option"
+                    );
+
+
+                option.value =
+                    projectId;
+
+
+                option.textContent =
+                    projectName;
+
+
+                projectFilter.appendChild(
+                    option
+                );
+
+            }
+        );
+
+
+        /*
+        Giữ lại dự án đang chọn nếu còn tồn tại.
+        */
+
+        const selectedProject =
+            getDossierProjects()
+                .find(
+                    project =>
+
+                        entityMatchesId(
+                            project,
+                            currentValue
+                        )
+                );
+
+
+        projectFilter.value =
+
+            selectedProject
+
+                ? getEntityStableId(
+                    selectedProject
+                )
+
+                : "";
+
+    }
+
+
+    // =====================================================
+    // 2. LOAD GỢI Ý NHÀ CUNG CẤP
+    // =====================================================
+
+    const supplierDatalist =
+        getDossierElement(
+            "paidSupplierFilterList"
+        );
+
+
+    if (!supplierDatalist) {
+
+        return;
+
+    }
+
+
+    supplierDatalist.innerHTML =
+        "";
+
+
+    const suppliers =
+        [...getDossierSuppliers()]
+            .sort(
+                (a, b) => {
+
+                    return getDossierSupplierName(a)
+                        .localeCompare(
+
+                            getDossierSupplierName(b),
+
+                            "vi",
+
+                            {
+                                sensitivity:
+                                    "base",
+
+                                numeric:
+                                    true
+                            }
+
+                        );
+
+                }
+            );
+
+
+    suppliers.forEach(
+        supplier => {
+
+            const supplierName =
+                String(
+
+                    getDossierSupplierName(
+                        supplier
+                    )
+
+                    ||
+
+                    ""
+
+                ).trim();
+
+
+            if (!supplierName) {
+
+                return;
+
+            }
+
+
+            const option =
+                document.createElement(
+                    "option"
+                );
+
+
+            option.value =
+                supplierName;
+
+
+            supplierDatalist.appendChild(
+                option
+            );
+
+        }
     );
 
 }
@@ -8370,8 +8703,11 @@ function loadPaidDossierFilters(){
 // =====================================================
 // LỌC HỒ SƠ ĐÃ THANH TOÁN
 // =====================================================
+function filterPaidDossier() {
 
-function filterPaidDossier(){
+    // =====================================================
+    // TỪ KHÓA CHUNG
+    // =====================================================
 
     const keyword =
         normalizeDossierText(
@@ -8383,17 +8719,41 @@ function filterPaidDossier(){
         );
 
 
+    // =====================================================
+    // DỰ ÁN
+    // =====================================================
+
     const selectedProjectId =
-        getDossierInputValue(
-            "paidProjectFilter"
+        String(
+
+            getDossierInputValue(
+                "paidProjectFilter"
+            )
+
+            ||
+
+            ""
+
+        ).trim();
+
+
+    // =====================================================
+    // NHÀ CUNG CẤP - NHẬP TÊN
+    // =====================================================
+
+    const supplierKeyword =
+        normalizeDossierText(
+
+            getDossierInputValue(
+                "paidSupplierFilter"
+            )
+
         );
 
 
-    const selectedSupplierId =
-        getDossierInputValue(
-            "paidSupplierFilter"
-        );
-
+    // =====================================================
+    // BÀN GIAO
+    // =====================================================
 
     const deliveryFilter =
         getDossierInputValue(
@@ -8401,11 +8761,19 @@ function filterPaidDossier(){
         );
 
 
+    // =====================================================
+    // FILE HỒ SƠ
+    // =====================================================
+
     const fileFilter =
         getDossierInputValue(
             "paidFileFilter"
         );
 
+
+    // =====================================================
+    // SẮP XẾP
+    // =====================================================
 
     const sortMode =
         getDossierInputValue(
@@ -8413,343 +8781,410 @@ function filterPaidDossier(){
         );
 
 
+    // =====================================================
+    // LỌC
+    // =====================================================
+
     const filteredData =
-        dossiers.filter(item => {
+        dossiers.filter(
+            item => {
 
-            if(!isPaidDossier(item)){
+                /*
+                Chỉ lấy hồ sơ đã thanh toán.
+                */
 
-                return false;
+                if (
+                    !isPaidDossier(
+                        item
+                    )
+                ) {
 
-            }
+                    return false;
+
+                }
 
 
-            const itemProjectId =
-                String(
+                // -----------------------------
+                // PROJECT ID
+                // -----------------------------
 
-                    item.projectId
+                const itemProjectId =
+                    String(
+
+                        item.projectId
+
+                        ||
+
+                        item.project
+
+                        ||
+
+                        ""
+
+                    );
+
+
+                // -----------------------------
+                // SUPPLIER ID
+                // -----------------------------
+
+                const itemSupplierId =
+                    String(
+
+                        item.supplierId
+
+                        ||
+
+                        item.supplier
+
+                        ||
+
+                        ""
+
+                    );
+
+
+                // -----------------------------
+                // DỰ ÁN
+                // -----------------------------
+
+                const project =
+                    getDossierProjectById(
+                        itemProjectId
+                    );
+
+
+                const projectName =
+                    String(
+
+                        project?.ten
+
+                        ||
+
+                        project?.name
+
+                        ||
+
+                        ""
+
+                    );
+
+
+                // -----------------------------
+                // NHÀ CUNG CẤP
+                // -----------------------------
+
+                const supplier =
+                    getDossierSupplierById(
+                        itemSupplierId
+                    );
+
+
+                const supplierName =
+                    String(
+
+                        getDossierSupplierName(
+                            supplier
+                        )
+
+                        ||
+
+                        ""
+
+                    );
+
+
+                /*
+                Dùng normalizeDossierText nên:
+
+                HUY HÙNG
+                Huy Hùng
+                huy hung
+
+                đều được xem giống nhau.
+                */
+
+                const normalizedSupplierName =
+                    normalizeDossierText(
+                        supplierName
+                    );
+
+
+                // -----------------------------
+                // SEARCH TEXT
+                // -----------------------------
+
+                const searchText =
+                    normalizeDossierText(`
+
+                        ${item.code || ""}
+
+                        ${item.content || ""}
+
+                        ${item.documents || ""}
+
+                        ${item.additionalDocuments || ""}
+
+                        ${projectName}
+
+                        ${supplierName}
+
+                        ${item.note || ""}
+
+                    `);
+
+
+                const matchKeyword =
+
+                    !keyword
 
                     ||
 
-                    item.project
+                    searchText.includes(
+                        keyword
+                    );
+
+
+                // =================================================
+                // MATCH DỰ ÁN
+                // =================================================
+
+                const matchProject =
+
+                    !selectedProjectId
 
                     ||
 
-                    ""
+                    (
 
-                );
+                        project
 
+                        &&
 
-            const itemSupplierId =
-                String(
+                        entityMatchesId(
 
-                    item.supplierId
+                            project,
 
-                    ||
+                            selectedProjectId
 
-                    item.supplier
-
-                    ||
-
-                    ""
-
-                );
-
-
-            const project =
-                getDossierProjectById(
-                    itemProjectId
-                );
-
-
-            const supplier =
-                getDossierSupplierById(
-                    itemSupplierId
-                );
-
-
-            const projectName =
-                String(
-
-                    project?.ten
-
-                    ||
-
-                    project?.name
-
-                    ||
-
-                    ""
-
-                );
-
-
-            const supplierName =
-                String(
-
-                    supplier?.ten
-
-                    ||
-
-                    supplier?.name
-
-                    ||
-
-                    ""
-
-                );
-
-
-            const searchText =
-                normalizeDossierText(`
-
-                    ${item.code || ""}
-
-                    ${item.content || ""}
-
-                    ${item.documents || ""}
-
-                    ${item.additionalDocuments || ""}
-
-                    ${projectName}
-
-                    ${supplierName}
-
-                    ${item.note || ""}
-
-                `);
-
-
-            const matchKeyword =
-                !keyword
-
-                ||
-
-                searchText.includes(
-                    keyword
-                );
-
-
-            const matchProject =
-                !selectedProjectId
-
-                ||
-
-                (
-                    project
-
-                    &&
-
-                    paidEntityMatchesId(
-
-                        project,
-
-                        selectedProjectId
+                        )
 
                     )
-                )
 
-                ||
+                    ||
 
-                itemProjectId ===
-                selectedProjectId;
+                    itemProjectId ===
+                    selectedProjectId;
 
 
-            const matchSupplier =
-                !selectedSupplierId
+                // =================================================
+                // MATCH NHÀ CUNG CẤP THEO TÊN
+                // =================================================
 
-                ||
+                const matchSupplier =
 
-                (
-                    supplier
+                    !supplierKeyword
 
-                    &&
+                    ||
 
-                    paidEntityMatchesId(
+                    normalizedSupplierName.includes(
+                        supplierKeyword
+                    );
 
-                        supplier,
 
-                        selectedSupplierId
+                // =================================================
+                // BÀN GIAO
+                // =================================================
+
+                const hasDelivery =
+                    Boolean(
+
+                        String(
+
+                            item.deliveryDate
+
+                            ||
+
+                            ""
+
+                        ).trim()
+
+                    );
+
+
+                const matchDelivery =
+
+                    !deliveryFilter
+
+                    ||
+
+                    (
+
+                        deliveryFilter ===
+                        "done"
+
+                        &&
+
+                        hasDelivery
 
                     )
-                )
 
-                ||
+                    ||
 
-                itemSupplierId ===
-                selectedSupplierId;
+                    (
+
+                        deliveryFilter ===
+                        "not"
+
+                        &&
+
+                        !hasDelivery
+
+                    );
 
 
-            const hasDeliveryDate =
-                Boolean(
+                // =================================================
+                // FILE HỒ SƠ
+                // =================================================
+
+                const matchFile =
+
+                    !fileFilter
+
+                    ||
 
                     String(
-                        item.deliveryDate || ""
-                    ).trim()
 
-                );
+                        item.fileStatus
+
+                        ||
+
+                        "Chưa up"
+
+                    )
+
+                    ===
+
+                    fileFilter;
 
 
-            const matchDelivery =
-                !deliveryFilter
+                // =================================================
+                // KẾT QUẢ
+                // =================================================
 
-                ||
+                return (
 
-                (
-                    deliveryFilter === "done"
-
-                    &&
-
-                    hasDeliveryDate
-                )
-
-                ||
-
-                (
-                    deliveryFilter === "not"
+                    matchKeyword
 
                     &&
 
-                    !hasDeliveryDate
-                );
+                    matchProject
 
+                    &&
 
-            const itemFileStatus =
-                String(
+                    matchSupplier
 
-                    item.fileStatus
+                    &&
 
-                    ||
+                    matchDelivery
 
-                    "Chưa up"
+                    &&
 
-                ).trim();
-
-
-            const matchFile =
-                !fileFilter
-
-                ||
-
-                itemFileStatus ===
-                fileFilter;
-
-
-            return (
-
-                matchKeyword
-
-                &&
-
-                matchProject
-
-                &&
-
-                matchSupplier
-
-                &&
-
-                matchDelivery
-
-                &&
-
-                matchFile
-
-            );
-
-        });
-
-
-    /*
-    Nếu HTML có thêm paidSort thì hỗ trợ sắp xếp.
-    Không có paidSort vẫn chạy bình thường.
-    */
-
-    if(
-        sortMode === "project-az"
-
-        ||
-
-        sortMode === "project-za"
-    ){
-
-        filteredData.sort((a, b) => {
-
-            const projectNameA =
-                String(
-
-                    getDossierProjectById(
-                        a.projectId
-                    )?.ten
-
-                    ||
-
-                    ""
+                    matchFile
 
                 );
 
-
-            const projectNameB =
-                String(
-
-                    getDossierProjectById(
-                        b.projectId
-                    )?.ten
-
-                    ||
-
-                    ""
-
-                );
+            }
+        );
 
 
-            const compared =
-                projectNameA.localeCompare(
+    // =====================================================
+    // SẮP XẾP
+    // =====================================================
 
-                    projectNameB,
-
-                    "vi",
-
-                    {
-                        sensitivity:
-                            "base",
-
-                        numeric:
-                            true
-                    }
-
-                );
+    let sortedData =
+        [...filteredData];
 
 
-            return sortMode ===
-                "project-za"
+    if (
+        sortMode ===
+        "project-az"
+    ) {
 
-                ? -compared
+        sortedData.sort(
+            (a, b) =>
 
-                : compared;
+                getDossierProjectName(a)
+                    .localeCompare(
 
-        });
+                        getDossierProjectName(b),
 
-    }else{
+                        "vi",
 
-        filteredData.sort((a, b) => {
+                        {
+                            sensitivity:
+                                "base",
 
-            return (
+                            numeric:
+                                true
+                        }
+
+                    )
+        );
+
+    }
+
+
+    if (
+        sortMode ===
+        "project-za"
+    ) {
+
+        sortedData.sort(
+            (a, b) =>
+
+                getDossierProjectName(b)
+                    .localeCompare(
+
+                        getDossierProjectName(a),
+
+                        "vi",
+
+                        {
+                            sensitivity:
+                                "base",
+
+                            numeric:
+                                true
+                        }
+
+                    )
+        );
+
+    }
+
+
+    if (!sortMode) {
+
+        sortedData.sort(
+            (a, b) =>
 
                 getDossierCreatedTime(b)
 
                 -
 
                 getDossierCreatedTime(a)
-
-            );
-
-        });
+        );
 
     }
 
 
+    // =====================================================
+    // RENDER
+    // =====================================================
+
     renderPaidDossier(
-        filteredData
+        sortedData
     );
 
 }
@@ -9184,84 +9619,392 @@ function resetPaidDossierFilters(){
     // HỒ SƠ CẦN BỔ SUNG
     // =====================================================
 
-    function loadMissingDossierFilters() {
+    const MISSING_DOSSIER_PAGE_SIZE =
+    15;
 
-        loadDossierFilterOptions(
 
-            "missingProjectFilter",
+let missingDossierCurrentPage =
+    1;
 
-            getDossierProjects(),
 
-            "Tất cả dự án"
+let missingDossierFilteredData =
+    [];
 
+function loadMissingDossierFilters() {
+
+    // =====================================================
+    // 1. LOAD DỰ ÁN
+    // =====================================================
+
+    const projectFilter =
+        getDossierElement(
+            "missingProjectFilter"
         );
 
 
-        loadDossierFilterOptions(
+    if (projectFilter) {
 
-            "missingSupplierFilter",
+        const currentValue =
+            String(
+                projectFilter.value || ""
+            );
 
-            getDossierSuppliers(),
 
-            "Tất cả nhà cung cấp"
+        projectFilter.innerHTML = `
 
+            <option value="">
+                Tất cả dự án
+            </option>
+
+        `;
+
+
+        const projectList =
+            [...getDossierProjects()]
+                .sort(
+                    (a, b) => {
+
+                        const nameA =
+                            String(
+
+                                a?.ten
+
+                                ||
+
+                                a?.name
+
+                                ||
+
+                                ""
+
+                            );
+
+
+                        const nameB =
+                            String(
+
+                                b?.ten
+
+                                ||
+
+                                b?.name
+
+                                ||
+
+                                ""
+
+                            );
+
+
+                        return nameA.localeCompare(
+
+                            nameB,
+
+                            "vi",
+
+                            {
+                                sensitivity:
+                                    "base",
+
+                                numeric:
+                                    true
+                            }
+
+                        );
+
+                    }
+                );
+
+
+        projectList.forEach(
+            project => {
+
+                const projectId =
+                    String(
+
+                        project?.id
+
+                        ||
+
+                        project?.back4appId
+
+                        ||
+
+                        ""
+
+                    );
+
+
+                if (!projectId) {
+
+                    return;
+
+                }
+
+
+                const projectName =
+                    String(
+
+                        project?.ten
+
+                        ||
+
+                        project?.name
+
+                        ||
+
+                        "Dự án không có tên"
+
+                    );
+
+
+                const option =
+                    document.createElement(
+                        "option"
+                    );
+
+
+                option.value =
+                    projectId;
+
+
+                option.textContent =
+                    projectName;
+
+
+                projectFilter.appendChild(
+                    option
+                );
+
+            }
         );
+
+
+        /*
+        Giữ lại dự án đang chọn
+        nếu option đó vẫn tồn tại.
+        */
+
+        const stillExists =
+            Array.from(
+                projectFilter.options
+            )
+                .some(
+                    option =>
+                        option.value ===
+                        currentValue
+                );
+
+
+        projectFilter.value =
+
+            stillExists
+
+                ? currentValue
+
+                : "";
 
     }
 
 
+    // =====================================================
+    // 2. LOAD GỢI Ý NHÀ CUNG CẤP
+    // =====================================================
+
+    const supplierDatalist =
+        getDossierElement(
+            "missingSupplierFilterList"
+        );
+
+
+    if (supplierDatalist) {
+
+        supplierDatalist.innerHTML =
+            "";
+
+
+        const supplierList =
+            [...getDossierSuppliers()]
+                .sort(
+                    (a, b) => {
+
+                        return getDossierSupplierName(a)
+                            .localeCompare(
+
+                                getDossierSupplierName(b),
+
+                                "vi",
+
+                                {
+                                    sensitivity:
+                                        "base",
+
+                                    numeric:
+                                        true
+                                }
+
+                            );
+
+                    }
+                );
+
+
+        supplierList.forEach(
+            supplier => {
+
+                const supplierName =
+                    String(
+
+                        getDossierSupplierName(
+                            supplier
+                        )
+
+                        ||
+
+                        ""
+
+                    ).trim();
+
+
+                if (!supplierName) {
+
+                    return;
+
+                }
+
+
+                const option =
+                    document.createElement(
+                        "option"
+                    );
+
+
+                option.value =
+                    supplierName;
+
+
+                supplierDatalist.appendChild(
+                    option
+                );
+
+            }
+        );
+
+    }
+
+}
+
+
     function filterMissingDossier() {
 
-        const keyword =
-            normalizeDossierText(
+    // =====================================================
+    // TỪ KHÓA CHUNG
+    // =====================================================
 
-                getDossierInputValue(
-                    "missingSearch"
-                )
+    const keyword =
+        normalizeDossierText(
 
-            );
+            getDossierInputValue(
+                "missingSearch"
+            )
+
+        );
 
 
-        const projectId =
+    // =====================================================
+    // DỰ ÁN
+    // =====================================================
+
+    const selectedProjectId =
+        String(
+
             getDossierInputValue(
                 "missingProjectFilter"
-            );
-
-
-        const supplierId =
-            getDossierInputValue(
-                "missingSupplierFilter"
-            );
-
-
-        const deliveryFilter =
-            getDossierInputValue(
-                "missingDeliveryFilter"
-            );
-
-
-        const paymentFilter =
-            getDossierInputValue(
-                "missingPaymentFilter"
-            );
-
-
-        const sortMode =
-            getDossierInputValue(
-                "missingSort"
             )
 
             ||
 
-            "project-az";
+            ""
+
+        ).trim();
 
 
-        const filtered =
-            dossiers.filter(item => {
+    // =====================================================
+    // NHÀ CUNG CẤP
+    // Người dùng có thể gõ một phần tên.
+    // =====================================================
+
+    const supplierKeyword =
+        normalizeDossierText(
+
+            getDossierInputValue(
+                "missingSupplierFilter"
+            )
+
+        );
+
+
+    // =====================================================
+    // BÀN GIAO
+    // =====================================================
+
+    const deliveryFilter =
+        getDossierInputValue(
+            "missingDeliveryFilter"
+        );
+
+
+    // =====================================================
+    // THANH TOÁN
+    // =====================================================
+
+    const paymentFilter =
+        getDossierInputValue(
+            "missingPaymentFilter"
+        );
+
+
+    // =====================================================
+    // SẮP XẾP
+    // =====================================================
+
+    const sortMode =
+
+        getDossierInputValue(
+            "missingSort"
+        )
+
+        ||
+
+        "project-az";
+
+
+    // =====================================================
+    // LỌC
+    // =====================================================
+
+    const filtered =
+        dossiers.filter(
+            item => {
+
+                /*
+                Chỉ lấy những hồ sơ
+                thực sự còn nội dung cần bổ sung.
+                */
 
                 const missingDocuments =
                     String(
-                        item.documents || ""
+
+                        item.documents
+
+                        ||
+
+                        item.additionalDocuments
+
+                        ||
+
+                        ""
+
                     ).trim();
 
 
@@ -9272,17 +10015,75 @@ function resetPaidDossierFilters(){
                 }
 
 
+                // -----------------------------
+                // DỰ ÁN
+                // -----------------------------
+
                 const project =
                     getDossierProjectById(
                         item.projectId
                     );
 
 
+                const projectName =
+                    String(
+
+                        project?.ten
+
+                        ||
+
+                        project?.name
+
+                        ||
+
+                        ""
+
+                    );
+
+
+                // -----------------------------
+                // NHÀ CUNG CẤP
+                // -----------------------------
+
                 const supplier =
                     getDossierSupplierById(
                         item.supplierId
                     );
 
+
+                const supplierName =
+                    String(
+
+                        getDossierSupplierName(
+                            supplier
+                        )
+
+                        ||
+
+                        ""
+
+                    );
+
+
+                /*
+                Chuẩn hóa tên NCC để:
+
+                HUY HÙNG
+                Huy Hùng
+                huy hung
+
+                đều tìm được.
+                */
+
+                const normalizedSupplierName =
+                    normalizeDossierText(
+                        supplierName
+                    );
+
+
+                // -----------------------------
+                // TỪ KHÓA CHUNG
+                // -----------------------------
 
                 const searchText =
                     normalizeDossierText(`
@@ -9293,12 +10094,76 @@ function resetPaidDossierFilters(){
 
                         ${missingDocuments}
 
-                        ${project?.ten || project?.name || ""}
+                        ${projectName}
 
-                        ${getDossierSupplierName(supplier)}
+                        ${supplierName}
 
                     `);
 
+
+                const matchKeyword =
+
+                    !keyword
+
+                    ||
+
+                    searchText.includes(
+                        keyword
+                    );
+
+
+                // -----------------------------
+                // MATCH DỰ ÁN
+                // -----------------------------
+
+                const matchProject =
+
+                    !selectedProjectId
+
+                    ||
+
+                    (
+
+                        project
+
+                        &&
+
+                        entityMatchesId(
+                            project,
+                            selectedProjectId
+                        )
+
+                    )
+
+                    ||
+
+                    String(
+                        item.projectId || ""
+                    )
+
+                    ===
+
+                    selectedProjectId;
+
+
+                // -----------------------------
+                // MATCH NHÀ CUNG CẤP
+                // -----------------------------
+
+                const matchSupplier =
+
+                    !supplierKeyword
+
+                    ||
+
+                    normalizedSupplierName.includes(
+                        supplierKeyword
+                    );
+
+
+                // -----------------------------
+                // MATCH BÀN GIAO
+                // -----------------------------
 
                 const hasDelivery =
                     Boolean(
@@ -9310,104 +10175,100 @@ function resetPaidDossierFilters(){
                     );
 
 
+                const matchDelivery =
+
+                    !deliveryFilter
+
+                    ||
+
+                    (
+
+                        deliveryFilter ===
+                        "done"
+
+                        &&
+
+                        hasDelivery
+
+                    )
+
+                    ||
+
+                    (
+
+                        deliveryFilter ===
+                        "not"
+
+                        &&
+
+                        !hasDelivery
+
+                    );
+
+
+                // -----------------------------
+                // MATCH THANH TOÁN
+                // -----------------------------
+
+                const currentPaymentStatus =
+                    String(
+
+                        item.paymentStatus
+
+                        ||
+
+                        "Chưa thanh toán"
+
+                    );
+
+
+                const matchPayment =
+
+                    !paymentFilter
+
+                    ||
+
+                    currentPaymentStatus ===
+                    paymentFilter;
+
+
                 return (
 
-                    searchText.includes(
-                        keyword
-                    )
+                    matchKeyword
 
                     &&
 
-                    (
-                        !projectId
-
-                        ||
-
-                        (
-                            project
-
-                            &&
-
-                            entityMatchesId(
-                                project,
-                                projectId
-                            )
-                        )
-                    )
+                    matchProject
 
                     &&
 
-                    (
-                        !supplierId
-
-                        ||
-
-                        (
-                            supplier
-
-                            &&
-
-                            entityMatchesId(
-                                supplier,
-                                supplierId
-                            )
-                        )
-                    )
+                    matchSupplier
 
                     &&
 
-                    (
-                        !deliveryFilter
-
-                        ||
-
-                        (
-                            deliveryFilter === "done"
-
-                            &&
-
-                            hasDelivery
-                        )
-
-                        ||
-
-                        (
-                            deliveryFilter === "not"
-
-                            &&
-
-                            !hasDelivery
-                        )
-                    )
+                    matchDelivery
 
                     &&
 
-                    (
-                        !paymentFilter
-
-                        ||
-
-                        String(
-                            item.paymentStatus
-
-                            ||
-
-                            "Chưa thanh toán"
-                        )
-
-                        ===
-
-                        paymentFilter
-                    )
+                    matchPayment
 
                 );
 
-            });
+            }
+        );
 
 
-        filtered.sort((a, b) => {
+    // =====================================================
+    // SẮP XẾP
+    // =====================================================
 
-            if (sortMode === "project-za") {
+    filtered.sort(
+        (a, b) => {
+
+            if (
+                sortMode ===
+                "project-za"
+            ) {
 
                 return compareDossierVietnameseText(
 
@@ -9420,7 +10281,10 @@ function resetPaidDossierFilters(){
             }
 
 
-            if (sortMode === "newest") {
+            if (
+                sortMode ===
+                "newest"
+            ) {
 
                 return (
 
@@ -9435,7 +10299,10 @@ function resetPaidDossierFilters(){
             }
 
 
-            if (sortMode === "oldest") {
+            if (
+                sortMode ===
+                "oldest"
+            ) {
 
                 return (
 
@@ -9449,6 +10316,11 @@ function resetPaidDossierFilters(){
 
             }
 
+
+            /*
+            Mặc định:
+            Dự án A → Z
+            */
 
             return compareDossierVietnameseText(
 
@@ -9458,35 +10330,502 @@ function resetPaidDossierFilters(){
 
             );
 
-        });
+        }
+    );
 
 
-        renderMissingDossier(
-            filtered
+    // =====================================================
+    // PHÂN TRANG
+    // =====================================================
+
+    /*
+    Trang Hồ sơ cần bổ sung của bạn
+    đã có phân trang 15 hồ sơ.
+    */
+
+    if (
+        typeof missingDossierCurrentPage !==
+        "undefined"
+    ) {
+
+        missingDossierCurrentPage =
+            1;
+
+    }
+
+
+    if (
+        typeof missingDossierFilteredData !==
+        "undefined"
+    ) {
+
+        missingDossierFilteredData =
+            filtered;
+
+    }
+
+
+    // =====================================================
+    // RENDER
+    // =====================================================
+
+    renderMissingDossier(
+        filtered
+    );
+
+}
+
+
+    function renderMissingDossier(
+    data
+) {
+
+    const table =
+        getDossierElement(
+            "missingTable"
         );
 
+
+    if (!table) {
+
+        return;
+
     }
 
 
-    function renderMissingDossier(data) {
+    missingDossierFilteredData =
+        Array.isArray(data)
 
-        renderSimpleDossierTable({
+            ? data
 
-            tableId:
-                "missingTable",
+            : [];
 
-            countId:
-                "missingResultCount",
 
-            data,
+    const totalRows =
+        missingDossierFilteredData.length;
 
-            emptyMessage:
-                "Không có hồ sơ cần bổ sung phù hợp"
+
+    const totalPages =
+        Math.max(
+
+            1,
+
+            Math.ceil(
+
+                totalRows
+
+                /
+
+                MISSING_DOSSIER_PAGE_SIZE
+
+            )
+
+        );
+
+
+    missingDossierCurrentPage =
+        Math.min(
+
+            Math.max(
+                missingDossierCurrentPage,
+                1
+            ),
+
+            totalPages
+
+        );
+
+
+    const startIndex =
+
+        (
+            missingDossierCurrentPage - 1
+        )
+
+        *
+
+        MISSING_DOSSIER_PAGE_SIZE;
+
+
+    const endIndex =
+        Math.min(
+
+            startIndex
+
+            +
+
+            MISSING_DOSSIER_PAGE_SIZE,
+
+            totalRows
+
+        );
+
+
+    const pageData =
+        missingDossierFilteredData.slice(
+
+            startIndex,
+
+            endIndex
+
+        );
+
+
+    const countElement =
+        getDossierElement(
+            "missingResultCount"
+        );
+
+
+    if (countElement) {
+
+        countElement.textContent =
+            `${totalRows} hồ sơ`;
+
+    }
+
+
+    const paginationInfo =
+        getDossierElement(
+            "missingPaginationInfo"
+        );
+
+
+    if (paginationInfo) {
+
+        paginationInfo.textContent =
+
+            totalRows === 0
+
+                ? "Không có hồ sơ phù hợp"
+
+                : `Hiển thị ${startIndex + 1}–${endIndex} trên ${totalRows} hồ sơ`;
+
+    }
+
+
+    const pageLabel =
+        getDossierElement(
+            "missingPageLabel"
+        );
+
+
+    if (pageLabel) {
+
+        pageLabel.textContent =
+            `Trang ${missingDossierCurrentPage} / ${totalPages}`;
+
+    }
+
+
+    const firstButton =
+        getDossierElement(
+            "missingFirstPageButton"
+        );
+
+
+    const previousButton =
+        getDossierElement(
+            "missingPreviousPageButton"
+        );
+
+
+    const nextButton =
+        getDossierElement(
+            "missingNextPageButton"
+        );
+
+
+    const lastButton =
+        getDossierElement(
+            "missingLastPageButton"
+        );
+
+
+    const isFirstPage =
+        missingDossierCurrentPage <=
+        1;
+
+
+    const isLastPage =
+        missingDossierCurrentPage >=
+        totalPages;
+
+
+    if (firstButton) {
+
+        firstButton.disabled =
+            isFirstPage;
+
+    }
+
+
+    if (previousButton) {
+
+        previousButton.disabled =
+            isFirstPage;
+
+    }
+
+
+    if (nextButton) {
+
+        nextButton.disabled =
+            isLastPage;
+
+    }
+
+
+    if (lastButton) {
+
+        lastButton.disabled =
+            isLastPage;
+
+    }
+
+
+    if (totalRows === 0) {
+
+        table.innerHTML = `
+
+            <tr>
+
+                <td
+                    colspan="8"
+                    class="missing-loading-cell"
+                >
+                    Không có hồ sơ cần bổ sung phù hợp
+                </td>
+
+            </tr>
+
+        `;
+
+
+        return;
+
+    }
+
+
+    table.innerHTML =
+        pageData.map(item => {
+
+            const project =
+                getDossierProjectById(
+                    item.projectId
+                );
+
+
+            const supplier =
+                getDossierSupplierById(
+                    item.supplierId
+                );
+
+
+            const supplierName =
+
+                typeof getDossierSupplierName ===
+                "function"
+
+                    ? getDossierSupplierName(
+                        supplier
+                    )
+
+                    : (
+
+                        supplier?.ten
+
+                        ||
+
+                        supplier?.name
+
+                        ||
+
+                        "Nhà cung cấp đã xóa"
+
+                    );
+
+
+            return `
+
+                <tr>
+
+                    <td>
+                        ${escapeDossierHtml(
+                            item.code || "—"
+                        )}
+                    </td>
+
+                    <td>
+                        ${escapeDossierHtml(
+
+                            project?.ten
+
+                            ||
+
+                            project?.name
+
+                            ||
+
+                            "Dự án đã xóa"
+
+                        )}
+                    </td>
+
+                    <td>
+                        ${escapeDossierHtml(
+                            item.content || "—"
+                        )}
+                    </td>
+
+                    <td>
+                        ${escapeDossierHtml(
+
+                            supplierName
+
+                            ||
+
+                            "Nhà cung cấp đã xóa"
+
+                        )}
+                    </td>
+
+                    <td>
+                        ${Number(
+                            item.value || 0
+                        ).toLocaleString(
+                            "vi-VN"
+                        )} đ
+                    </td>
+
+                    <td>
+                        ${escapeDossierHtml(
+                            item.documents || "—"
+                        )}
+                    </td>
+
+                    <td>
+                        ${escapeDossierHtml(
+
+                            item.deliveryDate
+
+                                ? formatDossierDate(
+                                    item.deliveryDate
+                                )
+
+                                : "Chưa bàn giao"
+
+                        )}
+                    </td>
+
+                    <td>
+                        ${escapeDossierHtml(
+
+                            item.paymentStatus
+
+                            ||
+
+                            "Chưa thanh toán"
+
+                        )}
+                    </td>
+
+                </tr>
+
+            `;
+
+        }).join("");
+
+}
+
+function changeMissingDossierPage(
+    action
+) {
+
+    const totalPages =
+        Math.max(
+
+            1,
+
+            Math.ceil(
+
+                missingDossierFilteredData.length
+
+                /
+
+                MISSING_DOSSIER_PAGE_SIZE
+
+            )
+
+        );
+
+
+    if (action === "first") {
+
+        missingDossierCurrentPage =
+            1;
+
+    }
+
+
+    if (action === "previous") {
+
+        missingDossierCurrentPage =
+            Math.max(
+
+                1,
+
+                missingDossierCurrentPage - 1
+
+            );
+
+    }
+
+
+    if (action === "next") {
+
+        missingDossierCurrentPage =
+            Math.min(
+
+                totalPages,
+
+                missingDossierCurrentPage + 1
+
+            );
+
+    }
+
+
+    if (action === "last") {
+
+        missingDossierCurrentPage =
+            totalPages;
+
+    }
+
+
+    renderMissingDossier(
+        missingDossierFilteredData
+    );
+
+
+    getDossierElement(
+        "missingTable"
+    )
+        ?.closest(
+            ".missing-table-card"
+        )
+        ?.scrollIntoView({
+
+            behavior:
+                "smooth",
+
+            block:
+                "start"
 
         });
 
-    }
-
+}
 
     function resetMissingDossierFilters() {
 
@@ -10496,6 +11835,8 @@ window.handleDossierSupplierKeydown =
     window.filterMissingDossier =
         filterMissingDossier;
 
+    window.changeMissingDossierPage =
+    changeMissingDossierPage;
 
     window.renderMissingDossier =
         renderMissingDossier;
