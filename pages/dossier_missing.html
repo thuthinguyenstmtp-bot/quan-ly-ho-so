@@ -1,12 +1,227 @@
 <div class="missing-page">
 
+
+    <!-- =====================================
+         CSS RIÊNG CHO TRANG NÀY
+         Không cần tạo thêm file CSS
+         ===================================== -->
+
+    <style>
+
+        .missing-page .missing-table-card {
+            height: auto !important;
+            max-height: none !important;
+            overflow: visible !important;
+        }
+
+        .missing-page .missing-table-scroll {
+            width: 100%;
+            height: auto !important;
+            min-height: 0 !important;
+            max-height: none !important;
+
+            overflow-x: auto !important;
+            overflow-y: visible !important;
+
+            border-radius: 14px;
+        }
+
+        .missing-page .missing-table {
+            width: 100%;
+            min-width: 1280px;
+            height: auto !important;
+
+            border-collapse: collapse;
+            table-layout: fixed;
+        }
+
+        .missing-page .missing-table th {
+            padding: 14px 10px;
+            vertical-align: middle;
+            text-align: center;
+
+            white-space: normal !important;
+            word-break: normal !important;
+            overflow-wrap: break-word !important;
+        }
+
+        .missing-page .missing-table td {
+            height: auto !important;
+            min-height: 54px;
+            padding: 12px 10px;
+            vertical-align: top;
+
+            line-height: 1.5;
+
+            white-space: normal !important;
+            word-break: normal !important;
+            overflow-wrap: anywhere !important;
+
+            overflow: visible !important;
+            text-overflow: clip !important;
+        }
+
+        .missing-page .missing-table td * {
+            max-width: none !important;
+
+            white-space: normal !important;
+            word-break: normal !important;
+            overflow-wrap: anywhere !important;
+
+            overflow: visible !important;
+            text-overflow: clip !important;
+        }
+
+        .missing-page .missing-table th:nth-child(1),
+        .missing-page .missing-table td:nth-child(1) {
+            width: 8%;
+            text-align: center;
+        }
+
+        .missing-page .missing-table th:nth-child(2),
+        .missing-page .missing-table td:nth-child(2) {
+            width: 15%;
+        }
+
+        .missing-page .missing-table th:nth-child(3),
+        .missing-page .missing-table td:nth-child(3) {
+            width: 20%;
+        }
+
+        .missing-page .missing-table th:nth-child(4),
+        .missing-page .missing-table td:nth-child(4) {
+            width: 19%;
+        }
+
+        .missing-page .missing-table th:nth-child(5),
+        .missing-page .missing-table td:nth-child(5) {
+            width: 11%;
+            text-align: right;
+            white-space: nowrap !important;
+        }
+
+        .missing-page .missing-table th:nth-child(6),
+        .missing-page .missing-table td:nth-child(6) {
+            width: 15%;
+        }
+
+        .missing-page .missing-table th:nth-child(7),
+        .missing-page .missing-table td:nth-child(7) {
+            width: 6%;
+            text-align: center;
+            white-space: nowrap !important;
+        }
+
+        .missing-page .missing-table th:nth-child(8),
+        .missing-page .missing-table td:nth-child(8) {
+            width: 6%;
+            text-align: center;
+        }
+
+        .missing-page .missing-table td:nth-child(2),
+        .missing-page .missing-table td:nth-child(3),
+        .missing-page .missing-table td:nth-child(4),
+        .missing-page .missing-table td:nth-child(6) {
+            text-align: left;
+        }
+
+        .missing-page .missing-loading-cell {
+            padding: 34px 16px !important;
+            text-align: center !important;
+            color: #748078;
+        }
+
+        .missing-page .missing-pagination {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+
+            margin-top: 12px;
+            padding: 12px 14px;
+
+            border: 1px solid rgba(104, 132, 109, 0.18);
+            border-radius: 13px;
+
+            background: rgba(255, 255, 255, 0.82);
+            color: #607065;
+        }
+
+        .missing-page .missing-pagination-info {
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .missing-page .missing-pagination-actions {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 7px;
+        }
+
+        .missing-page .missing-page-button {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+
+            width: 36px;
+            height: 36px;
+            padding: 0;
+
+            border: 1px solid rgba(100, 128, 104, 0.22);
+            border-radius: 9px;
+
+            background: #ffffff;
+            color: #526759;
+
+            font: inherit;
+            font-size: 15px;
+            font-weight: 700;
+
+            cursor: pointer;
+        }
+
+        .missing-page .missing-page-button:hover:not(:disabled) {
+            background: #eef5ef;
+        }
+
+        .missing-page .missing-page-button:disabled {
+            opacity: 0.38;
+            cursor: not-allowed;
+        }
+
+        .missing-page .missing-page-label {
+            min-width: 92px;
+            text-align: center;
+
+            font-size: 13px;
+            font-weight: 700;
+            color: #526759;
+        }
+
+        @media (max-width: 768px) {
+
+            .missing-page .missing-pagination {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .missing-page .missing-pagination-info,
+            .missing-page .missing-pagination-actions {
+                justify-content: center;
+                text-align: center;
+            }
+
+        }
+
+    </style>
+
+
     <!-- =====================================
          HEADER
          ===================================== -->
 
     <header class="missing-page-header">
-
-        <link rel="icon" type="image/png" href="./favicon.png">
 
         <div class="missing-page-heading">
 
@@ -90,196 +305,49 @@
             </div>
 
 
-            <!-- DỰ ÁN -->
+<!-- DỰ ÁN -->
 
-            <div class="missing-filter-field">
+<div class="missing-filter-field">
 
-                <label>
-                    Dự án
-                </label>
+    <label for="missingProjectFilter">
+        Dự án
+    </label>
 
+    <select
+        id="missingProjectFilter"
+        onchange="filterMissingDossier()"
+    >
 
-                <div
-                    id="missingProjectMultiFilter"
-                    class="missing-multi-filter"
-                >
+        <option value="">
+            Tất cả dự án
+        </option>
 
-                    <button
-                        type="button"
-                        id="missingProjectFilterButton"
-                        class="missing-multi-button"
-                        aria-expanded="false"
-                        onclick="toggleMissingMultiFilter('project', event)"
-                    >
+    </select>
 
-                        <span id="missingProjectFilterLabel">
-                            Tất cả dự án
-                        </span>
-
-                        <span
-                            class="missing-multi-chevron"
-                            aria-hidden="true"
-                        ></span>
-
-                    </button>
+</div>
 
 
-                    <div
-                        id="missingProjectFilterPanel"
-                        class="missing-multi-panel"
-                        hidden
-                        onclick="event.stopPropagation()"
-                    >
+<!-- NHÀ CUNG CẤP -->
 
-                        <div class="missing-multi-search">
+<div class="missing-filter-field">
 
-                            <input
-                                type="search"
-                                id="missingProjectFilterSearch"
-                                placeholder="Tìm tên dự án..."
-                                autocomplete="off"
-                                oninput="searchMissingMultiOptions('project')"
-                            >
+    <label for="missingSupplierFilter">
+        Nhà cung cấp
+    </label>
 
-                        </div>
+    <input
+        type="search"
+        id="missingSupplierFilter"
+        list="missingSupplierFilterList"
+        placeholder="Gõ tên nhà cung cấp..."
+        autocomplete="off"
+        oninput="filterMissingDossier()"
+    >
 
+    <datalist id="missingSupplierFilterList">
+    </datalist>
 
-                        <div
-                            id="missingProjectFilterOptions"
-                            class="missing-multi-options"
-                        ></div>
-
-
-                        <div class="missing-multi-footer">
-
-                            <button
-                                type="button"
-                                class="missing-multi-clear"
-                                onclick="clearMissingMultiFilter('project')"
-                            >
-                                Bỏ chọn
-                            </button>
-
-
-                            <button
-                                type="button"
-                                class="missing-multi-done"
-                                onclick="closeMissingMultiFilter('project')"
-                            >
-                                Hoàn tất
-                            </button>
-
-                        </div>
-
-                    </div>
-
-                </div>
-
-
-                <select
-                    id="missingProjectFilter"
-                    multiple
-                    hidden
-                    aria-hidden="true"
-                ></select>
-
-            </div>
-
-
-            <!-- NHÀ CUNG CẤP -->
-
-            <div class="missing-filter-field">
-
-                <label>
-                    Nhà cung cấp
-                </label>
-
-
-                <div
-                    id="missingSupplierMultiFilter"
-                    class="missing-multi-filter"
-                >
-
-                    <button
-                        type="button"
-                        id="missingSupplierFilterButton"
-                        class="missing-multi-button"
-                        aria-expanded="false"
-                        onclick="toggleMissingMultiFilter('supplier', event)"
-                    >
-
-                        <span id="missingSupplierFilterLabel">
-                            Tất cả nhà cung cấp
-                        </span>
-
-                        <span
-                            class="missing-multi-chevron"
-                            aria-hidden="true"
-                        ></span>
-
-                    </button>
-
-
-                    <div
-                        id="missingSupplierFilterPanel"
-                        class="missing-multi-panel"
-                        hidden
-                        onclick="event.stopPropagation()"
-                    >
-
-                        <div class="missing-multi-search">
-
-                            <input
-                                type="search"
-                                id="missingSupplierFilterSearch"
-                                placeholder="Tìm nhà cung cấp..."
-                                autocomplete="off"
-                                oninput="searchMissingMultiOptions('supplier')"
-                            >
-
-                        </div>
-
-
-                        <div
-                            id="missingSupplierFilterOptions"
-                            class="missing-multi-options"
-                        ></div>
-
-
-                        <div class="missing-multi-footer">
-
-                            <button
-                                type="button"
-                                class="missing-multi-clear"
-                                onclick="clearMissingMultiFilter('supplier')"
-                            >
-                                Bỏ chọn
-                            </button>
-
-
-                            <button
-                                type="button"
-                                class="missing-multi-done"
-                                onclick="closeMissingMultiFilter('supplier')"
-                            >
-                                Hoàn tất
-                            </button>
-
-                        </div>
-
-                    </div>
-
-                </div>
-
-
-                <select
-                    id="missingSupplierFilter"
-                    multiple
-                    hidden
-                    aria-hidden="true"
-                ></select>
-
-            </div>
+</div>
 
 
             <!-- BÀN GIAO -->
@@ -418,14 +486,14 @@
             <table class="missing-table">
 
                 <colgroup>
-                    <col style="width: 10%;">
-                    <col style="width: 16%;">
+                    <col style="width: 8%;">
+                    <col style="width: 15%;">
+                    <col style="width: 20%;">
                     <col style="width: 19%;">
-                    <col style="width: 17%;">
-                    <col style="width: 10%;">
-                    <col style="width: 14%;">
-                    <col style="width: 7%;">
-                    <col style="width: 7%;">
+                    <col style="width: 11%;">
+                    <col style="width: 15%;">
+                    <col style="width: 6%;">
+                    <col style="width: 6%;">
                 </colgroup>
 
 
@@ -486,6 +554,80 @@
                 </tbody>
 
             </table>
+
+        </div>
+
+
+        <!-- =====================================
+             PHÂN TRANG 15 HỒ SƠ / TRANG
+             ===================================== -->
+
+        <div
+            id="missingPagination"
+            class="missing-pagination"
+        >
+
+            <div
+                id="missingPaginationInfo"
+                class="missing-pagination-info"
+            >
+                Hiển thị 0 hồ sơ
+            </div>
+
+            <div class="missing-pagination-actions">
+
+                <button
+                    type="button"
+                    id="missingFirstPageButton"
+                    class="missing-page-button"
+                    onclick="changeMissingDossierPage('first')"
+                    title="Trang đầu"
+                    disabled
+                >
+                    «
+                </button>
+
+                <button
+                    type="button"
+                    id="missingPreviousPageButton"
+                    class="missing-page-button"
+                    onclick="changeMissingDossierPage('previous')"
+                    title="Trang trước"
+                    disabled
+                >
+                    ‹
+                </button>
+
+                <span
+                    id="missingPageLabel"
+                    class="missing-page-label"
+                >
+                    Trang 1 / 1
+                </span>
+
+                <button
+                    type="button"
+                    id="missingNextPageButton"
+                    class="missing-page-button"
+                    onclick="changeMissingDossierPage('next')"
+                    title="Trang sau"
+                    disabled
+                >
+                    ›
+                </button>
+
+                <button
+                    type="button"
+                    id="missingLastPageButton"
+                    class="missing-page-button"
+                    onclick="changeMissingDossierPage('last')"
+                    title="Trang cuối"
+                    disabled
+                >
+                    »
+                </button>
+
+            </div>
 
         </div>
 
