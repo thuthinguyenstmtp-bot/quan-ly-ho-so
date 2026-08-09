@@ -9279,3 +9279,3733 @@ không sử dụng font riêng.
     }
 
 }
+/* =====================================================
+   GLOBAL UI EFFECTS - LEVEL 2
+   Không thay đổi màu / layout của theme
+   ===================================================== */
+
+
+/* =====================================================
+   CLICK SPARKLES
+   ===================================================== */
+
+.ui-click-sparkle {
+
+    position: fixed;
+
+    z-index: 9999999;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    width: 18px;
+
+    height: 18px;
+
+    pointer-events: none;
+
+    user-select: none;
+
+    color:
+        rgba(
+            109,
+            151,
+            119,
+            0.95
+        );
+
+    font-size: 14px;
+
+    font-weight: 700;
+
+    line-height: 1;
+
+    text-shadow:
+
+        0 0 5px
+        rgba(
+            176,
+            219,
+            184,
+            0.85
+        ),
+
+        0 0 13px
+        rgba(
+            111,
+            161,
+            123,
+            0.50
+        );
+
+    transform:
+        translate(
+            -50%,
+            -50%
+        );
+
+    animation:
+        uiSparkleBurst
+        700ms
+        cubic-bezier(
+            0.15,
+            0.8,
+            0.25,
+            1
+        )
+        forwards;
+}
+
+
+@keyframes uiSparkleBurst {
+
+    0% {
+
+        opacity: 0;
+
+        transform:
+            translate(
+                -50%,
+                -50%
+            )
+            translate(
+                0,
+                0
+            )
+            scale(0.2)
+            rotate(0deg);
+    }
+
+
+    18% {
+
+        opacity: 1;
+    }
+
+
+    100% {
+
+        opacity: 0;
+
+        transform:
+            translate(
+                -50%,
+                -50%
+            )
+            translate(
+                var(--spark-x),
+                var(--spark-y)
+            )
+            scale(
+                var(--spark-scale)
+            )
+            rotate(
+                var(--spark-rotate)
+            );
+    }
+
+}
+
+
+/* =====================================================
+   CLICK MAGIC RING
+   ===================================================== */
+
+.ui-click-ring {
+
+    position: fixed;
+
+    z-index: 9999998;
+
+    width: 12px;
+
+    height: 12px;
+
+    border:
+
+        1.5px solid
+        rgba(
+            116,
+            159,
+            126,
+            0.65
+        );
+
+    border-radius: 50%;
+
+    pointer-events: none;
+
+    transform:
+        translate(
+            -50%,
+            -50%
+        )
+        scale(0.25);
+
+    box-shadow:
+
+        0 0 7px
+        rgba(
+            148,
+            195,
+            158,
+            0.28
+        ),
+
+        inset 0 0 7px
+        rgba(
+            148,
+            195,
+            158,
+            0.20
+        );
+
+    animation:
+        uiClickRingExpand
+        620ms
+        ease-out
+        forwards;
+}
+
+
+@keyframes uiClickRingExpand {
+
+    0% {
+
+        opacity: 0.9;
+
+        transform:
+            translate(
+                -50%,
+                -50%
+            )
+            scale(0.25);
+    }
+
+
+    100% {
+
+        opacity: 0;
+
+        transform:
+            translate(
+                -50%,
+                -50%
+            )
+            scale(4.6);
+    }
+
+}
+
+
+/* =====================================================
+   BUTTON PRESS
+   ===================================================== */
+
+.ui-effect-pressed {
+
+    animation:
+        uiElementPress
+        220ms
+        ease
+        !important;
+}
+
+
+@keyframes uiElementPress {
+
+    0% {
+
+        transform:
+            scale(1);
+    }
+
+
+    42% {
+
+        transform:
+            scale(0.965);
+    }
+
+
+    100% {
+
+        transform:
+            scale(1);
+    }
+
+}
+
+
+/* =====================================================
+   BUTTON LIGHT SWEEP
+   ===================================================== */
+
+.ui-light-sweep {
+
+    position: relative !important;
+
+    overflow: hidden !important;
+
+    isolation: isolate;
+}
+
+
+.ui-light-sweep::after {
+
+    content: "";
+
+    position: absolute;
+
+    z-index: 20;
+
+    top: -100%;
+
+    left: -70%;
+
+    width: 34%;
+
+    height: 300%;
+
+    pointer-events: none;
+
+    background:
+
+        linear-gradient(
+            90deg,
+
+            transparent,
+
+            rgba(
+                255,
+                255,
+                255,
+                0.48
+            ),
+
+            transparent
+        );
+
+    transform:
+        rotate(22deg);
+
+    transition:
+        left 560ms ease;
+
+    opacity: 0;
+}
+
+
+.ui-light-sweep:hover::after {
+
+    left: 135%;
+
+    opacity: 1;
+}
+
+
+/* =====================================================
+   PAGE TRANSITION
+   ===================================================== */
+
+#content.ui-content-enter {
+
+    animation:
+        uiContentEnter
+        380ms
+        cubic-bezier(
+            0.16,
+            0.85,
+            0.35,
+            1
+        );
+}
+
+
+@keyframes uiContentEnter {
+
+    from {
+
+        opacity: 0;
+
+        transform:
+            translateY(
+                8px
+            );
+    }
+
+
+    to {
+
+        opacity: 1;
+
+        transform:
+            translateY(
+                0
+            );
+    }
+
+}
+
+
+/* =====================================================
+   MODAL ENTER
+   ===================================================== */
+
+.ui-modal-enter {
+
+    transform-origin:
+        center;
+
+    animation:
+        uiModalEnter
+        290ms
+        cubic-bezier(
+            0.16,
+            0.85,
+            0.35,
+            1
+        )
+        !important;
+}
+
+
+@keyframes uiModalEnter {
+
+    0% {
+
+        opacity: 0;
+
+        transform:
+            translateY(
+                10px
+            )
+            scale(
+                0.96
+            );
+    }
+
+
+    65% {
+
+        opacity: 1;
+
+        transform:
+            translateY(
+                -1px
+            )
+            scale(
+                1.006
+            );
+    }
+
+
+    100% {
+
+        opacity: 1;
+
+        transform:
+            translateY(
+                0
+            )
+            scale(
+                1
+            );
+    }
+
+}
+
+
+/* =====================================================
+   TOAST ENTER
+   ===================================================== */
+
+.ui-toast-enter {
+
+    animation:
+        uiToastEnter
+        430ms
+        cubic-bezier(
+            0.16,
+            0.85,
+            0.32,
+            1
+        )
+        !important;
+}
+
+
+@keyframes uiToastEnter {
+
+    0% {
+
+        opacity: 0;
+
+        transform:
+            translateX(
+                24px
+            )
+            scale(
+                0.97
+            );
+    }
+
+
+    65% {
+
+        opacity: 1;
+
+        transform:
+            translateX(
+                -2px
+            )
+            scale(
+                1.005
+            );
+    }
+
+
+    100% {
+
+        opacity: 1;
+
+        transform:
+            translateX(
+                0
+            )
+            scale(
+                1
+            );
+    }
+
+}
+
+
+/* =====================================================
+   REDUCED MOTION
+   ===================================================== */
+
+@media (
+    prefers-reduced-motion:
+    reduce
+) {
+
+    .ui-click-sparkle,
+
+    .ui-click-ring,
+
+    .ui-effect-pressed,
+
+    .ui-light-sweep::after,
+
+    #content.ui-content-enter,
+
+    .ui-modal-enter,
+
+    .ui-toast-enter {
+
+        animation:
+            none
+            !important;
+
+        transition:
+            none
+            !important;
+    }
+
+}
+
+/* =====================================================
+   AMBIENT EFFECTS - LEVEL 3
+   Lá + đom đóm + bụi sáng
+   Không thay đổi theme
+   ===================================================== */
+
+
+/* =====================================================
+   EFFECT LAYER
+   ===================================================== */
+
+.ambient-ui-layer {
+
+    position: fixed;
+
+    inset: 0;
+
+    z-index: 9990;
+
+    overflow: hidden;
+
+    pointer-events: none;
+
+    user-select: none;
+
+    contain: layout paint;
+
+}
+
+
+/* Khi chuyển tab thì pause toàn bộ */
+
+.ambient-ui-layer.ambient-effects-paused * {
+
+    animation-play-state:
+        paused !important;
+
+}
+
+
+/* =====================================================
+   LEAF
+   ===================================================== */
+
+.ambient-leaf {
+
+    position: absolute;
+
+    display: block;
+
+    pointer-events: none;
+
+
+    border-radius:
+        100% 0 100% 0;
+
+
+    background:
+        rgba(
+            105,
+            143,
+            112,
+            0.42
+        );
+
+
+    box-shadow:
+        0 2px 5px
+        rgba(
+            81,
+            117,
+            88,
+            0.10
+        );
+
+
+    opacity: 0;
+
+
+    transform-origin:
+        center;
+
+
+    animation-name:
+        ambientLeafFall;
+
+    animation-timing-function:
+        linear;
+
+    animation-fill-mode:
+        forwards;
+
+}
+
+
+/* Lá 2 */
+
+.ambient-leaf-2 {
+
+    background:
+        rgba(
+            126,
+            157,
+            112,
+            0.36
+        );
+
+}
+
+
+/* Lá 3 */
+
+.ambient-leaf-3 {
+
+    background:
+        rgba(
+            86,
+            128,
+            102,
+            0.32
+        );
+
+}
+
+
+/* Đường gân nhỏ */
+
+.ambient-leaf::after {
+
+    content: "";
+
+    position: absolute;
+
+    left: 48%;
+
+    top: 12%;
+
+    width: 1px;
+
+    height: 76%;
+
+
+    background:
+        rgba(
+            255,
+            255,
+            255,
+            0.34
+        );
+
+
+    transform:
+        rotate(45deg);
+
+    transform-origin:
+        center;
+
+}
+
+
+/* =====================================================
+   LEAF FALL
+   ===================================================== */
+
+@keyframes ambientLeafFall {
+
+    0% {
+
+        opacity: 0;
+
+        transform:
+            translate3d(
+                0,
+                -10px,
+                0
+            )
+            rotate(0deg);
+
+    }
+
+
+    10% {
+
+        opacity:
+            0.52;
+
+    }
+
+
+    50% {
+
+        transform:
+            translate3d(
+                calc(
+                    var(--leaf-drift)
+                    * 0.45
+                ),
+                52vh,
+                0
+            )
+            rotate(
+                calc(
+                    var(--leaf-rotate)
+                    * 0.48
+                )
+            );
+
+    }
+
+
+    90% {
+
+        opacity:
+            0.38;
+
+    }
+
+
+    100% {
+
+        opacity: 0;
+
+        transform:
+            translate3d(
+                var(--leaf-drift),
+                112vh,
+                0
+            )
+            rotate(
+                var(--leaf-rotate)
+            );
+
+    }
+
+}
+
+
+/* =====================================================
+   FIREFLY
+   ===================================================== */
+
+.ambient-firefly {
+
+    position: absolute;
+
+    display: block;
+
+
+    width: 4px;
+
+    height: 4px;
+
+
+    border-radius:
+        50%;
+
+
+    pointer-events:
+        none;
+
+
+    background:
+        rgba(
+            208,
+            235,
+            176,
+            0.82
+        );
+
+
+    box-shadow:
+
+        0 0 5px
+        rgba(
+            194,
+            227,
+            157,
+            0.65
+        ),
+
+        0 0 11px
+        rgba(
+            155,
+            200,
+            130,
+            0.30
+        );
+
+
+    opacity:
+        0.2;
+
+
+    animation-name:
+        ambientFireflyFloat;
+
+    animation-timing-function:
+        ease-in-out;
+
+    animation-iteration-count:
+        infinite;
+
+    animation-direction:
+        alternate;
+
+}
+
+
+/* =====================================================
+   FIREFLY MOVEMENT
+   ===================================================== */
+
+@keyframes ambientFireflyFloat {
+
+    0% {
+
+        opacity:
+            0.08;
+
+
+        transform:
+            translate3d(
+                0,
+                0,
+                0
+            )
+            scale(0.7);
+
+    }
+
+
+    25% {
+
+        opacity:
+            0.42;
+
+    }
+
+
+    50% {
+
+        opacity:
+            0.85;
+
+
+        transform:
+            translate3d(
+                var(--firefly-x),
+                var(--firefly-y),
+                0
+            )
+            scale(1.1);
+
+    }
+
+
+    75% {
+
+        opacity:
+            0.25;
+
+    }
+
+
+    100% {
+
+        opacity:
+            0.66;
+
+
+        transform:
+            translate3d(
+                calc(
+                    var(--firefly-x)
+                    * -0.6
+                ),
+                calc(
+                    var(--firefly-y)
+                    * 0.5
+                ),
+                0
+            )
+            scale(0.85);
+
+    }
+
+}
+
+
+/* =====================================================
+   DUST
+   ===================================================== */
+
+.ambient-dust {
+
+    position: absolute;
+
+    display: block;
+
+
+    border-radius:
+        50%;
+
+
+    pointer-events:
+        none;
+
+
+    background:
+        rgba(
+            255,
+            255,
+            255,
+            0.55
+        );
+
+
+    box-shadow:
+        0 0 5px
+        rgba(
+            150,
+            187,
+            157,
+            0.20
+        );
+
+
+    animation-name:
+        ambientDustFloat;
+
+    animation-timing-function:
+        ease-in-out;
+
+    animation-iteration-count:
+        infinite;
+
+}
+
+
+/* =====================================================
+   DUST MOVEMENT
+   ===================================================== */
+
+@keyframes ambientDustFloat {
+
+    0%,
+    100% {
+
+        opacity:
+            0.05;
+
+
+        transform:
+            translate3d(
+                0,
+                0,
+                0
+            );
+
+    }
+
+
+    50% {
+
+        opacity:
+            0.45;
+
+
+        transform:
+            translate3d(
+                var(--dust-x),
+                var(--dust-y),
+                0
+            );
+
+    }
+
+}
+
+
+/* =====================================================
+   REDUCED MOTION
+   ===================================================== */
+
+@media (
+    prefers-reduced-motion:
+    reduce
+) {
+
+    .ambient-ui-layer {
+
+        display:
+            none !important;
+
+    }
+
+}
+
+/* =====================================================
+   MASCOT - LEVEL 4
+   CSS Forest Bunny
+   Không thay đổi màu giao diện chính
+   ===================================================== */
+
+
+/* =====================================================
+   WRAPPER
+   ===================================================== */
+
+.ui-mascot {
+
+    position: fixed;
+
+    right: 24px;
+
+    bottom: 18px;
+
+    z-index: 999999;
+
+    display: flex;
+
+    flex-direction: column;
+
+    align-items: flex-end;
+
+    gap: 7px;
+
+    pointer-events: none;
+
+
+    opacity: 0;
+
+    transform:
+        translateY(30px);
+
+    transition:
+        opacity 0.35s ease,
+        transform 0.35s ease;
+}
+
+
+.ui-mascot.is-visible {
+
+    opacity: 1;
+
+    transform:
+        translateY(0);
+}
+
+
+/* =====================================================
+   SPEECH BUBBLE
+   ===================================================== */
+
+.ui-mascot-bubble {
+
+    position: relative;
+
+    max-width: 220px;
+
+    padding:
+        10px 13px;
+
+    border:
+        1px solid
+        rgba(91, 122, 99, 0.18);
+
+    border-radius:
+        13px 13px 5px 13px;
+
+    background:
+        rgba(255, 255, 255, 0.96);
+
+    box-shadow:
+        0 10px 28px
+        rgba(49, 76, 57, 0.13);
+
+    color:
+        #53665a;
+
+    font-size:
+        12.5px;
+
+    font-weight:
+        650;
+
+    line-height:
+        1.45;
+
+    pointer-events:
+        none;
+
+
+    opacity: 0;
+
+    transform:
+        translateY(6px)
+        scale(0.96);
+
+    transform-origin:
+        bottom right;
+
+    transition:
+        opacity 0.18s ease,
+        transform 0.18s ease;
+}
+
+
+.ui-mascot-bubble::after {
+
+    content: "";
+
+    position: absolute;
+
+    right: 14px;
+
+    bottom: -6px;
+
+    width: 11px;
+
+    height: 11px;
+
+    border-right:
+        1px solid
+        rgba(91, 122, 99, 0.18);
+
+    border-bottom:
+        1px solid
+        rgba(91, 122, 99, 0.18);
+
+    background:
+        rgba(255, 255, 255, 0.96);
+
+    transform:
+        rotate(45deg);
+}
+
+
+.ui-mascot.is-talking
+.ui-mascot-bubble {
+
+    opacity: 1;
+
+    transform:
+        translateY(0)
+        scale(1);
+}
+
+
+/* =====================================================
+   CHARACTER BUTTON
+   ===================================================== */
+
+.ui-mascot-character {
+
+    position: relative;
+
+    width: 78px;
+
+    height: 90px;
+
+    padding: 0;
+
+    border: 0;
+
+    outline: 0;
+
+    background:
+        transparent;
+
+    cursor: pointer;
+
+    pointer-events: auto;
+
+    -webkit-tap-highlight-color:
+        transparent;
+}
+
+
+/* =====================================================
+   SHADOW
+   ===================================================== */
+
+.ui-mascot-shadow {
+
+    position: absolute;
+
+    left: 15px;
+
+    bottom: 2px;
+
+    width: 49px;
+
+    height: 10px;
+
+    border-radius: 50%;
+
+    background:
+        rgba(48, 74, 55, 0.15);
+
+    filter:
+        blur(2px);
+
+    transition:
+        transform 0.25s ease,
+        opacity 0.25s ease;
+}
+
+
+/* =====================================================
+   CREATURE
+   ===================================================== */
+
+.ui-mascot-creature {
+
+    position: absolute;
+
+    left: 10px;
+
+    bottom: 8px;
+
+    width: 58px;
+
+    height: 75px;
+
+    transform-origin:
+        50% 100%;
+
+    animation:
+        mascotIdle
+        3.4s
+        ease-in-out
+        infinite;
+}
+
+
+@keyframes mascotIdle {
+
+    0%,
+    100% {
+
+        transform:
+            translateY(0)
+            rotate(0deg);
+    }
+
+
+    50% {
+
+        transform:
+            translateY(-2px)
+            rotate(0.6deg);
+    }
+
+}
+
+
+/* =====================================================
+   BODY
+   ===================================================== */
+
+.ui-mascot-body {
+
+    position: absolute;
+
+    left: 10px;
+
+    bottom: 5px;
+
+    width: 39px;
+
+    height: 39px;
+
+    border-radius:
+        52% 52% 46% 46%;
+
+    background:
+        linear-gradient(
+            145deg,
+            #f6f4e8,
+            #e6eadc
+        );
+
+    border:
+        1px solid
+        rgba(92, 119, 94, 0.18);
+
+    box-shadow:
+        inset -5px -5px 9px
+        rgba(92, 117, 95, 0.07);
+}
+
+
+/* =====================================================
+   HEAD
+   ===================================================== */
+
+.ui-mascot-head {
+
+    position: absolute;
+
+    left: 6px;
+
+    top: 19px;
+
+    z-index: 4;
+
+    width: 47px;
+
+    height: 39px;
+
+    border-radius:
+        48% 48% 46% 46%;
+
+    background:
+        linear-gradient(
+            145deg,
+            #fffef6,
+            #ebeee2
+        );
+
+    border:
+        1px solid
+        rgba(91, 119, 94, 0.19);
+
+    box-shadow:
+        0 5px 12px
+        rgba(64, 92, 70, 0.08);
+}
+
+
+/* =====================================================
+   EARS
+   ===================================================== */
+
+.ui-mascot-ear {
+
+    position: absolute;
+
+    z-index: 2;
+
+    top: 1px;
+
+    width: 14px;
+
+    height: 34px;
+
+    border:
+        1px solid
+        rgba(91, 119, 94, 0.18);
+
+    border-radius:
+        70% 70% 50% 50%;
+
+    background:
+        linear-gradient(
+            180deg,
+            #f6f5e9,
+            #e3e9da
+        );
+
+    transform-origin:
+        bottom center;
+}
+
+
+.ui-mascot-ear::after {
+
+    content: "";
+
+    position: absolute;
+
+    left: 4px;
+
+    top: 5px;
+
+    width: 5px;
+
+    height: 20px;
+
+    border-radius:
+        999px;
+
+    background:
+        rgba(133, 164, 137, 0.22);
+}
+
+
+.ui-mascot-ear-left {
+
+    left: 10px;
+
+    transform:
+        rotate(-9deg);
+}
+
+
+.ui-mascot-ear-right {
+
+    right: 10px;
+
+    transform:
+        rotate(9deg);
+}
+
+
+/* =====================================================
+   EYES
+   ===================================================== */
+
+.ui-mascot-eye {
+
+    position: absolute;
+
+    top: 15px;
+
+    width: 4px;
+
+    height: 5px;
+
+    border-radius: 50%;
+
+    background:
+        #4d6254;
+
+    transform-origin:
+        center;
+
+    animation:
+        mascotBlink
+        5.3s
+        infinite;
+}
+
+
+.ui-mascot-eye-left {
+
+    left: 13px;
+}
+
+
+.ui-mascot-eye-right {
+
+    right: 13px;
+}
+
+
+@keyframes mascotBlink {
+
+    0%,
+    44%,
+    48%,
+    100% {
+
+        transform:
+            scaleY(1);
+    }
+
+
+    46% {
+
+        transform:
+            scaleY(0.08);
+    }
+
+}
+
+
+/* =====================================================
+   NOSE
+   ===================================================== */
+
+.ui-mascot-nose {
+
+    position: absolute;
+
+    left: 50%;
+
+    top: 21px;
+
+    width: 4px;
+
+    height: 3px;
+
+    border-radius:
+        50%;
+
+    background:
+        #859788;
+
+    transform:
+        translateX(-50%);
+}
+
+
+/* =====================================================
+   MOUTH
+   ===================================================== */
+
+.ui-mascot-mouth {
+
+    position: absolute;
+
+    left: 50%;
+
+    top: 25px;
+
+    width: 8px;
+
+    height: 4px;
+
+    border-bottom:
+        1px solid
+        #789080;
+
+    border-radius:
+        0 0 8px 8px;
+
+    transform:
+        translateX(-50%);
+}
+
+
+/* =====================================================
+   CHEEKS
+   ===================================================== */
+
+.ui-mascot-cheek {
+
+    position: absolute;
+
+    top: 23px;
+
+    width: 7px;
+
+    height: 4px;
+
+    border-radius: 50%;
+
+    background:
+        rgba(193, 173, 151, 0.18);
+}
+
+
+.ui-mascot-cheek-left {
+
+    left: 7px;
+}
+
+
+.ui-mascot-cheek-right {
+
+    right: 7px;
+}
+
+
+/* =====================================================
+   FEET
+   ===================================================== */
+
+.ui-mascot-foot {
+
+    position: absolute;
+
+    bottom: 3px;
+
+    z-index: 5;
+
+    width: 20px;
+
+    height: 9px;
+
+    border-radius:
+        70%;
+
+    background:
+        #edf0e4;
+
+    border:
+        1px solid
+        rgba(91, 119, 94, 0.13);
+}
+
+
+.ui-mascot-foot-left {
+
+    left: 4px;
+
+    transform:
+        rotate(-5deg);
+}
+
+
+.ui-mascot-foot-right {
+
+    right: 4px;
+
+    transform:
+        rotate(5deg);
+}
+
+
+/* =====================================================
+   HOVER
+   ===================================================== */
+
+.ui-mascot-character:hover
+.ui-mascot-creature {
+
+    animation:
+        mascotHover
+        0.55s
+        ease;
+}
+
+
+@keyframes mascotHover {
+
+    0%,
+    100% {
+
+        transform:
+            translateY(0);
+    }
+
+
+    45% {
+
+        transform:
+            translateY(-6px)
+            scale(1.03);
+    }
+
+}
+
+
+/* =====================================================
+   JUMP / HAPPY
+   ===================================================== */
+
+.ui-mascot.is-jumping
+.ui-mascot-creature {
+
+    animation:
+        mascotJump
+        0.85s
+        cubic-bezier(
+            0.2,
+            0.8,
+            0.2,
+            1
+        );
+}
+
+
+@keyframes mascotJump {
+
+    0% {
+
+        transform:
+            translateY(0)
+            scaleY(1);
+    }
+
+
+    18% {
+
+        transform:
+            translateY(2px)
+            scaleY(0.94);
+    }
+
+
+    45% {
+
+        transform:
+            translateY(-22px)
+            scaleY(1.04);
+    }
+
+
+    72% {
+
+        transform:
+            translateY(0)
+            scaleY(0.96);
+    }
+
+
+    100% {
+
+        transform:
+            translateY(0)
+            scaleY(1);
+    }
+
+}
+
+
+.ui-mascot.is-jumping
+.ui-mascot-shadow {
+
+    animation:
+        mascotJumpShadow
+        0.85s
+        ease;
+}
+
+
+@keyframes mascotJumpShadow {
+
+    0%,
+    100% {
+
+        transform:
+            scaleX(1);
+
+        opacity:
+            1;
+    }
+
+
+    45% {
+
+        transform:
+            scaleX(0.55);
+
+        opacity:
+            0.4;
+    }
+
+}
+
+
+/* =====================================================
+   HAPPY FACE
+   ===================================================== */
+
+.ui-mascot.is-happy
+.ui-mascot-mouth {
+
+    height: 6px;
+
+    border-bottom-width:
+        2px;
+}
+
+
+.ui-mascot.is-happy
+.ui-mascot-cheek {
+
+    background:
+        rgba(199, 157, 142, 0.30);
+}
+
+
+/* =====================================================
+   WORRIED
+   ===================================================== */
+
+.ui-mascot.is-worried
+.ui-mascot-creature {
+
+    animation:
+        mascotWorried
+        0.24s
+        ease-in-out
+        4;
+}
+
+
+@keyframes mascotWorried {
+
+    0%,
+    100% {
+
+        transform:
+            translateX(0);
+    }
+
+
+    50% {
+
+        transform:
+            translateX(3px);
+    }
+
+}
+
+
+.ui-mascot.is-worried
+.ui-mascot-ear-left {
+
+    transform:
+        rotate(-24deg);
+}
+
+
+.ui-mascot.is-worried
+.ui-mascot-ear-right {
+
+    transform:
+        rotate(24deg);
+}
+
+
+/* =====================================================
+   SURPRISED
+   ===================================================== */
+
+.ui-mascot.is-surprised
+.ui-mascot-eye {
+
+    transform:
+        scale(1.25);
+
+    animation: none;
+}
+
+
+.ui-mascot.is-surprised
+.ui-mascot-ear-left {
+
+    transform:
+        rotate(-3deg)
+        translateY(-2px);
+}
+
+
+.ui-mascot.is-surprised
+.ui-mascot-ear-right {
+
+    transform:
+        rotate(3deg)
+        translateY(-2px);
+}
+
+
+/* =====================================================
+   SLEEP
+   ===================================================== */
+
+.ui-mascot.is-sleeping
+.ui-mascot-creature {
+
+    animation:
+        mascotSleepBreath
+        3.8s
+        ease-in-out
+        infinite;
+
+    transform:
+        rotate(5deg)
+        translateY(5px);
+}
+
+
+@keyframes mascotSleepBreath {
+
+    0%,
+    100% {
+
+        transform:
+            rotate(5deg)
+            translateY(5px)
+            scaleY(1);
+    }
+
+
+    50% {
+
+        transform:
+            rotate(5deg)
+            translateY(6px)
+            scaleY(0.97);
+    }
+
+}
+
+
+.ui-mascot.is-sleeping
+.ui-mascot-eye {
+
+    height: 2px;
+
+    border-radius: 0;
+
+    background:
+        transparent;
+
+    border-bottom:
+        1.5px solid
+        #65786b;
+
+    animation: none;
+}
+
+
+.ui-mascot.is-sleeping
+.ui-mascot-ear-left {
+
+    transform:
+        rotate(-22deg);
+}
+
+
+.ui-mascot.is-sleeping
+.ui-mascot-ear-right {
+
+    transform:
+        rotate(28deg);
+}
+
+
+/* =====================================================
+   Z SYMBOL
+   ===================================================== */
+
+.ui-mascot-sleep-symbol {
+
+    position: absolute;
+
+    right: 3px;
+
+    top: 9px;
+
+    color:
+        #7d9483;
+
+    font-size:
+        12px;
+
+    font-weight:
+        800;
+
+    opacity: 0;
+
+    pointer-events: none;
+}
+
+
+.ui-mascot.is-sleeping
+.ui-mascot-sleep-symbol {
+
+    animation:
+        mascotSleepZ
+        2.2s
+        ease-in-out
+        infinite;
+}
+
+
+@keyframes mascotSleepZ {
+
+    0% {
+
+        opacity: 0;
+
+        transform:
+            translate(
+                0,
+                5px
+            )
+            scale(0.8);
+    }
+
+
+    30% {
+
+        opacity: 0.75;
+    }
+
+
+    100% {
+
+        opacity: 0;
+
+        transform:
+            translate(
+                8px,
+                -13px
+            )
+            scale(1.15);
+    }
+
+}
+
+
+/* =====================================================
+   MOBILE
+   ===================================================== */
+
+@media (
+    max-width: 760px
+) {
+
+    .ui-mascot {
+
+        right: 10px;
+
+        bottom: 10px;
+
+        transform-origin:
+            bottom right;
+    }
+
+
+    .ui-mascot-character {
+
+        transform:
+            scale(0.86);
+
+        transform-origin:
+            bottom right;
+    }
+
+
+    .ui-mascot-bubble {
+
+        max-width:
+            180px;
+    }
+
+}
+
+
+/* =====================================================
+   REDUCED MOTION
+   ===================================================== */
+
+@media (
+    prefers-reduced-motion:
+    reduce
+) {
+
+    .ui-mascot-creature,
+
+    .ui-mascot-eye,
+
+    .ui-mascot-shadow,
+
+    .ui-mascot-sleep-symbol {
+
+        animation:
+            none
+            !important;
+    }
+
+}
+
+/* =====================================================
+   FIX MASCOT BUTTON
+   Không cho CSS button chung ảnh hưởng mascot
+   ===================================================== */
+
+button.ui-mascot-character,
+button.ui-mascot-character:hover,
+button.ui-mascot-character:focus,
+button.ui-mascot-character:focus-visible,
+button.ui-mascot-character:active {
+
+    appearance: none !important;
+    -webkit-appearance: none !important;
+
+    background: transparent !important;
+    background-color: transparent !important;
+    background-image: none !important;
+
+    border: 0 !important;
+    outline: none !important;
+
+    box-shadow: none !important;
+
+    color: inherit !important;
+
+    padding: 0 !important;
+
+    filter: none !important;
+
+}
+
+/* =====================================================
+   MASCOT MOVEMENT - LEVEL 5
+   ===================================================== */
+
+
+/* Khi mascot chạy */
+
+.ui-mascot.mascot-is-running
+.ui-mascot-creature {
+
+    animation:
+        mascotRunBounce
+        0.28s
+        ease-in-out
+        infinite;
+}
+
+
+@keyframes mascotRunBounce {
+
+    0%,
+    100% {
+
+        transform:
+            translateY(0)
+            rotate(-2deg);
+    }
+
+
+    50% {
+
+        transform:
+            translateY(-5px)
+            rotate(3deg);
+    }
+
+}
+
+
+/* Chân chạy */
+
+.ui-mascot.mascot-is-running
+.ui-mascot-foot-left {
+
+    animation:
+        mascotFootLeft
+        0.22s
+        linear
+        infinite;
+}
+
+
+.ui-mascot.mascot-is-running
+.ui-mascot-foot-right {
+
+    animation:
+        mascotFootRight
+        0.22s
+        linear
+        infinite;
+}
+
+
+@keyframes mascotFootLeft {
+
+    0%,
+    100% {
+
+        transform:
+            rotate(-18deg)
+            translateX(-1px);
+    }
+
+
+    50% {
+
+        transform:
+            rotate(17deg)
+            translateX(2px);
+    }
+
+}
+
+
+@keyframes mascotFootRight {
+
+    0%,
+    100% {
+
+        transform:
+            rotate(17deg)
+            translateX(2px);
+    }
+
+
+    50% {
+
+        transform:
+            rotate(-18deg)
+            translateX(-1px);
+    }
+
+}
+
+
+/* Tai rung lúc chạy */
+
+.ui-mascot.mascot-is-running
+.ui-mascot-ear-left {
+
+    animation:
+        mascotRunEarLeft
+        0.32s
+        ease-in-out
+        infinite;
+}
+
+
+.ui-mascot.mascot-is-running
+.ui-mascot-ear-right {
+
+    animation:
+        mascotRunEarRight
+        0.32s
+        ease-in-out
+        infinite;
+}
+
+
+@keyframes mascotRunEarLeft {
+
+    0%,
+    100% {
+
+        transform:
+            rotate(-12deg);
+    }
+
+
+    50% {
+
+        transform:
+            rotate(-25deg);
+    }
+
+}
+
+
+@keyframes mascotRunEarRight {
+
+    0%,
+    100% {
+
+        transform:
+            rotate(12deg);
+    }
+
+
+    50% {
+
+        transform:
+            rotate(25deg);
+    }
+
+}
+
+
+/* =====================================================
+   CHẠY VỀ NHÀ
+   Lật mascot về hướng bên phải
+   ===================================================== */
+
+.ui-mascot.mascot-running-home
+.ui-mascot-creature {
+
+    scale: -1 1;
+}
+
+
+/*
+Head/face cũng bị mirror theo.
+Với mascot đối xứng thì không ảnh hưởng.
+*/
+
+
+/* =====================================================
+   PEEK
+   ===================================================== */
+
+.ui-mascot.mascot-is-peeking
+.ui-mascot-ear-left {
+
+    transform:
+        rotate(-2deg)
+        translateY(-3px);
+}
+
+
+.ui-mascot.mascot-is-peeking
+.ui-mascot-ear-right {
+
+    transform:
+        rotate(2deg)
+        translateY(-3px);
+}
+
+
+/* =====================================================
+   DANCE
+   ===================================================== */
+
+.ui-mascot.mascot-is-dancing
+.ui-mascot-ear-left {
+
+    animation:
+        mascotDanceEarLeft
+        0.35s
+        ease-in-out
+        infinite alternate;
+}
+
+
+.ui-mascot.mascot-is-dancing
+.ui-mascot-ear-right {
+
+    animation:
+        mascotDanceEarRight
+        0.35s
+        ease-in-out
+        infinite alternate;
+}
+
+
+@keyframes mascotDanceEarLeft {
+
+    from {
+
+        transform:
+            rotate(-5deg);
+    }
+
+
+    to {
+
+        transform:
+            rotate(-26deg);
+    }
+
+}
+
+
+@keyframes mascotDanceEarRight {
+
+    from {
+
+        transform:
+            rotate(5deg);
+    }
+
+
+    to {
+
+        transform:
+            rotate(26deg);
+    }
+
+}
+
+
+/* má hồng hơn khi dance */
+
+.ui-mascot.mascot-is-dancing
+.ui-mascot-cheek {
+
+    background:
+        rgba(
+            198,
+            151,
+            142,
+            0.34
+        );
+}
+
+
+/* =====================================================
+   TRÁNH SELECT / DRAG KHI CHẠY
+   ===================================================== */
+
+.ui-mascot,
+.ui-mascot * {
+
+    -webkit-user-drag:
+        none;
+
+}
+
+
+/* =====================================================
+   REDUCED MOTION
+   ===================================================== */
+
+@media (
+    prefers-reduced-motion:
+    reduce
+) {
+
+    .ui-mascot.mascot-is-running
+    .ui-mascot-creature,
+
+    .ui-mascot.mascot-is-running
+    .ui-mascot-foot,
+
+    .ui-mascot.mascot-is-running
+    .ui-mascot-ear,
+
+    .ui-mascot.mascot-is-dancing
+    .ui-mascot-ear {
+
+        animation:
+            none
+            !important;
+    }
+
+}
+
+/* =====================================================
+   ANIME REACTION CUT-IN V6
+   Soft Glass Reaction Card
+   ===================================================== */
+
+
+/* =====================================================
+   ROOT
+   ===================================================== */
+
+.anime-cutin {
+
+    position: fixed;
+
+    inset: 0;
+
+    z-index: 99999999;
+
+    pointer-events: none;
+
+    overflow: hidden;
+
+    opacity: 0;
+
+    visibility: hidden;
+
+    transition:
+        opacity 180ms ease,
+        visibility 180ms ease;
+
+}
+
+
+/* Khi hiển thị */
+
+.anime-cutin.is-active {
+
+    opacity: 1;
+
+    visibility: visible;
+
+}
+
+
+/* =====================================================
+   BỎ PANEL CŨ
+   ===================================================== */
+
+.anime-cutin-backdrop {
+
+    display: none;
+
+}
+
+
+/* =====================================================
+   REACTION CARD CHÍNH
+   ===================================================== */
+
+.anime-cutin-content {
+
+    position: absolute;
+
+    right: 26px;
+
+    top: 50%;
+
+
+    width:
+        min(
+            560px,
+            calc(100vw - 52px)
+        );
+
+
+    height: 270px;
+
+
+    transform:
+        translateY(-50%);
+
+
+    display: flex;
+
+    align-items: center;
+
+
+    overflow: hidden;
+
+
+    border-radius: 24px;
+
+
+    /* NỀN NHẸ MỜ */
+
+    background:
+
+        linear-gradient(
+            135deg,
+
+            rgba(
+                255,
+                255,
+                255,
+                0.86
+            ) 0%,
+
+            rgba(
+                249,
+                252,
+                249,
+                0.82
+            ) 48%,
+
+            rgba(
+                237,
+                246,
+                239,
+                0.78
+            ) 100%
+        );
+
+
+    border:
+
+        1px solid
+        rgba(
+            110,
+            146,
+            117,
+            0.22
+        );
+
+
+    box-shadow:
+
+        0 18px 55px
+        rgba(
+            48,
+            75,
+            55,
+            0.16
+        ),
+
+        inset
+        0 1px 0
+        rgba(
+            255,
+            255,
+            255,
+            0.80
+        );
+
+
+    backdrop-filter:
+        blur(13px)
+        saturate(1.06);
+
+
+    -webkit-backdrop-filter:
+        blur(13px)
+        saturate(1.06);
+
+
+    opacity: 0;
+
+
+    transform:
+        translateY(-50%)
+        translateX(90px)
+        scale(0.96);
+
+}
+
+
+/* =====================================================
+   CARD ENTER / EXIT
+   ===================================================== */
+
+.anime-cutin.is-active
+.anime-cutin-content {
+
+    animation:
+        animeReactionCardEnter
+        3.15s
+        cubic-bezier(
+            0.16,
+            0.82,
+            0.28,
+            1
+        )
+        forwards;
+
+}
+
+
+@keyframes animeReactionCardEnter {
+
+    0% {
+
+        opacity: 0;
+
+        transform:
+            translateY(-50%)
+            translateX(110px)
+            scale(0.95);
+
+    }
+
+
+    13% {
+
+        opacity: 1;
+
+        transform:
+            translateY(-50%)
+            translateX(-5px)
+            scale(1.01);
+
+    }
+
+
+    20% {
+
+        opacity: 1;
+
+        transform:
+            translateY(-50%)
+            translateX(0)
+            scale(1);
+
+    }
+
+
+    82% {
+
+        opacity: 1;
+
+        transform:
+            translateY(-50%)
+            translateX(0)
+            scale(1);
+
+    }
+
+
+    100% {
+
+        opacity: 0;
+
+        transform:
+            translateY(-50%)
+            translateX(80px)
+            scale(0.98);
+
+    }
+
+}
+
+
+/* =====================================================
+   ÁNH SÁNG TRÊN CARD
+   ===================================================== */
+
+.anime-cutin-content::before {
+
+    content: "";
+
+    position: absolute;
+
+    z-index: 0;
+
+    top: -90px;
+
+    left: -50px;
+
+
+    width: 290px;
+
+    height: 220px;
+
+
+    border-radius: 50%;
+
+
+    background:
+
+        radial-gradient(
+            circle,
+
+            rgba(
+                198,
+                225,
+                203,
+                0.34
+            ),
+
+            transparent 68%
+        );
+
+
+    filter:
+        blur(12px);
+
+
+    pointer-events: none;
+
+}
+
+
+/* =====================================================
+   SPARKLE DECORATION
+   ===================================================== */
+
+.anime-cutin-content::after {
+
+    content: "✦";
+
+    position: absolute;
+
+    z-index: 10;
+
+
+    left: 29px;
+
+    top: 26px;
+
+
+    color:
+        #d7a650;
+
+
+    font-family:
+        "Segoe UI Symbol",
+        "Arial Unicode MS",
+        sans-serif;
+
+
+    font-size: 18px;
+
+
+    opacity: 0;
+
+
+    text-shadow:
+
+        0 0 8px
+        rgba(
+            215,
+            166,
+            80,
+            0.30
+        );
+
+}
+
+
+.anime-cutin.is-active
+.anime-cutin-content::after {
+
+    animation:
+        animeReactionSpark
+        2.7s
+        ease
+        forwards;
+
+}
+
+
+@keyframes animeReactionSpark {
+
+    0%,
+    14% {
+
+        opacity: 0;
+
+        transform:
+            scale(0.4)
+            rotate(0deg);
+
+    }
+
+
+    30% {
+
+        opacity: 1;
+
+        transform:
+            scale(1.15)
+            rotate(20deg);
+
+    }
+
+
+    65% {
+
+        opacity: 0.75;
+
+        transform:
+            scale(0.95)
+            rotate(32deg);
+
+    }
+
+
+    100% {
+
+        opacity: 0;
+
+        transform:
+            scale(0.6)
+            rotate(50deg);
+
+    }
+
+}
+
+
+/* =====================================================
+   SPEED LINES
+   ===================================================== */
+
+.anime-cutin-streaks {
+
+    position: absolute;
+
+    z-index: 1;
+
+
+    right: 35px;
+
+    top: 50%;
+
+
+    width: 520px;
+
+    height: 210px;
+
+
+    transform:
+        translateY(-50%);
+
+
+    opacity: 0;
+
+
+    pointer-events: none;
+
+
+    background:
+
+        repeating-linear-gradient(
+            -8deg,
+
+            transparent 0,
+
+            transparent 37px,
+
+            rgba(
+                102,
+                140,
+                108,
+                0.08
+            ) 38px,
+
+            rgba(
+                102,
+                140,
+                108,
+                0.08
+            ) 39px,
+
+            transparent 40px,
+
+            transparent 62px
+        );
+
+
+    mask-image:
+
+        linear-gradient(
+            90deg,
+            transparent,
+            black 40%,
+            black
+        );
+
+
+    -webkit-mask-image:
+
+        linear-gradient(
+            90deg,
+            transparent,
+            black 40%,
+            black
+        );
+
+}
+
+
+.anime-cutin.is-active
+.anime-cutin-streaks {
+
+    animation:
+        animeReactionLines
+        3s
+        ease
+        forwards;
+
+}
+
+
+@keyframes animeReactionLines {
+
+    0% {
+
+        opacity: 0;
+
+        transform:
+            translateY(-50%)
+            translateX(80px);
+
+    }
+
+
+    25% {
+
+        opacity: 0.7;
+
+    }
+
+
+    75% {
+
+        opacity: 0.45;
+
+    }
+
+
+    100% {
+
+        opacity: 0;
+
+        transform:
+            translateY(-50%)
+            translateX(-45px);
+
+    }
+
+}
+
+
+/* =====================================================
+   TEXT AREA
+   ===================================================== */
+
+.anime-cutin-text {
+
+    position: relative;
+
+    z-index: 6;
+
+
+    flex:
+        1 1 auto;
+
+
+    width: 330px;
+
+
+    padding:
+
+        30px
+        10px
+        30px
+        36px;
+
+
+    text-align: left;
+
+
+    opacity: 0;
+
+
+    transform:
+        translateX(20px);
+
+}
+
+
+/* =====================================================
+   TEXT ANIMATION
+   ===================================================== */
+
+.anime-cutin.is-active
+.anime-cutin-text {
+
+    animation:
+        animeReactionTextEnter
+        3.05s
+        ease
+        forwards;
+
+}
+
+
+@keyframes animeReactionTextEnter {
+
+    0%,
+    14% {
+
+        opacity: 0;
+
+        transform:
+            translateX(25px);
+
+    }
+
+
+    24% {
+
+        opacity: 1;
+
+        transform:
+            translateX(0);
+
+    }
+
+
+    78% {
+
+        opacity: 1;
+
+        transform:
+            translateX(0);
+
+    }
+
+
+    100% {
+
+        opacity: 0;
+
+        transform:
+            translateX(15px);
+
+    }
+
+}
+
+
+/* =====================================================
+   TITLE
+   Font hỗ trợ tiếng Việt tốt
+   ===================================================== */
+
+.anime-cutin-title {
+
+    margin: 0;
+
+
+    color:
+        #67538f;
+
+
+    font-family:
+
+        "Segoe UI",
+        "Helvetica Neue",
+        Arial,
+        sans-serif;
+
+
+    font-size:
+
+        clamp(
+            30px,
+            3vw,
+            42px
+        );
+
+
+    font-weight: 800;
+
+
+    font-style: normal;
+
+
+    font-stretch: normal;
+
+
+    font-variant:
+        normal;
+
+
+    font-variant-ligatures:
+        none;
+
+
+    line-height:
+        1.08;
+
+
+    letter-spacing:
+        0.015em;
+
+
+    text-transform:
+        none;
+
+
+    text-rendering:
+        optimizeLegibility;
+
+
+    -webkit-font-smoothing:
+        antialiased;
+
+
+    -moz-osx-font-smoothing:
+        grayscale;
+
+
+    text-shadow:
+
+        0 2px 0
+        rgba(
+            255,
+            255,
+            255,
+            0.88
+        ),
+
+        0 5px 16px
+        rgba(
+            91,
+            71,
+            126,
+            0.14
+        );
+
+}
+
+
+/* =====================================================
+   MESSAGE
+   ===================================================== */
+
+.anime-cutin-message {
+
+    margin-top: 10px;
+
+
+    max-width: 290px;
+
+
+    color:
+        #5e7063;
+
+
+    font-family:
+
+        "Segoe UI",
+        "Helvetica Neue",
+        Arial,
+        sans-serif;
+
+
+    font-size: 13.5px;
+
+
+    font-weight: 600;
+
+
+    font-style: normal;
+
+
+    line-height: 1.45;
+
+
+    letter-spacing: 0;
+
+
+    text-transform: none;
+
+
+    text-rendering:
+        optimizeLegibility;
+
+
+    -webkit-font-smoothing:
+        antialiased;
+
+
+    -moz-osx-font-smoothing:
+        grayscale;
+
+}
+
+
+/* =====================================================
+   CHARACTER WRAPPER
+   ===================================================== */
+
+.anime-cutin-character-wrap {
+
+    position: relative;
+
+    z-index: 5;
+
+
+    flex:
+        0 0 220px;
+
+
+    width: 220px;
+
+    height: 100%;
+
+
+    align-self: stretch;
+
+
+    display: flex;
+
+    align-items: flex-end;
+
+    justify-content: center;
+
+
+    overflow: visible;
+
+}
+
+
+/* =====================================================
+   CHARACTER
+   ===================================================== */
+
+.anime-cutin-character {
+
+    position: absolute;
+
+    z-index: 3;
+
+
+    right: 8px;
+
+    bottom: 7px;
+
+
+    max-width: 205px;
+
+    max-height: 245px;
+
+
+    object-fit: contain;
+
+    object-position:
+        bottom center;
+
+
+    opacity: 0;
+
+
+    transform:
+        translateX(80px)
+        scale(0.94);
+
+
+    filter:
+
+        drop-shadow(
+            -7px 12px 11px
+            rgba(
+                50,
+                75,
+                56,
+                0.18
+            )
+        );
+
+}
+
+
+/* =====================================================
+   CHARACTER ENTER
+   ===================================================== */
+
+.anime-cutin.is-active
+.anime-cutin-character {
+
+    animation:
+        animeReactionCharacterEnter
+        3.1s
+        cubic-bezier(
+            0.16,
+            0.82,
+            0.28,
+            1
+        )
+        forwards;
+
+}
+
+
+@keyframes animeReactionCharacterEnter {
+
+    0% {
+
+        opacity: 0;
+
+        transform:
+            translateX(100px)
+            scale(0.92);
+
+    }
+
+
+    16% {
+
+        opacity: 1;
+
+        transform:
+            translateX(-7px)
+            scale(1.02);
+
+    }
+
+
+    23% {
+
+        opacity: 1;
+
+        transform:
+            translateX(0)
+            scale(1);
+
+    }
+
+
+    82% {
+
+        opacity: 1;
+
+        transform:
+            translateX(0)
+            scale(1);
+
+    }
+
+
+    100% {
+
+        opacity: 0;
+
+        transform:
+            translateX(70px)
+            scale(0.97);
+
+    }
+
+}
+
+
+/* =====================================================
+   CHARACTER GLOW
+   ===================================================== */
+
+.anime-cutin-glow {
+
+    position: absolute;
+
+    z-index: 1;
+
+
+    right: 14px;
+
+    bottom: 15px;
+
+
+    width: 190px;
+
+    height: 190px;
+
+
+    border-radius: 50%;
+
+
+    background:
+
+        radial-gradient(
+            circle,
+
+            rgba(
+                197,
+                226,
+                203,
+                0.40
+            ) 0%,
+
+            rgba(
+                220,
+                238,
+                224,
+                0.20
+            ) 45%,
+
+            transparent 72%
+        );
+
+
+    filter:
+        blur(14px);
+
+
+    opacity: 0;
+
+}
+
+
+.anime-cutin.is-active
+.anime-cutin-glow {
+
+    animation:
+        animeReactionGlow
+        2.8s
+        ease
+        forwards;
+
+}
+
+
+@keyframes animeReactionGlow {
+
+    0% {
+
+        opacity: 0;
+
+        transform:
+            scale(0.6);
+
+    }
+
+
+    30% {
+
+        opacity: 1;
+
+        transform:
+            scale(1);
+
+    }
+
+
+    75% {
+
+        opacity: 0.7;
+
+    }
+
+
+    100% {
+
+        opacity: 0;
+
+        transform:
+            scale(1.18);
+
+    }
+
+}
+
+
+/* =====================================================
+   ERROR
+   ===================================================== */
+
+.anime-cutin-error
+.anime-cutin-title {
+
+    color:
+        #a35f63;
+
+}
+
+
+/* =====================================================
+   INFO
+   ===================================================== */
+
+.anime-cutin-info
+.anime-cutin-title {
+
+    color:
+        #587c88;
+
+}
+
+
+/* =====================================================
+   IMPORT
+   ===================================================== */
+
+.anime-cutin-import
+.anime-cutin-title {
+
+    color:
+        #62795f;
+
+}
+
+
+/* =====================================================
+   EXPORT
+   ===================================================== */
+
+.anime-cutin-export
+.anime-cutin-title {
+
+    color:
+        #5d7088;
+
+}
+
+
+/* =====================================================
+   BACKUP
+   ===================================================== */
+
+.anime-cutin-backup
+.anime-cutin-title {
+
+    color:
+        #647460;
+
+}
+
+
+/* =====================================================
+   SPECIAL
+   ===================================================== */
+
+.anime-cutin-special
+.anime-cutin-title {
+
+    color:
+        #735b9e;
+
+}
+
+
+/* =====================================================
+   MOBILE
+   ===================================================== */
+
+@media (
+    max-width: 760px
+) {
+
+    .anime-cutin-content {
+
+        right: 10px;
+
+
+        width:
+            calc(
+                100vw - 20px
+            );
+
+
+        height: 220px;
+
+
+        border-radius: 19px;
+
+    }
+
+
+    .anime-cutin-text {
+
+        padding:
+
+            24px
+            5px
+            24px
+            22px;
+
+    }
+
+
+    .anime-cutin-title {
+
+        font-size: 26px;
+
+    }
+
+
+    .anime-cutin-message {
+
+        max-width: 185px;
+
+        font-size: 12px;
+
+    }
+
+
+    .anime-cutin-character-wrap {
+
+        flex-basis: 155px;
+
+        width: 155px;
+
+    }
+
+
+    .anime-cutin-character {
+
+        max-width: 150px;
+
+        max-height: 200px;
+
+    }
+
+
+    .anime-cutin-glow {
+
+        width: 140px;
+
+        height: 140px;
+
+    }
+
+}
+
+
+/* =====================================================
+   REDUCED MOTION
+   ===================================================== */
+
+@media (
+    prefers-reduced-motion:
+    reduce
+) {
+
+    .anime-cutin-content,
+
+    .anime-cutin-text,
+
+    .anime-cutin-character,
+
+    .anime-cutin-glow,
+
+    .anime-cutin-streaks {
+
+        animation:
+            none !important;
+
+    }
+
+
+    .anime-cutin.is-active
+    .anime-cutin-content {
+
+        opacity: 1;
+
+        transform:
+            translateY(-50%);
+
+    }
+
+
+    .anime-cutin.is-active
+    .anime-cutin-text,
+
+    .anime-cutin.is-active
+    .anime-cutin-character {
+
+        opacity: 1;
+
+        transform: none;
+
+    }
+
+}
