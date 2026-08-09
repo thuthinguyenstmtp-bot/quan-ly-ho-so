@@ -1,3 +1,395 @@
+<style>
+
+    /* =====================================================
+       HỒ SƠ ĐÃ BÀN GIAO - HIỂN THỊ RÕ NỘI DUNG
+       ===================================================== */
+
+    .delivery-page {
+        width: 100%;
+        min-width: 0;
+    }
+
+
+    /* =====================================================
+       KHUNG DANH SÁCH
+       ===================================================== */
+
+    .delivery-page .delivery-table-card {
+        height: auto !important;
+        min-height: 0 !important;
+        max-height: none !important;
+
+        overflow: visible !important;
+    }
+
+
+    .delivery-page .delivery-table-scroll {
+        width: 100%;
+
+        /*
+        Không đặt height cố định.
+
+        Khi ít hồ sơ:
+        khung tự co theo số dòng.
+
+        Khi nhiều hơn khoảng 15 hồ sơ:
+        khung mới xuất hiện thanh cuộn dọc.
+        */
+
+        height: auto !important;
+        min-height: 0 !important;
+        max-height: 900px !important;
+
+        overflow-x: auto !important;
+        overflow-y: auto !important;
+
+        border:
+            1px solid
+            rgba(100, 132, 107, 0.18);
+
+        border-radius: 14px;
+
+        background:
+            rgba(255, 255, 255, 0.72);
+
+        scrollbar-width: thin;
+        scrollbar-color:
+            rgba(107, 137, 114, 0.55)
+            rgba(226, 235, 227, 0.65);
+    }
+
+
+    .delivery-page
+    .delivery-table-scroll::-webkit-scrollbar {
+        width: 8px;
+        height: 8px;
+    }
+
+
+    .delivery-page
+    .delivery-table-scroll::-webkit-scrollbar-track {
+        background:
+            rgba(226, 235, 227, 0.65);
+
+        border-radius: 999px;
+    }
+
+
+    .delivery-page
+    .delivery-table-scroll::-webkit-scrollbar-thumb {
+        background:
+            rgba(107, 137, 114, 0.55);
+
+        border-radius: 999px;
+    }
+
+
+    /* =====================================================
+       BẢNG
+       ===================================================== */
+
+    .delivery-page .delivery-table {
+        width: 100%;
+
+        /*
+        Giữ đủ không gian cho các cột.
+        Màn hình nhỏ sẽ cuộn ngang.
+        */
+
+        min-width: 1320px;
+
+        height: auto !important;
+
+        border-collapse: separate;
+        border-spacing: 0;
+
+        table-layout: fixed;
+    }
+
+
+    /* =====================================================
+       TIÊU ĐỀ BẢNG
+       ===================================================== */
+
+    .delivery-page .delivery-table thead th {
+        position: sticky;
+        top: 0;
+        z-index: 5;
+
+        min-height: 48px;
+        padding: 14px 10px;
+
+        vertical-align: middle;
+        text-align: center;
+
+        line-height: 1.35;
+
+        white-space: normal !important;
+        word-break: normal !important;
+        overflow-wrap: break-word !important;
+
+        background:
+            linear-gradient(
+                180deg,
+                #78927d 0%,
+                #6d8773 100%
+            );
+
+        color: #ffffff;
+
+        border-right:
+            1px solid
+            rgba(255, 255, 255, 0.22);
+
+        border-bottom:
+            1px solid
+            rgba(255, 255, 255, 0.18);
+
+        box-shadow:
+            0 2px 0
+            rgba(71, 94, 76, 0.08);
+    }
+
+
+    .delivery-page
+    .delivery-table thead th:last-child {
+        border-right: none;
+    }
+
+
+    /* =====================================================
+       DÒNG DỮ LIỆU
+       ===================================================== */
+
+    .delivery-page .delivery-table tbody tr {
+        height: auto !important;
+    }
+
+
+    .delivery-page .delivery-table tbody td {
+        height: auto !important;
+        min-height: 54px;
+
+        padding: 12px 10px;
+
+        vertical-align: top;
+
+        line-height: 1.5;
+
+        color: #2f3e34;
+
+        background:
+            rgba(255, 255, 255, 0.78);
+
+        border-right:
+            1px solid
+            rgba(111, 139, 116, 0.18);
+
+        border-bottom:
+            1px solid
+            rgba(111, 139, 116, 0.18);
+
+        /*
+        Cho phép nội dung xuống dòng.
+        */
+
+        white-space: normal !important;
+        word-break: normal !important;
+        overflow-wrap: anywhere !important;
+
+        overflow: visible !important;
+        text-overflow: unset !important;
+    }
+
+
+    .delivery-page
+    .delivery-table tbody tr:nth-child(even) td {
+        background:
+            rgba(247, 250, 247, 0.9);
+    }
+
+
+    .delivery-page
+    .delivery-table tbody tr:hover td {
+        background:
+            rgba(237, 245, 238, 0.96);
+    }
+
+
+    .delivery-page
+    .delivery-table tbody td:last-child {
+        border-right: none;
+    }
+
+
+    /* =====================================================
+       BỎ CẮT CHỮ TRONG THẺ CON
+       ===================================================== */
+
+    .delivery-page
+    .delivery-table tbody td *,
+    .delivery-page
+    .delivery-table tbody td span,
+    .delivery-page
+    .delivery-table tbody td div {
+        max-width: 100% !important;
+
+        white-space: normal !important;
+        word-break: normal !important;
+        overflow-wrap: anywhere !important;
+
+        overflow: visible !important;
+        text-overflow: unset !important;
+    }
+
+
+    /* =====================================================
+       CANH LỀ CÁC CỘT
+       ===================================================== */
+
+    /*
+    Căn giữa:
+    Mã HS, Giá trị, Ngày bàn giao, Thanh toán
+    */
+
+    .delivery-page
+    .delivery-table tbody td:nth-child(1),
+
+    .delivery-page
+    .delivery-table tbody td:nth-child(5),
+
+    .delivery-page
+    .delivery-table tbody td:nth-child(7),
+
+    .delivery-page
+    .delivery-table tbody td:nth-child(8) {
+        text-align: center;
+    }
+
+
+    /*
+    Căn trái:
+    Dự án, Nội dung, NCC, Bổ sung hồ sơ
+    */
+
+    .delivery-page
+    .delivery-table tbody td:nth-child(2),
+
+    .delivery-page
+    .delivery-table tbody td:nth-child(3),
+
+    .delivery-page
+    .delivery-table tbody td:nth-child(4),
+
+    .delivery-page
+    .delivery-table tbody td:nth-child(6) {
+        text-align: left;
+    }
+
+
+    /* Mã hồ sơ */
+
+    .delivery-page
+    .delivery-table tbody td:nth-child(1) {
+        vertical-align: middle;
+
+        font-weight: 750;
+        color: #30483a;
+    }
+
+
+    /* Giá trị */
+
+    .delivery-page
+    .delivery-table tbody td:nth-child(5) {
+        vertical-align: middle;
+
+        white-space: nowrap !important;
+
+        font-variant-numeric:
+            tabular-nums;
+    }
+
+
+    /* Ngày bàn giao */
+
+    .delivery-page
+    .delivery-table tbody td:nth-child(7) {
+        vertical-align: middle;
+
+        white-space: nowrap !important;
+    }
+
+
+    /* Thanh toán */
+
+    .delivery-page
+    .delivery-table tbody td:nth-child(8) {
+        vertical-align: middle;
+    }
+
+
+    /* =====================================================
+       Ô ĐANG TẢI / KHÔNG CÓ DỮ LIỆU
+       ===================================================== */
+
+    .delivery-page .delivery-loading-cell {
+        padding: 38px 16px !important;
+
+        text-align: center !important;
+        vertical-align: middle !important;
+
+        color: #718078 !important;
+
+        font-size: 14px;
+        font-weight: 650;
+
+        background:
+            rgba(255, 255, 255, 0.85)
+            !important;
+    }
+
+
+    /* =====================================================
+       RESPONSIVE
+       ===================================================== */
+
+    @media (max-width: 1200px) {
+
+        .delivery-page .delivery-table {
+            min-width: 1250px;
+        }
+
+    }
+
+
+    @media (max-width: 768px) {
+
+        .delivery-page .delivery-table-scroll {
+            max-height: 800px !important;
+        }
+
+
+        .delivery-page .delivery-table {
+            min-width: 1160px;
+        }
+
+
+        .delivery-page
+        .delivery-table thead th,
+
+        .delivery-page
+        .delivery-table tbody td {
+            padding: 10px 8px;
+
+            font-size: 13px;
+        }
+
+    }
+
+</style>
+
+
 <div class="delivery-page">
 
     <!-- =====================================
@@ -5,8 +397,6 @@
          ===================================== -->
 
     <header class="delivery-page-header">
-
-        <link rel="icon" type="image/png" href="./favicon.png">
 
         <div class="delivery-page-heading">
 
@@ -19,7 +409,8 @@
             </h1>
 
             <p>
-                Theo dõi các hồ sơ đã hoàn tất bàn giao và tình trạng thanh toán
+                Theo dõi các hồ sơ đã hoàn tất bàn giao
+                và tình trạng thanh toán
             </p>
 
         </div>
@@ -102,9 +493,11 @@
                     id="deliveryProjectFilter"
                     onchange="filterDeliveryDossier()"
                 >
+
                     <option value="">
                         Tất cả dự án
                     </option>
+
                 </select>
 
             </div>
@@ -112,22 +505,25 @@
 
             <!-- NHÀ CUNG CẤP -->
 
-            <div class="delivery-filter-field">
+<div class="delivery-filter-field">
 
-                <label for="deliverySupplierFilter">
-                    Nhà cung cấp
-                </label>
+    <label for="deliverySupplierFilter">
+        Nhà cung cấp
+    </label>
 
-                <select
-                    id="deliverySupplierFilter"
-                    onchange="filterDeliveryDossier()"
-                >
-                    <option value="">
-                        Tất cả nhà cung cấp
-                    </option>
-                </select>
+    <input
+        type="search"
+        id="deliverySupplierFilter"
+        list="deliverySupplierFilterList"
+        placeholder="Gõ tên nhà cung cấp..."
+        autocomplete="off"
+        oninput="filterDeliveryDossier()"
+    >
 
-            </div>
+    <datalist id="deliverySupplierFilterList">
+    </datalist>
+
+</div>
 
 
             <!-- THANH TOÁN -->
@@ -142,6 +538,7 @@
                     id="deliveryPaymentFilter"
                     onchange="filterDeliveryDossier()"
                 >
+
                     <option value="">
                         Tất cả thanh toán
                     </option>
@@ -153,6 +550,7 @@
                     <option value="Đã thanh toán">
                         Đã thanh toán
                     </option>
+
                 </select>
 
             </div>
@@ -204,6 +602,7 @@
                     id="deliverySort"
                     onchange="filterDeliveryDossier()"
                 >
+
                     <option
                         value="delivery-newest"
                         selected
@@ -222,6 +621,7 @@
                     <option value="project-za">
                         Dự án: Z → A
                     </option>
+
                 </select>
 
             </div>
@@ -269,28 +669,85 @@
             <table class="delivery-table">
 
                 <colgroup>
-                    <col style="width: 10%;">
+
+                    <!-- Mã HS -->
+
+                    <col style="width: 9%;">
+
+
+                    <!-- Dự án -->
+
                     <col style="width: 16%;">
+
+
+                    <!-- Nội dung -->
+
                     <col style="width: 19%;">
-                    <col style="width: 17%;">
+
+
+                    <!-- Nhà cung cấp -->
+
+                    <col style="width: 18%;">
+
+
+                    <!-- Giá trị -->
+
                     <col style="width: 10%;">
-                    <col style="width: 14%;">
-                    <col style="width: 8%;">
+
+
+                    <!-- Bổ sung hồ sơ -->
+
+                    <col style="width: 15%;">
+
+
+                    <!-- Ngày bàn giao -->
+
+                    <col style="width: 7%;">
+
+
+                    <!-- Thanh toán -->
+
                     <col style="width: 6%;">
+
                 </colgroup>
 
 
                 <thead>
 
                     <tr>
-                        <th>Mã HS</th>
-                        <th>Dự án</th>
-                        <th>Nội dung</th>
-                        <th>Nhà cung cấp</th>
-                        <th>Giá trị</th>
-                        <th>Bổ sung hồ sơ</th>
-                        <th>Ngày bàn giao</th>
-                        <th>Thanh toán</th>
+
+                        <th>
+                            Mã HS
+                        </th>
+
+                        <th>
+                            Dự án
+                        </th>
+
+                        <th>
+                            Nội dung
+                        </th>
+
+                        <th>
+                            Nhà cung cấp
+                        </th>
+
+                        <th>
+                            Giá trị
+                        </th>
+
+                        <th>
+                            Bổ sung hồ sơ
+                        </th>
+
+                        <th>
+                            Ngày bàn giao
+                        </th>
+
+                        <th>
+                            Thanh toán
+                        </th>
+
                     </tr>
 
                 </thead>
