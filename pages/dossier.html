@@ -23,16 +23,15 @@
 
     <div class="dossier-header-actions">
 
-        <!-- TẢI FILE CSV MẪU -->
+    <div class="dossier-file-actions">
 
         <button
             type="button"
-            class="dossier-template-button"
-            onclick="
-                window.downloadDossierCsvTemplate()
-            "
+            class="dossier-toolbar-button"
+            onclick="window.downloadDossierCsvTemplate()"
+            title="Tải file CSV mẫu"
         >
-            <span aria-hidden="true">
+            <span class="dossier-toolbar-icon">
                 ⇩
             </span>
 
@@ -42,20 +41,17 @@
         </button>
 
 
-        <!-- CHỌN FILE CSV -->
-
         <button
             type="button"
-            class="dossier-import-button"
+            class="dossier-toolbar-button"
             onclick="
                 document
-                    .getElementById(
-                        'dossierCsvFile'
-                    )
+                    .getElementById('dossierCsvFile')
                     ?.click()
             "
+            title="Nhập dữ liệu hồ sơ từ file CSV"
         >
-            <span aria-hidden="true">
+            <span class="dossier-toolbar-icon">
                 ⇧
             </span>
 
@@ -64,8 +60,6 @@
             </span>
         </button>
 
-
-        <!-- INPUT FILE ĐƯỢC ẨN CÓ CHỦ ĐÍCH -->
 
         <input
             type="file"
@@ -82,25 +76,54 @@
         >
 
 
-        <!-- THÊM HỒ SƠ THỦ CÔNG -->
-
         <button
             type="button"
-            class="dossier-add-button"
-            onclick="
-                window.openDossierForm()
-            "
+            id="dossierExportSelectedButton"
+            class="dossier-toolbar-button dossier-export-button"
+            onclick="window.exportSelectedDossiersToExcel()"
+            disabled
+            title="Hãy chọn hồ sơ cần xuất"
         >
-            <span aria-hidden="true">
-                ＋
+            <span class="dossier-toolbar-icon">
+                ⇩
             </span>
 
             <span>
-                Thêm hồ sơ
+                Xuất Excel
+            </span>
+
+            <span
+                id="dossierExportSelectedCount"
+                class="dossier-export-count"
+            >
+                0
             </span>
         </button>
 
     </div>
+
+
+    <span
+        class="dossier-toolbar-divider"
+        aria-hidden="true"
+    ></span>
+
+
+    <button
+        type="button"
+        class="dossier-add-button dossier-primary-action"
+        onclick="window.openDossierForm()"
+    >
+        <span>
+            ＋
+        </span>
+
+        <span>
+            Thêm hồ sơ
+        </span>
+    </button>
+
+</div>
 
 </div>
 
