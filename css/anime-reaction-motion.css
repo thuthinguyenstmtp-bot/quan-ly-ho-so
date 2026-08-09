@@ -1,0 +1,1270 @@
+/* =====================================================
+   ANIME REACTION MOTION PACK V1
+   Chỉ thêm animation.
+   Không thay layout / background / font.
+   ===================================================== */
+
+
+/* =====================================================
+   1. SUCCESS
+   Character bounce nhẹ
+   ===================================================== */
+
+.anime-cutin-success.is-active
+.anime-cutin-character {
+
+    animation:
+        animeSuccessCharacter
+        3.1s
+        cubic-bezier(
+            0.16,
+            0.82,
+            0.28,
+            1
+        )
+        forwards !important;
+}
+
+
+@keyframes animeSuccessCharacter {
+
+    0% {
+
+        opacity: 0;
+
+        transform:
+            translateX(90px)
+            translateY(8px)
+            scale(0.92);
+    }
+
+
+    15% {
+
+        opacity: 1;
+
+        transform:
+            translateX(-5px)
+            translateY(0)
+            scale(1.02);
+    }
+
+
+    23% {
+
+        transform:
+            translateX(0)
+            translateY(0)
+            scale(1);
+    }
+
+
+    /* nhảy vui */
+
+    38% {
+
+        transform:
+            translateY(-10px)
+            scale(1.025);
+    }
+
+
+    47% {
+
+        transform:
+            translateY(0)
+            scale(0.99);
+    }
+
+
+    55% {
+
+        transform:
+            translateY(-5px)
+            scale(1.01);
+    }
+
+
+    63% {
+
+        transform:
+            translateY(0)
+            scale(1);
+    }
+
+
+    82% {
+
+        opacity: 1;
+
+        transform:
+            translateX(0)
+            translateY(0)
+            scale(1);
+    }
+
+
+    100% {
+
+        opacity: 0;
+
+        transform:
+            translateX(70px)
+            scale(0.97);
+    }
+
+}
+
+
+/* =====================================================
+   SUCCESS CHECK
+   ===================================================== */
+
+.anime-cutin-success
+.anime-cutin-character-wrap::after {
+
+    content: "✓";
+
+    position: absolute;
+
+    z-index: 12;
+
+    right: 12px;
+
+    top: 20px;
+
+
+    width: 34px;
+
+    height: 34px;
+
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+
+    border-radius: 50%;
+
+
+    background:
+        rgba(
+            238,
+            248,
+            240,
+            0.96
+        );
+
+
+    border:
+        1px solid
+        rgba(
+            102,
+            150,
+            111,
+            0.30
+        );
+
+
+    color:
+        #6d9676;
+
+
+    font-family:
+        "Segoe UI",
+        Arial,
+        sans-serif;
+
+
+    font-size: 19px;
+
+    font-weight: 800;
+
+
+    box-shadow:
+        0 5px 15px
+        rgba(
+            74,
+            111,
+            80,
+            0.15
+        );
+
+
+    opacity: 0;
+
+    transform:
+        scale(0.25)
+        rotate(-20deg);
+
+}
+
+
+.anime-cutin-success.is-active
+.anime-cutin-character-wrap::after {
+
+    animation:
+        animeSuccessCheck
+        3s
+        ease
+        forwards;
+}
+
+
+@keyframes animeSuccessCheck {
+
+    0%,
+    22% {
+
+        opacity: 0;
+
+        transform:
+            scale(0.25)
+            rotate(-20deg);
+    }
+
+
+    32% {
+
+        opacity: 1;
+
+        transform:
+            scale(1.18)
+            rotate(5deg);
+    }
+
+
+    40% {
+
+        transform:
+            scale(0.94)
+            rotate(0deg);
+    }
+
+
+    48%,
+    76% {
+
+        opacity: 1;
+
+        transform:
+            scale(1)
+            rotate(0deg);
+    }
+
+
+    100% {
+
+        opacity: 0;
+
+        transform:
+            scale(0.75);
+    }
+
+}
+
+
+/* =====================================================
+   2. ERROR
+   Giật mình + rung
+   ===================================================== */
+
+.anime-cutin-error.is-active
+.anime-cutin-character {
+
+    animation:
+        animeErrorCharacter
+        3.1s
+        ease
+        forwards !important;
+}
+
+
+@keyframes animeErrorCharacter {
+
+    0% {
+
+        opacity: 0;
+
+        transform:
+            translateX(90px)
+            scale(0.92);
+    }
+
+
+    16% {
+
+        opacity: 1;
+
+        transform:
+            translateX(-6px)
+            scale(1.04);
+    }
+
+
+    23% {
+
+        transform:
+            translateX(0)
+            scale(1);
+    }
+
+
+    34% {
+
+        transform:
+            translateX(-4px)
+            rotate(-2deg);
+    }
+
+
+    38% {
+
+        transform:
+            translateX(4px)
+            rotate(2deg);
+    }
+
+
+    42% {
+
+        transform:
+            translateX(-3px)
+            rotate(-1deg);
+    }
+
+
+    46% {
+
+        transform:
+            translateX(3px)
+            rotate(1deg);
+    }
+
+
+    50% {
+
+        transform:
+            translateX(0)
+            rotate(0deg);
+    }
+
+
+    82% {
+
+        opacity: 1;
+
+        transform:
+            translateX(0);
+    }
+
+
+    100% {
+
+        opacity: 0;
+
+        transform:
+            translateX(70px)
+            scale(0.97);
+    }
+
+}
+
+
+/* ERROR SYMBOL */
+
+.anime-cutin-error
+.anime-cutin-character-wrap::after {
+
+    content: "!";
+
+    position: absolute;
+
+    z-index: 12;
+
+    right: 15px;
+
+    top: 18px;
+
+
+    width: 31px;
+
+    height: 31px;
+
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+
+    border-radius: 50%;
+
+
+    background:
+        rgba(
+            252,
+            239,
+            239,
+            0.96
+        );
+
+
+    border:
+        1px solid
+        rgba(
+            173,
+            96,
+            99,
+            0.25
+        );
+
+
+    color:
+        #a45f63;
+
+
+    font-family:
+        "Segoe UI",
+        Arial,
+        sans-serif;
+
+
+    font-size: 18px;
+
+    font-weight: 900;
+
+
+    opacity: 0;
+}
+
+
+.anime-cutin-error.is-active
+.anime-cutin-character-wrap::after {
+
+    animation:
+        animeErrorSymbol
+        3s
+        ease
+        forwards;
+}
+
+
+@keyframes animeErrorSymbol {
+
+    0%,
+    20% {
+
+        opacity: 0;
+
+        transform:
+            translateY(8px)
+            scale(0.4);
+    }
+
+
+    30% {
+
+        opacity: 1;
+
+        transform:
+            translateY(0)
+            scale(1.15);
+    }
+
+
+    40%,
+    75% {
+
+        opacity: 1;
+
+        transform:
+            scale(1);
+    }
+
+
+    100% {
+
+        opacity: 0;
+
+        transform:
+            translateY(-6px)
+            scale(0.8);
+    }
+
+}
+
+
+/* =====================================================
+   3. IMPORT
+   Tờ hồ sơ bay VÀO
+   ===================================================== */
+
+.anime-cutin-import
+.anime-cutin-character-wrap::after {
+
+    content: "";
+
+    position: absolute;
+
+    z-index: 10;
+
+
+    left: -45px;
+
+    top: 38%;
+
+
+    width: 34px;
+
+    height: 43px;
+
+
+    border-radius: 5px;
+
+
+    background:
+        linear-gradient(
+            145deg,
+            #ffffff,
+            #edf4ef
+        );
+
+
+    border:
+        1px solid
+        rgba(
+            104,
+            143,
+            111,
+            0.25
+        );
+
+
+    box-shadow:
+        0 6px 14px
+        rgba(
+            64,
+            94,
+            69,
+            0.13
+        );
+
+
+    opacity: 0;
+
+
+    transform:
+        translateX(-80px)
+        translateY(-15px)
+        rotate(-14deg);
+}
+
+
+/* Các dòng trên giấy */
+
+.anime-cutin-import
+.anime-cutin-character-wrap {
+
+    --paper-line:
+        rgba(
+            111,
+            147,
+            117,
+            0.20
+        );
+}
+
+
+.anime-cutin-import.is-active
+.anime-cutin-character-wrap::after {
+
+    animation:
+        animeImportPaper
+        3s
+        ease
+        forwards;
+}
+
+
+@keyframes animeImportPaper {
+
+    0%,
+    15% {
+
+        opacity: 0;
+
+        transform:
+            translateX(-90px)
+            translateY(-18px)
+            rotate(-18deg);
+    }
+
+
+    28% {
+
+        opacity: 1;
+
+        transform:
+            translateX(-25px)
+            translateY(-5px)
+            rotate(-8deg);
+    }
+
+
+    45% {
+
+        opacity: 1;
+
+        transform:
+            translateX(55px)
+            translateY(10px)
+            rotate(5deg);
+    }
+
+
+    62% {
+
+        opacity: 0;
+
+        transform:
+            translateX(105px)
+            translateY(20px)
+            rotate(12deg)
+            scale(0.8);
+    }
+
+
+    100% {
+
+        opacity: 0;
+    }
+
+}
+
+
+/* =====================================================
+   IMPORT CHARACTER
+   Nghiêng nhẹ như đang đón giấy
+   ===================================================== */
+
+.anime-cutin-import.is-active
+.anime-cutin-character {
+
+    animation:
+        animeImportCharacter
+        3.1s
+        ease
+        forwards !important;
+}
+
+
+@keyframes animeImportCharacter {
+
+    0% {
+
+        opacity: 0;
+
+        transform:
+            translateX(90px)
+            scale(0.94);
+    }
+
+
+    18% {
+
+        opacity: 1;
+
+        transform:
+            translateX(-5px)
+            rotate(1deg)
+            scale(1);
+    }
+
+
+    42% {
+
+        transform:
+            translateX(0)
+            rotate(-2deg)
+            scale(1.01);
+    }
+
+
+    58% {
+
+        transform:
+            rotate(1deg)
+            scale(1);
+    }
+
+
+    82% {
+
+        opacity: 1;
+
+        transform:
+            rotate(0deg);
+    }
+
+
+    100% {
+
+        opacity: 0;
+
+        transform:
+            translateX(70px)
+            scale(0.97);
+    }
+
+}
+
+
+/* =====================================================
+   4. EXPORT
+   Tờ hồ sơ bay RA
+   ===================================================== */
+
+.anime-cutin-export
+.anime-cutin-character-wrap::after {
+
+    content: "";
+
+    position: absolute;
+
+    z-index: 10;
+
+
+    right: 60px;
+
+    top: 38%;
+
+
+    width: 34px;
+
+    height: 43px;
+
+
+    border-radius: 5px;
+
+
+    background:
+        linear-gradient(
+            145deg,
+            #ffffff,
+            #edf3f7
+        );
+
+
+    border:
+        1px solid
+        rgba(
+            91,
+            116,
+            143,
+            0.24
+        );
+
+
+    box-shadow:
+        0 6px 14px
+        rgba(
+            65,
+            80,
+            102,
+            0.13
+        );
+
+
+    opacity: 0;
+
+}
+
+
+.anime-cutin-export.is-active
+.anime-cutin-character-wrap::after {
+
+    animation:
+        animeExportPaper
+        3s
+        ease
+        forwards;
+}
+
+
+@keyframes animeExportPaper {
+
+    0%,
+    20% {
+
+        opacity: 0;
+
+        transform:
+            translateX(0)
+            translateY(10px)
+            rotate(4deg)
+            scale(0.7);
+    }
+
+
+    32% {
+
+        opacity: 1;
+
+        transform:
+            translateX(-5px)
+            translateY(0)
+            rotate(0deg)
+            scale(1);
+    }
+
+
+    56% {
+
+        opacity: 1;
+
+        transform:
+            translateX(-85px)
+            translateY(-18px)
+            rotate(-12deg)
+            scale(0.95);
+    }
+
+
+    72% {
+
+        opacity: 0;
+
+        transform:
+            translateX(-150px)
+            translateY(-38px)
+            rotate(-20deg)
+            scale(0.75);
+    }
+
+
+    100% {
+
+        opacity: 0;
+    }
+
+}
+
+
+/* =====================================================
+   5. BACKUP
+   Vòng check hiện lên
+   ===================================================== */
+
+.anime-cutin-backup
+.anime-cutin-character-wrap::after {
+
+    content: "✓";
+
+    position: absolute;
+
+    z-index: 12;
+
+
+    right: 15px;
+
+    top: 16px;
+
+
+    width: 42px;
+
+    height: 42px;
+
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+
+    border-radius: 50%;
+
+
+    background:
+        rgba(
+            244,
+            249,
+            244,
+            0.94
+        );
+
+
+    border:
+        2px solid
+        rgba(
+            101,
+            143,
+            106,
+            0.32
+        );
+
+
+    color:
+        #668b6c;
+
+
+    font-family:
+        "Segoe UI",
+        Arial,
+        sans-serif;
+
+
+    font-size: 21px;
+
+    font-weight: 800;
+
+
+    box-shadow:
+        0 0 0 0
+        rgba(
+            110,
+            153,
+            116,
+            0.20
+        );
+
+
+    opacity: 0;
+
+}
+
+
+.anime-cutin-backup.is-active
+.anime-cutin-character-wrap::after {
+
+    animation:
+        animeBackupCheck
+        3s
+        ease
+        forwards;
+}
+
+
+@keyframes animeBackupCheck {
+
+    0%,
+    22% {
+
+        opacity: 0;
+
+        transform:
+            scale(0.2);
+
+        box-shadow:
+            0 0 0 0
+            rgba(
+                110,
+                153,
+                116,
+                0.28
+            );
+    }
+
+
+    34% {
+
+        opacity: 1;
+
+        transform:
+            scale(1.12);
+
+        box-shadow:
+            0 0 0 12px
+            rgba(
+                110,
+                153,
+                116,
+                0.07
+            );
+    }
+
+
+    45% {
+
+        transform:
+            scale(1);
+    }
+
+
+    65% {
+
+        opacity: 1;
+
+        box-shadow:
+            0 0 0 20px
+            rgba(
+                110,
+                153,
+                116,
+                0
+            );
+    }
+
+
+    100% {
+
+        opacity: 0;
+
+        transform:
+            scale(0.85);
+    }
+
+}
+
+
+/* =====================================================
+   6. SPECIAL
+   Character nhảy mạnh hơn
+   ===================================================== */
+
+.anime-cutin-special.is-active
+.anime-cutin-character {
+
+    animation:
+        animeSpecialCharacter
+        3.1s
+        cubic-bezier(
+            0.16,
+            0.82,
+            0.28,
+            1
+        )
+        forwards !important;
+}
+
+
+@keyframes animeSpecialCharacter {
+
+    0% {
+
+        opacity: 0;
+
+        transform:
+            translateX(100px)
+            rotate(5deg)
+            scale(0.88);
+    }
+
+
+    15% {
+
+        opacity: 1;
+
+        transform:
+            translateX(-8px)
+            rotate(-3deg)
+            scale(1.05);
+    }
+
+
+    24% {
+
+        transform:
+            translateX(0)
+            rotate(0deg)
+            scale(1);
+    }
+
+
+    38% {
+
+        transform:
+            translateY(-14px)
+            rotate(-4deg)
+            scale(1.03);
+    }
+
+
+    47% {
+
+        transform:
+            translateY(0)
+            rotate(4deg)
+            scale(0.98);
+    }
+
+
+    57% {
+
+        transform:
+            translateY(-8px)
+            rotate(-2deg)
+            scale(1.02);
+    }
+
+
+    66% {
+
+        transform:
+            translateY(0)
+            rotate(0deg)
+            scale(1);
+    }
+
+
+    82% {
+
+        opacity: 1;
+    }
+
+
+    100% {
+
+        opacity: 0;
+
+        transform:
+            translateX(70px)
+            scale(0.96);
+    }
+
+}
+
+
+/* SPECIAL STAR */
+
+.anime-cutin-special
+.anime-cutin-character-wrap::after {
+
+    content: "✦";
+
+    position: absolute;
+
+    z-index: 12;
+
+    right: 15px;
+
+    top: 17px;
+
+
+    color:
+        #d7a454;
+
+
+    font-family:
+        "Segoe UI Symbol",
+        Arial,
+        sans-serif;
+
+
+    font-size: 31px;
+
+
+    opacity: 0;
+
+
+    text-shadow:
+        0 0 10px
+        rgba(
+            215,
+            164,
+            84,
+            0.35
+        );
+}
+
+
+.anime-cutin-special.is-active
+.anime-cutin-character-wrap::after {
+
+    animation:
+        animeSpecialStar
+        2.8s
+        ease
+        forwards;
+}
+
+
+@keyframes animeSpecialStar {
+
+    0%,
+    16% {
+
+        opacity: 0;
+
+        transform:
+            scale(0.2)
+            rotate(0deg);
+    }
+
+
+    30% {
+
+        opacity: 1;
+
+        transform:
+            scale(1.35)
+            rotate(35deg);
+    }
+
+
+    42% {
+
+        transform:
+            scale(0.9)
+            rotate(55deg);
+    }
+
+
+    60% {
+
+        opacity: 1;
+
+        transform:
+            scale(1.12)
+            rotate(90deg);
+    }
+
+
+    100% {
+
+        opacity: 0;
+
+        transform:
+            scale(0.5)
+            rotate(150deg);
+    }
+
+}
+
+
+/* =====================================================
+   REDUCED MOTION
+   ===================================================== */
+
+@media (
+    prefers-reduced-motion:
+    reduce
+) {
+
+    .anime-cutin-success
+    .anime-cutin-character,
+
+    .anime-cutin-error
+    .anime-cutin-character,
+
+    .anime-cutin-import
+    .anime-cutin-character,
+
+    .anime-cutin-export
+    .anime-cutin-character,
+
+    .anime-cutin-special
+    .anime-cutin-character,
+
+    .anime-cutin-character-wrap::after {
+
+        animation:
+            none !important;
+
+    }
+
+}
