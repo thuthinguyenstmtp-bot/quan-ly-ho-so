@@ -1,3 +1,479 @@
+<style>
+
+    /* =====================================================
+       HỒ SƠ ĐÃ THANH TOÁN - HIỂN THỊ RÕ NỘI DUNG
+       ===================================================== */
+
+    .payment-page {
+        width: 100%;
+        min-width: 0;
+    }
+
+
+    /* =====================================================
+       KHUNG BẢNG
+       ===================================================== */
+
+    .payment-page .payment-table-card {
+        width: 100%;
+
+        height: auto !important;
+        min-height: 0 !important;
+        max-height: none !important;
+
+        overflow: visible !important;
+    }
+
+
+    .payment-page .payment-table-scroll {
+        width: 100%;
+
+        /*
+        Không cố định chiều cao cứng.
+
+        Ít hồ sơ:
+        Khung tự co theo nội dung.
+
+        Nhiều hồ sơ:
+        Hiển thị khoảng 15 dòng rồi cuộn dọc.
+        */
+
+        height: auto !important;
+        min-height: 0 !important;
+        max-height: 980px !important;
+
+        overflow-x: auto !important;
+        overflow-y: auto !important;
+
+        border:
+            1px solid
+            rgba(100, 132, 107, 0.18);
+
+        border-radius: 14px;
+
+        background:
+            rgba(255, 255, 255, 0.75);
+
+        scrollbar-width: thin;
+
+        scrollbar-color:
+            rgba(107, 137, 114, 0.55)
+            rgba(226, 235, 227, 0.65);
+    }
+
+
+    .payment-page
+    .payment-table-scroll::-webkit-scrollbar {
+        width: 8px;
+        height: 8px;
+    }
+
+
+    .payment-page
+    .payment-table-scroll::-webkit-scrollbar-track {
+        background:
+            rgba(226, 235, 227, 0.65);
+
+        border-radius: 999px;
+    }
+
+
+    .payment-page
+    .payment-table-scroll::-webkit-scrollbar-thumb {
+        background:
+            rgba(107, 137, 114, 0.55);
+
+        border-radius: 999px;
+    }
+
+
+    .payment-page
+    .payment-table-scroll::-webkit-scrollbar-thumb:hover {
+        background:
+            rgba(87, 121, 96, 0.72);
+    }
+
+
+    /* =====================================================
+       BẢNG
+       ===================================================== */
+
+    .payment-page .payment-table {
+        width: 100%;
+
+        /*
+        Đảm bảo các cột có đủ không gian.
+        Màn hình nhỏ sẽ cuộn ngang.
+        */
+
+        min-width: 1320px;
+
+        height: auto !important;
+
+        border-collapse: separate;
+        border-spacing: 0;
+
+        table-layout: fixed;
+    }
+
+
+    /* =====================================================
+       TIÊU ĐỀ BẢNG
+       ===================================================== */
+
+    .payment-page .payment-table thead th {
+        position: sticky;
+        top: 0;
+        z-index: 5;
+
+        min-height: 48px;
+        padding: 14px 10px;
+
+        vertical-align: middle;
+        text-align: center;
+
+        color: #ffffff;
+
+        font-size: 14px;
+        font-weight: 750;
+        line-height: 1.35;
+
+        white-space: normal !important;
+        word-break: normal !important;
+        overflow-wrap: break-word !important;
+
+        background:
+            linear-gradient(
+                180deg,
+                #78927d 0%,
+                #6d8773 100%
+            );
+
+        border-right:
+            1px solid
+            rgba(255, 255, 255, 0.22);
+
+        border-bottom:
+            1px solid
+            rgba(255, 255, 255, 0.18);
+
+        box-shadow:
+            0 2px 0
+            rgba(71, 94, 76, 0.08);
+    }
+
+
+    .payment-page
+    .payment-table thead th:last-child {
+        border-right: none;
+    }
+
+
+    /* =====================================================
+       DÒNG DỮ LIỆU
+       ===================================================== */
+
+    .payment-page .payment-table tbody tr {
+        height: auto !important;
+    }
+
+
+    .payment-page .payment-table tbody td {
+        height: auto !important;
+        min-height: 54px;
+
+        padding: 12px 10px;
+
+        vertical-align: top;
+
+        color: #2f3e34;
+
+        font-size: 14px;
+        line-height: 1.5;
+
+        background:
+            rgba(255, 255, 255, 0.8);
+
+        border-right:
+            1px solid
+            rgba(111, 139, 116, 0.18);
+
+        border-bottom:
+            1px solid
+            rgba(111, 139, 116, 0.18);
+
+        /*
+        Quan trọng:
+        Cho phép chữ tự xuống dòng.
+        */
+
+        white-space: normal !important;
+        word-break: normal !important;
+        overflow-wrap: anywhere !important;
+
+        overflow: visible !important;
+        text-overflow: unset !important;
+    }
+
+
+    .payment-page
+    .payment-table tbody tr:nth-child(even) td {
+        background:
+            rgba(247, 250, 247, 0.92);
+    }
+
+
+    .payment-page
+    .payment-table tbody tr:hover td {
+        background:
+            rgba(237, 245, 238, 0.98);
+    }
+
+
+    .payment-page
+    .payment-table tbody td:last-child {
+        border-right: none;
+    }
+
+
+    /* =====================================================
+       BỎ CẮT CHỮ TRONG CÁC THẺ CON
+       ===================================================== */
+
+    .payment-page
+    .payment-table tbody td * {
+        max-width: 100% !important;
+
+        white-space: normal !important;
+        word-break: normal !important;
+        overflow-wrap: anywhere !important;
+
+        overflow: visible !important;
+        text-overflow: unset !important;
+    }
+
+
+    /*
+    Tránh một số badge bị kéo quá rộng.
+    */
+
+    .payment-page
+    .payment-table tbody td span {
+        max-width: 100%;
+    }
+
+
+    /* =====================================================
+       CANH LỀ CÁC CỘT
+       ===================================================== */
+
+    /*
+    Căn giữa:
+    Mã HS, Giá trị, Bàn giao, Thanh toán
+    */
+
+    .payment-page
+    .payment-table tbody td:nth-child(1),
+
+    .payment-page
+    .payment-table tbody td:nth-child(5),
+
+    .payment-page
+    .payment-table tbody td:nth-child(7),
+
+    .payment-page
+    .payment-table tbody td:nth-child(8) {
+        text-align: center;
+    }
+
+
+    /*
+    Căn trái:
+    Dự án, Nội dung, NCC, Bổ sung hồ sơ
+    */
+
+    .payment-page
+    .payment-table tbody td:nth-child(2),
+
+    .payment-page
+    .payment-table tbody td:nth-child(3),
+
+    .payment-page
+    .payment-table tbody td:nth-child(4),
+
+    .payment-page
+    .payment-table tbody td:nth-child(6) {
+        text-align: left;
+    }
+
+
+    /* Mã hồ sơ */
+
+    .payment-page
+    .payment-table tbody td:nth-child(1) {
+        vertical-align: middle;
+
+        color: #30483a;
+
+        font-weight: 750;
+    }
+
+
+    /* Dự án */
+
+    .payment-page
+    .payment-table tbody td:nth-child(2) {
+        vertical-align: top;
+
+        font-weight: 600;
+    }
+
+
+    /* Nội dung */
+
+    .payment-page
+    .payment-table tbody td:nth-child(3) {
+        vertical-align: top;
+    }
+
+
+    /* Nhà cung cấp */
+
+    .payment-page
+    .payment-table tbody td:nth-child(4) {
+        vertical-align: top;
+    }
+
+
+    /* Giá trị */
+
+    .payment-page
+    .payment-table tbody td:nth-child(5) {
+        vertical-align: middle;
+
+        white-space: nowrap !important;
+
+        font-variant-numeric:
+            tabular-nums;
+    }
+
+
+    /* Bổ sung hồ sơ */
+
+    .payment-page
+    .payment-table tbody td:nth-child(6) {
+        vertical-align: top;
+    }
+
+
+    /* Bàn giao */
+
+    .payment-page
+    .payment-table tbody td:nth-child(7) {
+        vertical-align: middle;
+
+        white-space: nowrap !important;
+    }
+
+
+    /*
+    Badge hoặc nội dung bên trong cột bàn giao
+    vẫn giữ trên một dòng.
+    */
+
+    .payment-page
+    .payment-table tbody td:nth-child(7) * {
+        white-space: nowrap !important;
+    }
+
+
+    /* Thanh toán */
+
+    .payment-page
+    .payment-table tbody td:nth-child(8) {
+        vertical-align: middle;
+    }
+
+
+    /* =====================================================
+       Ô ĐANG TẢI / KHÔNG CÓ DỮ LIỆU
+       ===================================================== */
+
+    .payment-page .payment-loading-cell {
+        padding: 38px 16px !important;
+
+        text-align: center !important;
+        vertical-align: middle !important;
+
+        color: #718078 !important;
+
+        font-size: 14px;
+        font-weight: 650;
+
+        background:
+            rgba(255, 255, 255, 0.88)
+            !important;
+    }
+
+
+    .payment-page .payment-loading-state {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 9px;
+
+        width: 100%;
+
+        color: #718078;
+    }
+
+
+    .payment-page
+    .payment-loading-state span:first-child {
+        font-size: 18px;
+    }
+
+
+    /* =====================================================
+       RESPONSIVE
+       ===================================================== */
+
+    @media (max-width: 1200px) {
+
+        .payment-page .payment-table {
+            min-width: 1250px;
+        }
+
+    }
+
+
+    @media (max-width: 768px) {
+
+        .payment-page .payment-table-scroll {
+            max-height: 800px !important;
+        }
+
+
+        .payment-page .payment-table {
+            min-width: 1160px;
+        }
+
+
+        .payment-page
+        .payment-table thead th,
+
+        .payment-page
+        .payment-table tbody td {
+            padding: 10px 8px;
+
+            font-size: 13px;
+        }
+
+    }
+
+</style>
+
+
 <div class="payment-page">
 
     <!-- =====================================
@@ -5,8 +481,6 @@
          ===================================== -->
 
     <header class="payment-page-header">
-
-        <link rel="icon" type="image/png" href="./favicon.png">
 
         <div class="payment-page-heading">
 
@@ -115,24 +589,25 @@
 
             <!-- NHÀ CUNG CẤP -->
 
-            <div class="payment-filter-field">
+<div class="payment-filter-field">
 
-                <label for="paidSupplierFilter">
-                    Nhà cung cấp
-                </label>
+    <label for="paidSupplierFilter">
+        Nhà cung cấp
+    </label>
 
-                <select
-                    id="paidSupplierFilter"
-                    onchange="window.filterPaidDossier()"
-                >
+    <input
+        type="search"
+        id="paidSupplierFilter"
+        list="paidSupplierFilterList"
+        placeholder="Gõ tên nhà cung cấp..."
+        autocomplete="off"
+        oninput="window.filterPaidDossier()"
+    >
 
-                    <option value="">
-                        Tất cả nhà cung cấp
-                    </option>
+    <datalist id="paidSupplierFilterList">
+    </datalist>
 
-                </select>
-
-            </div>
+</div>
 
 
             <!-- BÀN GIAO -->
@@ -268,21 +743,44 @@
 
                 <colgroup>
 
-                    <col style="width: 10%;">
+                    <!-- Mã hồ sơ -->
+
+                    <col style="width: 9%;">
+
+
+                    <!-- Dự án -->
 
                     <col style="width: 16%;">
 
+
+                    <!-- Nội dung -->
+
                     <col style="width: 19%;">
 
-                    <col style="width: 17%;">
+
+                    <!-- Nhà cung cấp -->
+
+                    <col style="width: 18%;">
+
+
+                    <!-- Giá trị -->
 
                     <col style="width: 10%;">
 
-                    <col style="width: 14%;">
+
+                    <!-- Bổ sung hồ sơ -->
+
+                    <col style="width: 15%;">
+
+
+                    <!-- Bàn giao -->
 
                     <col style="width: 7%;">
 
-                    <col style="width: 7%;">
+
+                    <!-- Thanh toán -->
+
+                    <col style="width: 6%;">
 
                 </colgroup>
 
