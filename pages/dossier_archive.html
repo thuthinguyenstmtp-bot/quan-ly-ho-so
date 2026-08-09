@@ -1,27 +1,95 @@
 <div class="archive-page archive-modern-page">
 
-    <!-- =====================================
-         HEADER
-         ===================================== -->
+<header class="archive-page-header">
 
-    <header class="archive-page-header">
+    <div class="archive-page-heading">
 
-        <link rel="icon" type="image/png" href="./favicon.png">
+        <span class="archive-page-eyebrow">
+            QUẢN LÝ HỒ SƠ
+        </span>
 
-        <div class="archive-page-heading">
+        <h1>
+            Lưu hồ sơ
+        </h1>
 
-            <span class="archive-page-eyebrow">
-                QUẢN LÝ HỒ SƠ
-            </span>
+        <p>
+            Quản lý hợp đồng, phụ lục, biên bản
+            và các tài liệu lưu trữ khác
+        </p>
 
-            <h1>
-                Lưu hồ sơ
-            </h1>
+    </div>
 
-            <p>
-                Quản lý hợp đồng, phụ lục, biên bản
-                và các tài liệu lưu trữ khác
-            </p>
+
+    <div class="archive-header-actions">
+
+        <div class="archive-file-actions">
+
+            <button
+                type="button"
+                id="archiveDownloadTemplateButton"
+                class="archive-toolbar-button"
+                onclick="window.downloadArchiveCsvTemplate()"
+            >
+                <span>⇩</span>
+                <span>Tải file mẫu</span>
+            </button>
+
+
+            <button
+                type="button"
+                id="archiveExportSelectedButton"
+                class="archive-toolbar-button archive-export-button"
+                onclick="window.exportSelectedArchiveDossiersToExcel()"
+                disabled
+            >
+                <span>⇩</span>
+
+                <span>
+                    Xuất Excel đã chọn
+                </span>
+
+                <span
+                    id="archiveExportSelectedCount"
+                    class="archive-export-count"
+                >
+                    0
+                </span>
+            </button>
+
+
+            <button
+                type="button"
+                id="archiveImportCsvButton"
+                class="archive-toolbar-button"
+                onclick="
+                    document
+                        .getElementById('archiveCsvFile')
+                        ?.click();
+                "
+            >
+                <span>⇧</span>
+                <span>Nhập file CSV</span>
+            </button>
+
+
+            <input
+                type="file"
+                id="archiveCsvFile"
+                accept=".csv,text/csv"
+                hidden
+                onchange="
+                    if (
+                        this.files &&
+                        this.files.length > 0
+                    ) {
+                        window.importArchiveCsvFile(
+                            this.files[0]
+                        );
+                    }
+
+                    this.value = '';
+                "
+            >
 
         </div>
 
@@ -31,10 +99,13 @@
             class="archive-add-button archive-primary-button"
             onclick="openArchiveForm()"
         >
-            ＋ Thêm hồ sơ lưu
+            <span>＋</span>
+            <span>Thêm hồ sơ lưu</span>
         </button>
 
-    </header>
+    </div>
+
+</header>
 
 
     <!-- =====================================
@@ -283,22 +354,40 @@
             <table class="archive-table archive-modern-table">
 
                 <colgroup>
-                    <col style="width: 10%;">
-                    <col style="width: 11%;">
-                    <col style="width: 10%;">
-                    <col style="width: 17%;">
-                    <col style="width: 12%;">
-                    <col style="width: 13%;">
+                    <col style="width: 3%;">
                     <col style="width: 9%;">
                     <col style="width: 10%;">
-                    <col style="width: 4%;">
+                    <col style="width: 9%;">
+                    <col style="width: 16%;">
+                    <col style="width: 11%;">
+                    <col style="width: 12%;">
                     <col style="width: 8%;">
+                    <col style="width: 9%;">
+                    <col style="width: 4%;">
+                    <col style="width: 9%;">
                 </colgroup>
 
 
                 <thead>
 
                     <tr>
+
+                        <th class="archive-select-column">
+
+                            <input
+                                type="checkbox"
+                                id="archiveSelectAll"
+                                class="archive-select-checkbox"
+                                onchange="
+                                    window.toggleSelectAllArchiveDossiers(
+                                        this.checked
+                                    )
+                                "
+                                aria-label="Chọn tất cả hồ sơ lưu đang hiển thị"
+                            >
+
+                        </th>
+
                         <th>Loại hồ sơ</th>
                         <th>Số / Mã lưu</th>
                         <th>Mã HS liên kết</th>
@@ -309,6 +398,7 @@
                         <th>Vị trí lưu</th>
                         <th>SL</th>
                         <th>Thao tác</th>
+
                     </tr>
 
                 </thead>
@@ -319,7 +409,7 @@
                     <tr>
 
                         <td
-                            colspan="10"
+                            colspan="11"
                             class="archive-loading-cell"
                         >
                             Đang tải hồ sơ lưu...
