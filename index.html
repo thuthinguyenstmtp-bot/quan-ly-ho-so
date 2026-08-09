@@ -17,18 +17,24 @@
 
     <link
     rel="stylesheet"
-    href="./css/style.css?v=archive-modal-toast-04"
+    href="./css/style.css?v=archive-premium-01"
 >
 
 <link
     rel="stylesheet"
-    href="./css/theme.css?v=project-ui-01"
+    href="./css/theme.css?v=anime-reaction-glass-v6-1"
+>
+
+<link
+    rel="stylesheet"
+    href="./css/anime-reaction-motion.css?v=motion-01"
 >
 
 </head>
 
-<body class="theme-ocean">
-<!-- =================================
+<body class="theme-sage">
+
+<!-- =================================/theme.css
      NỀN ĐỘNG AMBIENT
      ================================= -->
 
@@ -234,20 +240,21 @@
 
     <!-- GIAO DIỆN -->
 
-    <section class="sidebar-modern-theme">
+    <select
+    id="themeSelector"
+    data-sidebar-theme
+>
+    <option
+        value="sage"
+        selected
+    >
+        Sage Garden
+    </option>
 
-        <label for="themeSelector">
-            Giao diện
-        </label>
-
-        <select
-            id="themeSelector"
-            data-sidebar-theme
-        >
-            <option value="sage">
-                Sage Garden
-            </option>
-        </select>
+    <option value="ocean">
+        Ocean
+    </option>
+    </select>
 
     </section>
 
@@ -308,6 +315,9 @@
 <!-- 1. PARSE SDK -->
 <!-- ========================= -->
 
+<script
+    src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"
+></script>
 <script src="https://unpkg.com/parse/dist/parse.min.js"></script>
 
 
@@ -337,14 +347,24 @@
     src="./js/project.js?v=project-delete-fix-02"
 ></script>
 
-<script src="./js/dossier.js?v=delete-fix-02"></script>
+<script
+    src="./js/dossier.js?v=delivery-supplier-search-01"
+></script>
+
+<script
+    src="./js/dossier-missing-view.js?v=missing-view-01"
+></script>
+
+<script
+    src="./js/dossier-export.js?v=export-fix-02"
+></script>
 
 <script
     src="./js/dossier-import.js?v=import-by-name-01"
 ></script>
 
 <script
-    src="./js/dossier_archive.js?v=archive-modal-toast-04"
+    src="./js/dossier_archive.js?v=archive-template-fix-10"
 ></script>
 
 <script
@@ -358,8 +378,30 @@
 <!-- 5. APP -->
 <!-- ========================= -->
 
+<script src="./js/app.js?v=royal-navigation-fix-02"></script>
+
 <script
-    src="./js/app.js?v=app-clean-final-01"
+    src="./js/effects.js?v=effects-02"
+></script>
+
+<script
+    src="./js/ambient-effects.js?v=ambient-01"
+></script>
+
+<script
+    src="./js/mascot.js?v=mascot-01"
+></script>
+
+<script
+    src="./js/mascot-movement.js?v=mascot-move-01"
+></script>
+
+<script
+    src="./js/anime-cutin.js?v=anime-reaction-03"
+></script>
+
+<script
+    src="./js/anime-context.js?v=context-01"
 ></script>
 
 <!-- ========================= -->
