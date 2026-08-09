@@ -19012,3 +19012,1893 @@ Không ẩn form-group Nhà cung cấp.
     }
 
 }
+
+/* =====================================================
+   TRANG QUẢN LÝ HỒ SƠ - BẢNG TỰ DÀI THEO DỮ LIỆU
+   ===================================================== */
+
+/* Khung ngoài của bảng */
+#content:has(#dossierTable) .dossier-table-wrapper,
+#content:has(#dossierTable) .dossier-table-container,
+#content:has(#dossierTable) .table-responsive,
+#content:has(#dossierTable) .table-scroll {
+    height: auto !important;
+    max-height: none !important;
+
+    overflow-y: visible !important;
+    overflow-x: auto !important;
+}
+
+
+/* Bảng hồ sơ */
+#dossierTable {
+    height: auto !important;
+    max-height: none !important;
+
+    table-layout: fixed;
+}
+
+
+/* Không giới hạn chiều cao vùng danh sách */
+#content:has(#dossierTable) .dossier-table-card,
+#content:has(#dossierTable) .dossier-list-card {
+    height: auto !important;
+    max-height: none !important;
+    overflow: visible !important;
+}
+
+/* =====================================================
+   NÚT TẢI EXCEL HỒ SƠ ĐÃ CHỌN
+   ===================================================== */
+
+.dossier-export-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+
+    min-height: 42px;
+    padding: 9px 14px;
+
+    border: 1px solid rgba(54, 112, 73, 0.25);
+    border-radius: 10px;
+
+    color: #376147;
+    background: #eef7f0;
+
+    font: inherit;
+    font-size: 13px;
+    font-weight: 700;
+
+    white-space: nowrap;
+    cursor: pointer;
+
+    transition:
+        transform 0.15s ease,
+        box-shadow 0.15s ease,
+        background-color 0.15s ease;
+}
+
+
+.dossier-export-button:hover {
+    background: #e1f0e5;
+
+    box-shadow:
+        0 8px 20px
+        rgba(48, 90, 60, 0.12);
+
+    transform:
+        translateY(-1px);
+}
+
+
+.dossier-export-button:active {
+    transform:
+        translateY(0);
+}
+
+
+#dossierExportSelectedCount {
+    min-width: 20px;
+    opacity: 0.75;
+}
+/* =====================================================
+   RIBBON TRANG QUẢN LÝ HỒ SƠ
+   ===================================================== */
+
+.dossier-header-actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 14px;
+
+    flex-wrap: wrap;
+}
+
+
+.dossier-file-actions {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+
+    padding: 6px;
+
+    border: 1px solid rgba(90, 118, 96, 0.16);
+    border-radius: 14px;
+
+    background:
+        rgba(255, 255, 255, 0.72);
+
+    box-shadow:
+        0 8px 24px
+        rgba(55, 80, 61, 0.06);
+
+    backdrop-filter:
+        blur(10px);
+}
+
+
+.dossier-toolbar-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+
+    min-height: 38px;
+    padding: 8px 13px;
+
+    border: 1px solid transparent;
+    border-radius: 9px;
+
+    background: transparent;
+    color: #496151;
+
+    font: inherit;
+    font-size: 13px;
+    font-weight: 700;
+
+    white-space: nowrap;
+    cursor: pointer;
+
+    transition:
+        background-color 0.15s ease,
+        border-color 0.15s ease,
+        color 0.15s ease,
+        box-shadow 0.15s ease,
+        transform 0.15s ease;
+}
+
+
+.dossier-toolbar-button:hover:not(:disabled) {
+    border-color:
+        rgba(89, 125, 98, 0.2);
+
+    background:
+        #edf5ef;
+
+    transform:
+        translateY(-1px);
+}
+
+
+.dossier-toolbar-button:active:not(:disabled) {
+    transform:
+        translateY(0);
+}
+
+
+.dossier-toolbar-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    width: 18px;
+    height: 18px;
+
+    font-size: 13px;
+}
+
+
+.dossier-export-count {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    min-width: 22px;
+    height: 22px;
+    padding: 0 6px;
+
+    border-radius: 999px;
+
+    background:
+        rgba(90, 122, 98, 0.12);
+
+    color: #52685a;
+
+    font-size: 11px;
+    font-weight: 800;
+}
+
+
+/* Khi chưa chọn hồ sơ */
+
+.dossier-export-button:disabled {
+    opacity: 0.48;
+    cursor: not-allowed;
+}
+
+
+/* Khi đã chọn hồ sơ */
+
+.dossier-export-button.is-ready {
+    border-color:
+        rgba(62, 126, 83, 0.25);
+
+    background:
+        #e7f3ea;
+
+    color:
+        #356247;
+
+    box-shadow:
+        0 6px 16px
+        rgba(55, 104, 70, 0.1);
+}
+
+
+.dossier-export-button.is-ready
+.dossier-export-count {
+    background:
+        #5c8468;
+
+    color:
+        #ffffff;
+}
+
+
+.dossier-toolbar-divider {
+    display: block;
+
+    width: 1px;
+    height: 32px;
+
+    background:
+        rgba(84, 111, 91, 0.22);
+}
+
+
+.dossier-primary-action {
+    min-height: 46px;
+    padding: 11px 19px;
+
+    border-radius: 11px;
+
+    background:
+        linear-gradient(
+            135deg,
+            #78947e,
+            #63806b
+        );
+
+    color:
+        #ffffff;
+
+    box-shadow:
+        0 10px 24px
+        rgba(65, 101, 76, 0.2);
+}
+
+
+.dossier-primary-action:hover {
+    background:
+        linear-gradient(
+            135deg,
+            #6f8d77,
+            #587464
+        );
+
+    box-shadow:
+        0 13px 30px
+        rgba(65, 101, 76, 0.26);
+
+    transform:
+        translateY(-1px);
+}
+
+
+@media (max-width: 900px) {
+
+    .dossier-header-actions {
+        width: 100%;
+        justify-content: flex-start;
+    }
+
+
+    .dossier-toolbar-divider {
+        display: none;
+    }
+
+}
+
+
+@media (max-width: 650px) {
+
+    .dossier-file-actions {
+        display: grid;
+        grid-template-columns:
+            repeat(2, minmax(0, 1fr));
+
+        width: 100%;
+    }
+
+
+    .dossier-toolbar-button {
+        width: 100%;
+    }
+
+
+    .dossier-primary-action {
+        width: 100%;
+    }
+
+}
+
+/* =====================================================
+   ĐÃ BÀN GIAO - TÌM NCC BẰNG TÊN
+   ===================================================== */
+
+.delivery-page
+#deliverySupplierFilter {
+
+    width: 100%;
+    min-width: 0;
+    height: 42px;
+
+    padding: 0 13px;
+
+    border:
+        1px solid
+        rgba(101, 125, 106, 0.22);
+
+    border-radius: 10px;
+
+    outline: none;
+
+    background:
+        rgba(255, 255, 255, 0.9);
+
+    color:
+        #39493e;
+
+    font: inherit;
+    font-size: 13px;
+
+    transition:
+        border-color 0.15s ease,
+        box-shadow 0.15s ease;
+}
+
+
+.delivery-page
+#deliverySupplierFilter:focus {
+
+    border-color:
+        rgba(92, 130, 101, 0.52);
+
+    box-shadow:
+        0 0 0 3px
+        rgba(100, 145, 111, 0.1);
+
+}
+
+
+.delivery-page
+#deliverySupplierFilter::placeholder {
+
+    color:
+        #9aa59d;
+
+}
+
+/* =====================================================
+   ĐÃ THANH TOÁN - TÌM NCC BẰNG TÊN
+   ===================================================== */
+
+.payment-page
+#paidSupplierFilter {
+
+    width: 100%;
+    min-width: 0;
+    height: 42px;
+
+    padding: 0 13px;
+
+    border:
+        1px solid
+        rgba(101, 125, 106, 0.22);
+
+    border-radius: 10px;
+
+    outline: none;
+
+    background:
+        rgba(255, 255, 255, 0.9);
+
+    color:
+        #39493e;
+
+    font: inherit;
+    font-size: 13px;
+
+    transition:
+        border-color 0.15s ease,
+        box-shadow 0.15s ease,
+        background-color 0.15s ease;
+}
+
+
+.payment-page
+#paidSupplierFilter:focus {
+
+    border-color:
+        rgba(92, 130, 101, 0.52);
+
+    background:
+        #ffffff;
+
+    box-shadow:
+        0 0 0 3px
+        rgba(100, 145, 111, 0.10);
+
+}
+
+
+.payment-page
+#paidSupplierFilter::placeholder {
+
+    color:
+        #9aa59d;
+
+}
+
+/* =====================================================
+   ARCHIVE PAGE - SAGE PREMIUM UI
+   ===================================================== */
+
+.archive-page {
+    --archive-green-900: #2f4638;
+    --archive-green-800: #3f5e49;
+    --archive-green-700: #53715c;
+    --archive-green-600: #66866f;
+    --archive-green-500: #77977f;
+
+    --archive-green-100: #edf4ee;
+    --archive-green-050: #f7faf7;
+
+    --archive-border: rgba(89, 119, 96, 0.16);
+    --archive-border-strong: rgba(89, 119, 96, 0.28);
+
+    --archive-shadow:
+        0 12px 32px
+        rgba(64, 89, 69, 0.08);
+
+    --archive-shadow-hover:
+        0 14px 34px
+        rgba(64, 89, 69, 0.12);
+}
+
+
+/* =====================================================
+   HEADER
+   ===================================================== */
+
+.archive-page .archive-page-header {
+
+    display: grid !important;
+
+    grid-template-columns:
+        minmax(0, 1fr)
+        auto;
+
+    align-items: center !important;
+
+    gap: 28px !important;
+
+    margin-bottom: 16px;
+}
+
+
+.archive-page .archive-page-heading {
+
+    min-width: 0;
+}
+
+
+.archive-page .archive-page-eyebrow {
+
+    display: inline-block;
+
+    margin-bottom: 6px;
+
+    color:
+        var(--archive-green-700);
+
+    font-size: 11px;
+
+    font-weight: 800;
+
+    letter-spacing: 0.12em;
+}
+
+
+.archive-page .archive-page-heading h1 {
+
+    margin:
+        0 0 6px;
+
+    color:
+        var(--archive-green-900);
+
+    font-size:
+        clamp(
+            30px,
+            3vw,
+            42px
+        );
+
+    line-height:
+        1.08;
+
+    letter-spacing:
+        -0.025em;
+}
+
+
+.archive-page .archive-page-heading p {
+
+    margin: 0;
+
+    max-width: 620px;
+
+    color: #748178;
+
+    font-size: 14px;
+
+    line-height: 1.55;
+}
+
+
+/* =====================================================
+   HEADER ACTIONS
+   ===================================================== */
+
+.archive-page .archive-header-actions {
+
+    display: flex !important;
+
+    align-items: center !important;
+
+    justify-content: flex-end !important;
+
+    gap: 10px !important;
+
+    flex-wrap: nowrap !important;
+}
+
+
+/* =====================================================
+   FILE ACTION RIBBON
+   ===================================================== */
+
+.archive-page .archive-file-actions {
+
+    display: inline-flex !important;
+
+    align-items: center !important;
+
+    gap: 6px !important;
+
+    padding: 5px !important;
+
+    border:
+        1px solid
+        var(--archive-border)
+        !important;
+
+    border-radius:
+        13px !important;
+
+    background:
+        rgba(
+            255,
+            255,
+            255,
+            0.72
+        )
+        !important;
+
+    backdrop-filter:
+        blur(12px);
+
+    -webkit-backdrop-filter:
+        blur(12px);
+
+    box-shadow:
+        0 8px 22px
+        rgba(62, 85, 67, 0.055)
+        !important;
+}
+
+
+/* =====================================================
+   BUTTON IMPORT / EXPORT
+   ===================================================== */
+
+.archive-page
+.archive-toolbar-button {
+
+    appearance: none !important;
+
+    display: inline-flex !important;
+
+    align-items: center !important;
+
+    justify-content: center !important;
+
+    gap: 7px !important;
+
+    height: 40px !important;
+
+    min-height: 40px !important;
+
+    padding:
+        0 13px !important;
+
+    margin: 0 !important;
+
+    border:
+        1px solid
+        transparent
+        !important;
+
+    border-radius:
+        9px !important;
+
+    background:
+        transparent
+        !important;
+
+    color:
+        var(--archive-green-700)
+        !important;
+
+    font: inherit !important;
+
+    font-size:
+        12.5px !important;
+
+    font-weight:
+        750 !important;
+
+    white-space:
+        nowrap !important;
+
+    cursor:
+        pointer !important;
+
+    box-shadow:
+        none !important;
+
+    transition:
+        background-color 0.16s ease,
+        border-color 0.16s ease,
+        color 0.16s ease,
+        transform 0.16s ease,
+        box-shadow 0.16s ease !important;
+}
+
+
+.archive-page
+.archive-toolbar-button:hover:not(:disabled) {
+
+    border-color:
+        rgba(
+            89,
+            126,
+            99,
+            0.2
+        )
+        !important;
+
+    background:
+        var(--archive-green-100)
+        !important;
+
+    color:
+        var(--archive-green-800)
+        !important;
+
+    transform:
+        translateY(-1px);
+
+    box-shadow:
+        0 5px 12px
+        rgba(68, 99, 76, 0.07)
+        !important;
+}
+
+
+/* =====================================================
+   EXPORT DISABLED
+   ===================================================== */
+
+.archive-page
+#archiveExportSelectedButton:disabled {
+
+    opacity: 0.44 !important;
+
+    cursor:
+        not-allowed !important;
+
+    background:
+        transparent !important;
+
+    transform:
+        none !important;
+}
+
+
+/* =====================================================
+   EXPORT READY
+   ===================================================== */
+
+.archive-page
+#archiveExportSelectedButton.is-ready {
+
+    opacity:
+        1 !important;
+
+    border-color:
+        rgba(
+            74,
+            122,
+            88,
+            0.25
+        )
+        !important;
+
+    background:
+        #e6f1e8
+        !important;
+
+    color:
+        #355d42
+        !important;
+}
+
+
+/* =====================================================
+   EXPORT COUNT
+   ===================================================== */
+
+.archive-page
+.archive-export-count {
+
+    display:
+        inline-flex !important;
+
+    align-items:
+        center !important;
+
+    justify-content:
+        center !important;
+
+    min-width:
+        20px !important;
+
+    height:
+        20px !important;
+
+    padding:
+        0 5px !important;
+
+    border-radius:
+        999px !important;
+
+    background:
+        rgba(
+            88,
+            125,
+            99,
+            0.12
+        )
+        !important;
+
+    color:
+        var(--archive-green-700)
+        !important;
+
+    font-size:
+        10px !important;
+
+    font-weight:
+        800 !important;
+}
+
+
+/* =====================================================
+   PRIMARY ADD BUTTON
+   ===================================================== */
+
+.archive-page
+.archive-primary-button {
+
+    display:
+        inline-flex !important;
+
+    align-items:
+        center !important;
+
+    justify-content:
+        center !important;
+
+    gap:
+        7px !important;
+
+    height:
+        50px !important;
+
+    min-height:
+        50px !important;
+
+    padding:
+        0 18px !important;
+
+    margin: 0 !important;
+
+    border:
+        1px solid
+        rgba(
+            68,
+            104,
+            79,
+            0.2
+        )
+        !important;
+
+    border-radius:
+        11px !important;
+
+    background:
+        linear-gradient(
+            135deg,
+            #73927b,
+            #607e69
+        )
+        !important;
+
+    color:
+        #ffffff
+        !important;
+
+    font: inherit !important;
+
+    font-size:
+        13px !important;
+
+    font-weight:
+        800 !important;
+
+    white-space:
+        nowrap !important;
+
+    cursor:
+        pointer !important;
+
+    box-shadow:
+        0 10px 22px
+        rgba(
+            70,
+            101,
+            79,
+            0.18
+        )
+        !important;
+
+    transition:
+        transform 0.16s ease,
+        box-shadow 0.16s ease,
+        background 0.16s ease;
+}
+
+
+.archive-page
+.archive-primary-button:hover {
+
+    transform:
+        translateY(-2px);
+
+    background:
+        linear-gradient(
+            135deg,
+            #66866f,
+            #56735f
+        )
+        !important;
+
+    box-shadow:
+        0 14px 28px
+        rgba(
+            70,
+            101,
+            79,
+            0.23
+        )
+        !important;
+}
+
+
+/* =====================================================
+   HEALING BANNER
+   ===================================================== */
+
+.archive-page
+.archive-healing-banner {
+
+    position: relative;
+
+    display: flex;
+
+    align-items: center;
+
+    gap: 12px;
+
+    min-height: 60px;
+
+    margin-bottom: 16px;
+
+    padding:
+        11px 17px;
+
+    border:
+        1px solid
+        rgba(
+            103,
+            139,
+            111,
+            0.14
+        );
+
+    border-left:
+        4px solid
+        #78977f;
+
+    border-radius:
+        13px;
+
+    background:
+        linear-gradient(
+            110deg,
+            rgba(
+                245,
+                250,
+                246,
+                0.96
+            ),
+            rgba(
+                255,
+                255,
+                255,
+                0.78
+            )
+        );
+
+    box-shadow:
+        0 8px 22px
+        rgba(
+            61,
+            87,
+            67,
+            0.04
+        );
+}
+
+
+.archive-page
+.archive-healing-icon {
+
+    display:
+        flex;
+
+    align-items:
+        center;
+
+    justify-content:
+        center;
+
+    width:
+        38px;
+
+    height:
+        38px;
+
+    flex:
+        0 0 38px;
+
+    border-radius:
+        10px;
+
+    background:
+        rgba(
+            255,
+            255,
+            255,
+            0.85
+        );
+
+    box-shadow:
+        0 5px 14px
+        rgba(
+            69,
+            96,
+            75,
+            0.06
+        );
+}
+
+
+.archive-page
+.archive-healing-copy strong {
+
+    display:
+        block;
+
+    margin-bottom:
+        2px;
+
+    color:
+        var(--archive-green-900);
+
+    font-size:
+        13.5px;
+}
+
+
+.archive-page
+.archive-healing-copy p {
+
+    margin:
+        0;
+
+    color:
+        #7c887f;
+
+    font-size:
+        12.5px;
+
+    line-height:
+        1.4;
+}
+
+
+/* =====================================================
+   FILTER CARD
+   ===================================================== */
+
+.archive-page
+.archive-filter-card {
+
+    padding:
+        17px !important;
+
+    margin-bottom:
+        16px;
+
+    border:
+        1px solid
+        var(--archive-border)
+        !important;
+
+    border-radius:
+        15px !important;
+
+    background:
+        rgba(
+            255,
+            255,
+            255,
+            0.78
+        )
+        !important;
+
+    backdrop-filter:
+        blur(14px);
+
+    -webkit-backdrop-filter:
+        blur(14px);
+
+    box-shadow:
+        var(--archive-shadow)
+        !important;
+}
+
+
+/* =====================================================
+   FILTER GRID
+   ===================================================== */
+
+.archive-page
+.archive-filter-grid {
+
+    display:
+        grid !important;
+
+    grid-template-columns:
+        1.8fr
+        0.9fr
+        1.2fr
+        0.9fr
+        1fr
+        1.3fr
+        auto !important;
+
+    align-items:
+        end;
+
+    gap:
+        10px !important;
+}
+
+
+/* =====================================================
+   LABEL
+   ===================================================== */
+
+.archive-page
+.archive-filter-field label {
+
+    display:
+        block;
+
+    margin-bottom:
+        7px;
+
+    color:
+        #617168;
+
+    font-size:
+        12px;
+
+    font-weight:
+        750;
+}
+
+
+/* =====================================================
+   INPUT / SELECT
+   ===================================================== */
+
+.archive-page
+.archive-filter-field input,
+
+.archive-page
+.archive-filter-field select {
+
+    width:
+        100%;
+
+    min-width:
+        0;
+
+    height:
+        43px;
+
+    padding:
+        0 13px;
+
+    border:
+        1px solid
+        rgba(
+            96,
+            125,
+            103,
+            0.23
+        )
+        !important;
+
+    border-radius:
+        10px !important;
+
+    outline:
+        none;
+
+    background:
+        rgba(
+            255,
+            255,
+            255,
+            0.92
+        )
+        !important;
+
+    color:
+        #415047;
+
+    font:
+        inherit;
+
+    font-size:
+        13px;
+
+    transition:
+        border-color 0.15s ease,
+        box-shadow 0.15s ease,
+        background-color 0.15s ease;
+}
+
+
+.archive-page
+.archive-filter-field input:hover,
+
+.archive-page
+.archive-filter-field select:hover {
+
+    border-color:
+        rgba(
+            85,
+            125,
+            96,
+            0.36
+        )
+        !important;
+}
+
+
+.archive-page
+.archive-filter-field input:focus,
+
+.archive-page
+.archive-filter-field select:focus {
+
+    border-color:
+        rgba(
+            82,
+            128,
+            94,
+            0.52
+        )
+        !important;
+
+    background:
+        #ffffff
+        !important;
+
+    box-shadow:
+        0 0 0 3px
+        rgba(
+            92,
+            137,
+            103,
+            0.09
+        )
+        !important;
+}
+
+
+/* =====================================================
+   RESET
+   ===================================================== */
+
+.archive-page
+.archive-reset-button {
+
+    height:
+        43px !important;
+
+    padding:
+        0 16px !important;
+
+    border:
+        1px solid
+        rgba(
+            92,
+            120,
+            99,
+            0.18
+        )
+        !important;
+
+    border-radius:
+        10px !important;
+
+    background:
+        #eef4ef
+        !important;
+
+    color:
+        #5c7062
+        !important;
+
+    font:
+        inherit;
+
+    font-size:
+        12.5px;
+
+    font-weight:
+        750;
+
+    cursor:
+        pointer;
+
+    transition:
+        0.15s ease;
+}
+
+
+.archive-page
+.archive-reset-button:hover {
+
+    background:
+        #e3ede5
+        !important;
+
+    color:
+        #415d49
+        !important;
+}
+
+
+/* =====================================================
+   TABLE CARD
+   ===================================================== */
+
+.archive-page
+.archive-table-card {
+
+    padding:
+        13px !important;
+
+    border:
+        1px solid
+        var(--archive-border)
+        !important;
+
+    border-radius:
+        16px !important;
+
+    background:
+        rgba(
+            255,
+            255,
+            255,
+            0.82
+        )
+        !important;
+
+    backdrop-filter:
+        blur(14px);
+
+    -webkit-backdrop-filter:
+        blur(14px);
+
+    box-shadow:
+        var(--archive-shadow)
+        !important;
+}
+
+
+/* =====================================================
+   TABLE META
+   ===================================================== */
+
+.archive-page
+.archive-table-meta {
+
+    display:
+        flex;
+
+    align-items:
+        center;
+
+    justify-content:
+        space-between;
+
+    gap:
+        12px;
+
+    padding:
+        1px 1px 10px;
+}
+
+
+.archive-page
+.archive-sort-note {
+
+    color:
+        #849087;
+
+    font-size:
+        11.5px;
+}
+
+
+/* =====================================================
+   RESULT COUNT
+   ===================================================== */
+
+.archive-page
+.archive-result-count {
+
+    display:
+        inline-flex !important;
+
+    align-items:
+        center;
+
+    justify-content:
+        center;
+
+    min-height:
+        28px;
+
+    padding:
+        0 10px;
+
+    border:
+        1px solid
+        rgba(
+            75,
+            109,
+            175,
+            0.10
+        );
+
+    border-radius:
+        999px !important;
+
+    background:
+        #f1f6ff
+        !important;
+
+    color:
+        #3162bf
+        !important;
+
+    font-size:
+        11.5px;
+
+    font-weight:
+        800;
+}
+
+
+/* =====================================================
+   TABLE WRAPPER
+   ===================================================== */
+
+.archive-page
+.archive-table-scroll {
+
+    width:
+        100%;
+
+    overflow-x:
+        auto;
+
+    border:
+        1px solid
+        rgba(
+            90,
+            116,
+            96,
+            0.15
+        );
+
+    border-radius:
+        12px;
+
+    background:
+        rgba(
+            255,
+            255,
+            255,
+            0.9
+        );
+}
+
+
+/* =====================================================
+   TABLE
+   ===================================================== */
+
+.archive-page
+.archive-table {
+
+    width:
+        100%;
+
+    min-width:
+        1220px;
+
+    border-collapse:
+        separate;
+
+    border-spacing:
+        0;
+
+    table-layout:
+        fixed;
+}
+
+
+/* =====================================================
+   TABLE HEADER
+   ===================================================== */
+
+.archive-page
+.archive-table thead th {
+
+    height:
+        48px;
+
+    padding:
+        11px 9px;
+
+    border-right:
+        1px solid
+        rgba(
+            255,
+            255,
+            255,
+            0.32
+        );
+
+    background:
+        linear-gradient(
+            180deg,
+            #78977f,
+            #688970
+        )
+        !important;
+
+    color:
+        #ffffff
+        !important;
+
+    font-size:
+        12px;
+
+    font-weight:
+        780;
+
+    line-height:
+        1.3;
+
+    text-align:
+        center;
+
+    white-space:
+        normal;
+}
+
+
+.archive-page
+.archive-table thead th:first-child {
+
+    border-radius:
+        10px 0 0 0;
+}
+
+
+.archive-page
+.archive-table thead th:last-child {
+
+    border-right:
+        0;
+
+    border-radius:
+        0 10px 0 0;
+}
+
+
+/* =====================================================
+   TABLE CELLS
+   ===================================================== */
+
+.archive-page
+.archive-table tbody td {
+
+    min-height:
+        52px;
+
+    padding:
+        11px 9px;
+
+    border-right:
+        1px solid
+        rgba(
+            94,
+            118,
+            99,
+            0.12
+        );
+
+    border-bottom:
+        1px solid
+        rgba(
+            94,
+            118,
+            99,
+            0.12
+        );
+
+    background:
+        rgba(
+            255,
+            255,
+            255,
+            0.88
+        );
+
+    color:
+        #425048;
+
+    font-size:
+        12.5px;
+
+    line-height:
+        1.45;
+
+    vertical-align:
+        middle;
+
+    white-space:
+        normal !important;
+
+    overflow-wrap:
+        anywhere;
+
+    transition:
+        background-color 0.14s ease;
+}
+
+
+.archive-page
+.archive-table tbody tr:nth-child(even) td {
+
+    background:
+        #fafcfb;
+}
+
+
+.archive-page
+.archive-table tbody tr:hover td {
+
+    background:
+        #f0f6f1;
+}
+
+
+/* =====================================================
+   CHECKBOX
+   ===================================================== */
+
+.archive-page
+.archive-select-checkbox {
+
+    width:
+        18px !important;
+
+    height:
+        18px !important;
+
+    accent-color:
+        #688c72;
+
+    cursor:
+        pointer;
+}
+
+
+/* =====================================================
+   EMPTY STATE
+   ===================================================== */
+
+.archive-page
+.archive-empty-row,
+
+.archive-page
+.archive-loading-cell {
+
+    height:
+        115px !important;
+
+    padding:
+        28px !important;
+
+    text-align:
+        center !important;
+
+    vertical-align:
+        middle !important;
+
+    color:
+        #8a958d !important;
+
+    background:
+        linear-gradient(
+            180deg,
+            #ffffff,
+            #fbfdfb
+        )
+        !important;
+}
+
+
+/* =====================================================
+   ACTION BUTTONS INSIDE TABLE
+   ===================================================== */
+
+.archive-page
+.archive-table tbody td:last-child button {
+
+    min-width:
+        42px;
+
+    height:
+        30px;
+
+    margin:
+        2px;
+
+    padding:
+        0 8px;
+
+    border:
+        1px solid
+        rgba(
+            92,
+            121,
+            98,
+            0.18
+        );
+
+    border-radius:
+        7px;
+
+    background:
+        #f3f7f4;
+
+    color:
+        #56705f;
+
+    font:
+        inherit;
+
+    font-size:
+        11.5px;
+
+    font-weight:
+        700;
+
+    cursor:
+        pointer;
+
+    transition:
+        0.14s ease;
+}
+
+
+.archive-page
+.archive-table tbody td:last-child button:hover {
+
+    background:
+        #e5efe7;
+
+    color:
+        #385945;
+
+    transform:
+        translateY(-1px);
+}
+
+
+/* =====================================================
+   RESPONSIVE
+   ===================================================== */
+
+@media (
+    max-width: 1250px
+) {
+
+    .archive-page
+    .archive-page-header {
+
+        grid-template-columns:
+            1fr !important;
+    }
+
+
+    .archive-page
+    .archive-header-actions {
+
+        justify-content:
+            flex-start !important;
+
+        flex-wrap:
+            wrap !important;
+    }
+
+
+    .archive-page
+    .archive-filter-grid {
+
+        grid-template-columns:
+            repeat(
+                3,
+                minmax(
+                    0,
+                    1fr
+                )
+            )
+            !important;
+    }
+
+}
+
+
+@media (
+    max-width: 760px
+) {
+
+    .archive-page
+    .archive-header-actions {
+
+        flex-direction:
+            column;
+
+        align-items:
+            stretch !important;
+    }
+
+
+    .archive-page
+    .archive-file-actions {
+
+        display:
+            grid !important;
+
+        grid-template-columns:
+            1fr !important;
+    }
+
+
+    .archive-page
+    .archive-toolbar-button,
+
+    .archive-page
+    .archive-primary-button {
+
+        width:
+            100% !important;
+    }
+
+
+    .archive-page
+    .archive-filter-grid {
+
+        grid-template-columns:
+            1fr
+            !important;
+    }
+
+
+    .archive-page
+    .archive-reset-button {
+
+        width:
+            100%;
+    }
+
+}
